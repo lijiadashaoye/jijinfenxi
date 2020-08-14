@@ -34,7 +34,8 @@
           <th class="sorrs" title="点击排序" @click="toSort(true)">被持仓次数</th>
           <th class="sorrs" title="点击排序" @click="toSort(false)">日涨幅 %</th>
           <th>
-            持仓基金&nbsp;
+            持仓基金&nbsp;&nbsp;
+            <span>{{jishu.length}}个股票，{{single}} 个股票被持有一次</span>&nbsp;&nbsp;
             <input type="text" placeholder="输入股票名称" v-model="jijins" />
             <button @click="search">搜索基金</button>
           </th>
@@ -74,6 +75,7 @@ export default {
 
       setWidth: 0,
       setHeight: 0,
+      single: 0, // 记录只被持有一次的个数
     };
   },
   methods: {
@@ -129,8 +131,10 @@ export default {
 
       this.setWidth = this.setWidth + forX.length * 24;
       this.setHeight = this.setHeight + forY.length * 24;
-
       this.jishu.forEach((t, ind) => {
+        if (t.num == 1) {
+          this.single += +t.num;
+        }
         t.jijinCode.forEach((d) => {
           let num = this.allDatas.findIndex((k) => k.code == d);
           // 点位数据，以索引标定位置 [x,y,tip]

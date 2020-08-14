@@ -118,17 +118,17 @@ export default {
 
       forX.forEach((t) => {
         if (t.length > this.setHeight) {
-          this.setHeight = t.length;
+          this.setHeight = t.length * 20;
         }
       });
       forY.forEach((t) => {
         if (t.length > this.setWidth) {
-          this.setWidth = t.length;
+          this.setWidth = t.length * 20;
         }
       });
 
-      this.setWidth = this.setWidth + forX.length * 22;
-      this.setHeight = this.setHeight + forY.length * 22;
+      this.setWidth = this.setWidth + forX.length * 24;
+      this.setHeight = this.setHeight + forY.length * 24;
 
       this.jishu.forEach((t, ind) => {
         t.jijinCode.forEach((d) => {
@@ -188,6 +188,7 @@ export default {
             type: "scatter",
             symbolSize: 10, //图元的大小
             data: this.finallData,
+            color: "blue",
           },
         ],
       };
@@ -280,6 +281,10 @@ export default {
         inJishu.jijin.push(jijin.name);
         inJishu.jijinCode.push(jijin.code);
         inJishu.num++;
+      });
+
+      this.jishu = this.jishu.sort((a, b) => {
+        return b.num - a.num;
       });
       this.makeChart();
     },

@@ -1,24 +1,4 @@
 # tongji
 
-## Project setup
-```
-yarn install
-```
-
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
-
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## 说明
+选择Excel文件，格式一定要固定，通过node拉取爱基金网站的数据，然后在本地用echarts显示出来

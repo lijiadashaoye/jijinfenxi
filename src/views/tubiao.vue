@@ -76,7 +76,7 @@
         >
           <td
             :class="{'bk':t.num>=shaixuan}"
-            style="text-align: center;"
+            style="text-align: center;font-size: 16px;"
           >{{t.name}}</td>
           <td style="text-align: center;">{{t.num}}</td>
           <td style="text-align: center;">{{t.zhangfu}}</td>
@@ -127,18 +127,18 @@ export default {
             type: "buffer",
           }),
           sheetNames = workbook.SheetNames; // 工作表名称集合
-        if (sheetNames.length > 1) {
-          let ls;
-          for (let i = 0; i < sheetNames.length; i++) {
-            i > 0
-              ? (ls += `${i + 1} : ${sheetNames[i]}\n`)
-              : (ls = `${i + 1} : ${sheetNames[i]}\n`);
-          }
-          fff = prompt(
-            `文件中有${sheetNames.length}个表，请选择查看哪个，请选择编号。\n${ls}`
-          );
-        }
-        let worksheet = workbook.Sheets[sheetNames[fff - 1]], // 这里我们只读取第一张sheet1
+        // if (sheetNames.length > 1) {
+        //   let ls;
+        //   for (let i = 0; i < sheetNames.length; i++) {
+        //     i > 0
+        //       ? (ls += `${i + 1} : ${sheetNames[i]}\n`)
+        //       : (ls = `${i + 1} : ${sheetNames[i]}\n`);
+        //   }
+        //   fff = prompt(
+        //     `文件中有${sheetNames.length}个表，请选择查看哪个，请选择编号。\n${ls}`
+        //   )-1;
+        // }
+        let worksheet = workbook.Sheets[sheetNames[fff]], // 这里我们只读取第一张sheet1
           csv = XLSX.utils.sheet_to_json(worksheet, { range: "A1:B200" });
 
         _this.allDatas = csv.map((t) => ({
@@ -348,7 +348,7 @@ table {
   border-collapse: collapse; /*关键代码*/
 }
 th {
-  min-width: 100px;
+  min-width: 110px;
   text-align: center;
 }
 td {

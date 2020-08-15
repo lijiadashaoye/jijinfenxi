@@ -5,7 +5,7 @@ import router from './router'
 Vue.config.productionTip = false
 
 import as from "axios";
-as.defaults.baseURL = 'http://localhost:6666/';
+as.defaults.baseURL = 'http://localhost:6654';
 // http响应拦截器
 as.interceptors.response.use(res => {
   if (res.status == 200) {

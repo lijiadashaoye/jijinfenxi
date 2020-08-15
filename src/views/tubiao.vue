@@ -1,24 +1,40 @@
 <template>
   <div>
-    <input type="file" id="file" @change="readExcel" />
-    <div style="width:100%;overflow:scroll" v-if="toShow">
+    <input
+      type="file"
+      id="file"
+      @change="readExcel"
+    />
+    <!-- echarts 显示 -->
+    <!-- <div style="width:100%;overflow:scroll" v-if="toShow">
       <div id="main" :style="{width:`${setWidth}px`,height:`${setHeight}px`}"></div>
-    </div>
-    <table border="1" collpase v-if="toShow">
+    </div> -->
+    <table
+      border="1"
+      collpase
+      v-if="toShow"
+    >
       <thead>
         <tr>
           <th colspan="2">没有持仓数据的</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="t in kong" :key="t.code">
+        <tr
+          v-for="t in kong"
+          :key="t.code"
+        >
           <td>{{t.code}}</td>
           <td>{{t.name}}</td>
         </tr>
       </tbody>
     </table>
 
-    <table border="1" collpase v-if="toShow">
+    <table
+      border="1"
+      collpase
+      v-if="toShow"
+    >
       <thead>
         <tr>
           <th colspan="4">数据统计</th>
@@ -31,20 +47,39 @@
       <tbody>
         <tr>
           <th>股票名称</th>
-          <th class="sorrs" title="点击排序" @click="toSort(true)">被持仓次数</th>
-          <th class="sorrs" title="点击排序" @click="toSort(false)">日涨幅 %</th>
+          <th
+            class="sorrs"
+            title="点击排序"
+            @click="toSort(true)"
+          >被持仓次数</th>
+          <th
+            class="sorrs"
+            title="点击排序"
+            @click="toSort(false)"
+          >日涨幅 %</th>
           <th>
             持仓基金&nbsp;&nbsp;
             <span>{{jishu.length}}个股票，{{single}} 个股票被持有一次</span>&nbsp;&nbsp;
-            <input type="text" placeholder="输入股票名称" v-model="jijins" />
+            <input
+              type="text"
+              placeholder="输入股票名称"
+              v-model="jijins"
+            />
             <button @click="search">搜索基金</button>
           </th>
         </tr>
 
-        <tr v-for="(t,ind) in jishu" :key="ind" :ref="t.code">
-          <td :class="{'bk':t.num>=shaixuan}">{{t.name}}</td>
-          <td>{{t.num}}</td>
-          <td>{{t.zhangfu}}</td>
+        <tr
+          v-for="(t,ind) in jishu"
+          :key="ind"
+          :ref="t.code"
+        >
+          <td
+            :class="{'bk':t.num>=shaixuan}"
+            style="text-align: center;"
+          >{{t.name}}</td>
+          <td style="text-align: center;">{{t.num}}</td>
+          <td style="text-align: center;">{{t.zhangfu}}</td>
           <td style="font-size:12px;">{{t.jijin.join('，')}}</td>
         </tr>
       </tbody>
@@ -53,7 +88,7 @@
 </template>
 
 <script>
-import * as echarts from "echarts";
+// import * as echarts from "echarts";
 // https://www.jianshu.com/p/31534691ed53
 import XLSX from "xlsx";
 
@@ -96,7 +131,7 @@ export default {
           let ls;
           for (let i = 0; i < sheetNames.length; i++) {
             i > 0
-              ? (ls += `${i + 1} : ${sheetNames[i]}`)
+              ? (ls += `${i + 1} : ${sheetNames[i]}\n`)
               : (ls = `${i + 1} : ${sheetNames[i]}\n`);
           }
           fff = prompt(
@@ -141,71 +176,71 @@ export default {
           this.finallData.push([num, ind, t.zhangfu]);
         });
       });
-      let option = {
-        title: {
-          text: "股票投资公司分部",
-        },
-        tooltip: {
-          position: "top",
-          formatter: function (params) {
-            return ` 日涨幅 ${params.value[2]}%`;
-          },
-        },
-        grid: {
-          left: 2,
-          bottom: 5,
-          right: 5,
-          containLabel: true,
-        },
-        xAxis: {
-          type: "category",
-          data: forX,
-          axisLabel: { rotate: 90 },
-          splitLine: {
-            show: true,
-            lineStyle: {
-              color: "#d3d0d0",
-              type: "dashed",
-            },
-          },
-          axisLine: {
-            show: false,
-          },
-        },
-        yAxis: {
-          name: "股票",
-          type: "category",
-          data: forY,
-          axisLine: {
-            show: false,
-          },
-          splitLine: {
-            show: true,
-            lineStyle: {
-              color: "#d3d0d0",
-              type: "dashed",
-            },
-          },
-        },
-        series: [
-          {
-            type: "scatter",
-            symbolSize: 10, //图元的大小
-            data: this.finallData,
-            color: "blue",
-          },
-        ],
-      };
+      // let option = {
+      //   title: {
+      //     text: "股票投资公司分部",
+      //   },
+      //   tooltip: {
+      //     position: "top",
+      //     formatter: function (params) {
+      //       return ` 日涨幅 ${params.value[2]}%`;
+      //     },
+      //   },
+      //   grid: {
+      //     left: 2,
+      //     bottom: 5,
+      //     right: 5,
+      //     containLabel: true,
+      //   },
+      //   xAxis: {
+      //     type: "category",
+      //     data: forX,
+      //     axisLabel: { rotate: 90 },
+      //     splitLine: {
+      //       show: true,
+      //       lineStyle: {
+      //         color: "#d3d0d0",
+      //         type: "dashed",
+      //       },
+      //     },
+      //     axisLine: {
+      //       show: false,
+      //     },
+      //   },
+      //   yAxis: {
+      //     name: "股票",
+      //     type: "category",
+      //     data: forY,
+      //     axisLine: {
+      //       show: false,
+      //     },
+      //     splitLine: {
+      //       show: true,
+      //       lineStyle: {
+      //         color: "#d3d0d0",
+      //         type: "dashed",
+      //       },
+      //     },
+      //   },
+      //   series: [
+      //     {
+      //       type: "scatter",
+      //       symbolSize: 10, //图元的大小
+      //       data: this.finallData,
+      //       color: "blue",
+      //     },
+      //   ],
+      // };
 
       this.toShow = true;
-      setTimeout(() => {
-        var myChart = echarts.init(document.getElementById("main"));
-        myChart.setOption(option);
-        myChart.on("click", (params) => {
-          let ind = params.value[0];
-          window.open(`http://fund.10jqka.com.cn/${this.canSee[ind].code}/`);
-        });
-      }, 100);
+      // setTimeout(() => {
+      //   var myChart = echarts.init(document.getElementById("main"));
+      //   myChart.setOption(option);
+      //   myChart.on("click", (params) => {
+      //     let ind = params.value[0];
+      //     window.open(`http://fund.10jqka.com.cn/${this.canSee[ind].code}/`);
+      //   });
+      // }, 100);
     },
     toSort(type) {
       if (type) {
@@ -249,6 +284,7 @@ export default {
     laping(data) {
       // 选出空数组
       data.forEach((t, ind) => {
+        console.log(t);
         if (t.length) {
           this.canSee.push(...t);
         } else {
@@ -310,6 +346,10 @@ export default {
 table {
   border: 1px solid red;
   border-collapse: collapse; /*关键代码*/
+}
+th {
+  min-width: 100px;
+  text-align: center;
 }
 td {
   padding: 2px 3px;

@@ -2,7 +2,7 @@ let http = require('http');
 
 http.createServer((req, res) => {
     if (req.url != '/favicon.ico') {
-        let url = `http://fund.10jqka.com.cn/web/fund/stockAndBond${req.url}`
+        let url = `http://fund.10jqka.com.cn/web/fund/stockAndBond${req.url}`;
         http.get(url,
             (req, r) => {
                 var datas = '';
@@ -19,4 +19,4 @@ http.createServer((req, res) => {
         res.end('')
     }
 
-}).listen(6666)
+}).listen(6654)

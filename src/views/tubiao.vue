@@ -1,40 +1,26 @@
 <template>
   <div>
-    <input
-      type="file"
-      id="file"
-      @change="readExcel"
-    />
+    <input type="file" style="margin-bottom:10px;" @change="readExcel" />
+
     <!-- echarts 显示 -->
     <!-- <div style="width:100%;overflow:scroll" v-if="toShow">
       <div id="main" :style="{width:`${setWidth}px`,height:`${setHeight}px`}"></div>
-    </div> -->
-    <table
-      border="1"
-      collpase
-      v-if="toShow"
-    >
+    </div>-->
+    <table border="1" collpase v-if="toShow&&kong.length">
       <thead>
         <tr>
           <th colspan="2">没有持仓数据的</th>
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="t in kong"
-          :key="t.code"
-        >
+        <tr v-for="t in kong" :key="t.code">
           <td>{{t.code}}</td>
           <td>{{t.name}}</td>
         </tr>
       </tbody>
     </table>
 
-    <table
-      border="1"
-      collpase
-      v-if="toShow"
-    >
+    <table border="1" collpase v-if="toShow">
       <thead>
         <tr>
           <th colspan="4">数据统计</th>
@@ -47,36 +33,20 @@
       <tbody>
         <tr>
           <th>股票名称</th>
-          <th
-            class="sorrs"
-            title="点击排序"
-            @click="toSort(true)"
-          >被持仓次数</th>
-          <th
-            class="sorrs"
-            title="点击排序"
-            @click="toSort(false)"
-          >日涨幅 %</th>
+          <th class="sorrs" title="点击排序" @click="toSort(true)">被持仓次数</th>
+          <th class="sorrs" title="点击排序" @click="toSort(false)">日涨幅 %</th>
           <th>
             持仓基金&nbsp;&nbsp;
             <span>{{jishu.length}}个股票，{{single}} 个股票被持有一次</span>&nbsp;&nbsp;
-            <input
-              type="text"
-              placeholder="输入股票名称"
-              v-model="jijins"
-            />
+            <input type="text" placeholder="输入股票名称" v-model="jijins" />
             <button @click="search">搜索基金</button>
           </th>
         </tr>
 
-        <tr
-          v-for="(t,ind) in jishu"
-          :key="ind"
-          :ref="t.code"
-        >
+        <tr v-for="(t,ind) in jishu" :key="ind" :ref="t.code">
           <td
             :class="{'bk':t.num>=shaixuan}"
-            style="text-align: center;font-size: 16px;"
+            style=" min-width: 115px;text-align: center;font-size: 16px;"
           >{{t.name}}</td>
           <td style="text-align: center;">{{t.num}}</td>
           <td style="text-align: center;">{{t.zhangfu}}</td>
@@ -111,6 +81,8 @@ export default {
       setWidth: 0,
       setHeight: 0,
       single: 0, // 记录只被持有一次的个数
+      range: "A1:B200",
+      // range: "D1:E50",
     };
   },
   methods: {
@@ -127,19 +99,8 @@ export default {
             type: "buffer",
           }),
           sheetNames = workbook.SheetNames; // 工作表名称集合
-        // if (sheetNames.length > 1) {
-        //   let ls;
-        //   for (let i = 0; i < sheetNames.length; i++) {
-        //     i > 0
-        //       ? (ls += `${i + 1} : ${sheetNames[i]}\n`)
-        //       : (ls = `${i + 1} : ${sheetNames[i]}\n`);
-        //   }
-        //   fff = prompt(
-        //     `文件中有${sheetNames.length}个表，请选择查看哪个，请选择编号。\n${ls}`
-        //   )-1;
-        // }
         let worksheet = workbook.Sheets[sheetNames[fff]], // 这里我们只读取第一张sheet1
-          csv = XLSX.utils.sheet_to_json(worksheet, { range: "A1:B200" });
+          csv = XLSX.utils.sheet_to_json(worksheet, { range: _this.range });
 
         _this.allDatas = csv.map((t) => ({
           code: "" + t["代码"],
@@ -322,10 +283,13 @@ export default {
         inJishu.jijinCode.push(jijin.code);
         inJishu.num++;
       });
-
+      // 全部数据
       this.jishu = this.jishu.sort((a, b) => {
         return b.num - a.num;
       });
+      // 筛选num=1的
+      // this.jishu = this.jishu.filter((t) => t.num == 1);
+
       this.makeChart();
     },
     search() {
@@ -348,8 +312,9 @@ table {
   border-collapse: collapse; /*关键代码*/
 }
 th {
-  min-width: 110px;
+  min-width: 50px;
   text-align: center;
+  padding: 0 5px;
 }
 td {
   padding: 2px 3px;

@@ -245,7 +245,6 @@ export default {
     laping(data) {
       // 选出空数组
       data.forEach((t, ind) => {
-        console.log(t);
         if (t.length) {
           this.canSee.push(...t);
         } else {

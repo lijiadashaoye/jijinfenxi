@@ -1,7 +1,6 @@
 <template>
   <div>
     <input type="file" style="margin-bottom:10px;" @change="readExcel" />
-
     <!-- echarts 显示 -->
     <!-- <div style="width:100%;overflow:scroll" v-if="toShow">
       <div id="main" :style="{width:`${setWidth}px`,height:`${setHeight}px`}"></div>
@@ -82,7 +81,7 @@ export default {
       setHeight: 0,
       single: 0, // 记录只被持有一次的个数
       range: "A1:B200",
-      // range: "D1:E50",
+      // range: "C1:D50",
     };
   },
   methods: {
@@ -109,7 +108,6 @@ export default {
         _this.getData();
       };
     },
-
     makeChart() {
       let forY = this.jishu.map((t) => t.name),
         forX = this.jijinName.map((t) => t.name);
@@ -236,8 +234,8 @@ export default {
         }
         Promise.all(proArr).then((res) => {
           this.httpData = res;
-          sessionStorage.setItem("httpData", JSON.stringify(res));
-          this.laping(res);
+          sessionStorage.setItem("httpData", JSON.stringify(this.httpData));
+          this.laping(this.httpData);
         });
       }
     },

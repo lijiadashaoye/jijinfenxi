@@ -86,7 +86,6 @@ export default {
   },
   methods: {
     readExcel(ev) {
-      sessionStorage.removeItem("httpData");
       var _this = this,
         files = ev.target.files[0],
         reader = new FileReader();
@@ -107,6 +106,87 @@ export default {
         }));
         _this.getData();
       };
+    },
+    toSort(type) {
+      if (type) {
+        //  按被持仓次数排序
+        this.jishu = this.jishu.sort((a, b) => {
+          return b.num - a.num;
+        });
+      } else {
+        //  按被日涨幅排序
+        this.jishu = this.jishu.sort((a, b) => {
+          // return a.zhangfu > b.zhangfu ? -1 : 1;
+          return b.zhangfu - a.zhangfu;
+        });
+      }
+    },
+    // 获取所有基金的持股
+    getData() {
+      let proArr = [],
+        jijin = this.allDatas.map((t) => t.code); // 提取基金号
+      for (let i = 0; i < jijin.length; i++) {
+        proArr.push(
+          this.$axios({
+            method: "get",
+            url: jijin[i],
+          })
+        );
+      }
+      Promise.all(proArr).then((res) => {
+        this.httpData = res;
+        this.laping(this.httpData);
+      });
+    },
+    // 将多维数组，拉成一维数组，并去除空数组
+    laping(data) {
+      // 选出空数组
+      data.forEach((t, ind) => {
+        if (t.length) {
+          this.canSee.push(...t);
+        } else {
+          this.kong.push(this.allDatas[ind]);
+        }
+      });
+
+      // 选出不为空的基金
+      let kongArr = this.kong.map((t) => t.code);
+      this.allDatas.forEach((t) => {
+        if (!kongArr.includes(t.code)) {
+          this.jijinName.push(t);
+        }
+      });
+      // 统计数据
+      this.canSee.forEach((t) => {
+        let kk = this.jishu.map((u) => u.code);
+        if (!kk.includes(t.zcCode)) {
+          this.jishu.push({
+            zhangfu: t.rate, // 涨幅
+            code: t.zcCode, //  股票代码
+            name: t.zcName,
+            num: 0,
+            jijin: [],
+            jijinCode: [], // 基金的代码
+          });
+        }
+      });
+
+      this.canSee.forEach((t) => {
+        let code = t.zcCode, //  股票代码
+          inJishu = this.jishu.filter((h) => h.code == code)[0], // 找出股票的数据
+          jijin = this.allDatas.filter((h) => h.code == t.code)[0]; // 找出基金的名字
+        inJishu.jijin.push(jijin.name);
+        inJishu.jijinCode.push(jijin.code);
+        inJishu.num++;
+      });
+      // 全部数据
+      this.jishu = this.jishu.sort((a, b) => {
+        return b.num - a.num;
+      });
+      // 筛选num=1的
+      // this.jishu = this.jishu.filter((t) => t.num == 1);
+
+      this.makeChart();
     },
     makeChart() {
       let forY = this.jishu.map((t) => t.name),
@@ -192,6 +272,7 @@ export default {
       // };
 
       this.toShow = true;
+
       // setTimeout(() => {
       //   var myChart = echarts.init(document.getElementById("main"));
       //   myChart.setOption(option);
@@ -200,94 +281,6 @@ export default {
       //     window.open(`http://fund.10jqka.com.cn/${this.canSee[ind].code}/`);
       //   });
       // }, 100);
-    },
-    toSort(type) {
-      if (type) {
-        //  按被持仓次数排序
-        this.jishu = this.jishu.sort((a, b) => {
-          return b.num - a.num;
-        });
-      } else {
-        //  按被日涨幅排序
-        this.jishu = this.jishu.sort((a, b) => {
-          // return a.zhangfu > b.zhangfu ? -1 : 1;
-          return b.zhangfu - a.zhangfu;
-        });
-      }
-    },
-    // 获取所有基金的持股
-    getData() {
-      let k = sessionStorage.getItem("httpData");
-      if (k) {
-        this.httpData = JSON.parse(k);
-        this.laping(this.httpData);
-      } else {
-        let proArr = [],
-          jijin = this.allDatas.map((t) => t.code); // 提取基金号
-        for (let i = 0; i < jijin.length; i++) {
-          proArr.push(
-            this.$axios({
-              method: "get",
-              url: jijin[i],
-            })
-          );
-        }
-        Promise.all(proArr).then((res) => {
-          this.httpData = res;
-          sessionStorage.setItem("httpData", JSON.stringify(this.httpData));
-          this.laping(this.httpData);
-        });
-      }
-    },
-    // 将多维数组，拉成一维数组，并去除空数组
-    laping(data) {
-      // 选出空数组
-      data.forEach((t, ind) => {
-        if (t.length) {
-          this.canSee.push(...t);
-        } else {
-          this.kong.push(this.allDatas[ind]);
-        }
-      });
-
-      // 选出不为空的基金
-      let kongArr = this.kong.map((t) => t.code);
-      this.allDatas.forEach((t) => {
-        if (!kongArr.includes(t.code)) {
-          this.jijinName.push(t);
-        }
-      });
-      // 统计数据
-      this.canSee.forEach((t) => {
-        let kk = this.jishu.map((u) => u.code);
-        if (!kk.includes(t.zcCode)) {
-          this.jishu.push({
-            zhangfu: t.rate, // 涨幅
-            code: t.zcCode, //  股票代码
-            name: t.zcName,
-            num: 0,
-            jijin: [],
-            jijinCode: [], // 基金的代码
-          });
-        }
-      });
-
-      this.canSee.forEach((t) => {
-        let code = t.zcCode, //  股票代码
-          inJishu = this.jishu.filter((h) => h.code == code)[0], // 找出股票的数据
-          jijin = this.allDatas.filter((h) => h.code == t.code)[0]; // 找出基金的名字
-        inJishu.jijin.push(jijin.name);
-        inJishu.jijinCode.push(jijin.code);
-        inJishu.num++;
-      });
-      // 全部数据
-      this.jishu = this.jishu.sort((a, b) => {
-        return b.num - a.num;
-      });
-      // 筛选num=1的
-      // this.jishu = this.jishu.filter((t) => t.num == 1);
-
-      this.makeChart();
     },
     search() {
       if (this.jijins != "") {

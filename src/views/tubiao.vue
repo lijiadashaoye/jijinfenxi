@@ -74,7 +74,6 @@ export default {
       finallData: [],
       jishu: [], // 统计股票被持仓数量
       toShow: false,
-      whos: true, // true:泽伟用，false:李朋用
       shaixuan: 5, // 用来筛选被持有量
 
       setWidth: 0,

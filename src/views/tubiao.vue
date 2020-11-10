@@ -1,25 +1,40 @@
 <template>
   <div>
-    <input type="file" style="margin-bottom:10px;" @change="readExcel" />
+    <input
+      type="file"
+      style="margin-bottom:10px;"
+      @change="readExcel"
+    />
     <!-- echarts 显示 -->
     <!-- <div style="width:100%;overflow:scroll" v-if="toShow">
       <div id="main" :style="{width:`${setWidth}px`,height:`${setHeight}px`}"></div>
     </div>-->
-    <table border="1" collpase v-if="toShow&&kong.length">
+    <table
+      border="1"
+      collpase
+      v-if="toShow&&kong.length"
+    >
       <thead>
         <tr>
           <th colspan="2">没有持仓数据的</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="t in kong" :key="t.code">
+        <tr
+          v-for="t in kong"
+          :key="t.code"
+        >
           <td>{{t.code}}</td>
           <td>{{t.name}}</td>
         </tr>
       </tbody>
     </table>
 
-    <table border="1" collpase v-if="toShow">
+    <table
+      border="1"
+      collpase
+      v-if="toShow"
+    >
       <thead>
         <tr>
           <th colspan="4">数据统计</th>
@@ -32,17 +47,33 @@
       <tbody>
         <tr>
           <th>股票名称</th>
-          <th class="sorrs" title="点击排序" @click="toSort(true)">被持仓次数</th>
-          <th class="sorrs" title="点击排序" @click="toSort(false)">日涨幅 %</th>
+          <th
+            class="sorrs"
+            title="点击排序"
+            @click="toSort(true)"
+          >被持仓次数</th>
+          <th
+            class="sorrs"
+            title="点击排序"
+            @click="toSort(false)"
+          >日涨幅 %</th>
           <th>
             持仓基金&nbsp;&nbsp;
             <span>{{jishu.length}}个股票，{{single}} 个股票被持有一次</span>&nbsp;&nbsp;
-            <input type="text" placeholder="输入股票名称" v-model="jijins" />
+            <input
+              type="text"
+              placeholder="输入股票名称"
+              v-model="jijins"
+            />
             <button @click="search">搜索基金</button>
           </th>
         </tr>
 
-        <tr v-for="(t,ind) in jishu" :key="ind" :ref="t.code">
+        <tr
+          v-for="(t,ind) in jishu"
+          :key="ind"
+          :ref="t.code"
+        >
           <td
             :class="{'bk':t.num>=shaixuan}"
             style=" min-width: 115px;text-align: center;font-size: 16px;"
@@ -201,7 +232,6 @@ export default {
           this.setWidth = t.length * 20;
         }
       });
-
       this.setWidth = this.setWidth + forX.length * 24;
       this.setHeight = this.setHeight + forY.length * 24;
       this.jishu.forEach((t, ind) => {

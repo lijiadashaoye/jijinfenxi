@@ -111,7 +111,6 @@ export default {
       setHeight: 0,
       single: 0, // 记录只被持有一次的个数
       range: "A1:B200",
-      // range: "C1:D50",
     };
   },
   methods: {
@@ -122,7 +121,7 @@ export default {
       reader.readAsArrayBuffer(files);
 
       reader.onload = function (e) {
-        let fff = 1,
+        let fff = 0,
           workbook = XLSX.read(e.target.result, {
             type: "buffer",
           }),

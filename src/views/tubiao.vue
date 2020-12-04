@@ -76,8 +76,10 @@
         >
           <td
             :class="{'bk':t.num>=shaixuan}"
-            style=" min-width: 115px;text-align: center;font-size: 16px;"
-          >{{t.name}}</td>
+            style=" min-width: 125px;text-align: center;font-size: 16px;"
+          >{{t.name}}
+            <p style="margin:2px 0; min-width: 125px;text-align: center;font-size: 12px;">{{t.hangye}}</p>
+          </td>
           <td style="text-align: center;">{{t.num}}</td>
           <td style="text-align: center;">{{t.zhangfu}}</td>
           <td style="font-size:12px;">{{t.jijin.join('，')}}</td>
@@ -214,10 +216,8 @@ export default {
       arr = arr.sort((a, b) => {
         return b.num - a.num;
       });
-      this.jishu = arr;
-      this.toShow = true;
 
-      // this.getCompany(arr);
+      this.getCompany(arr);
 
       // 筛选num=1的
       // this.jishu = this.jishu.filter((t) => t.num == 1);
@@ -226,20 +226,26 @@ export default {
     },
 
     getCompany(t) {
-      console.log(t)
-      let arr = [];
-      for (let i = t.length; i--; ) {
-        
-        arr.push(
-          this.$axios({
-            method: "get",
-            url: `gongsi/${t[i].code}`,
-          })
-        );
-      }
-      Promise.all(arr).then(res=>{
-        console.log(res)
-      })
+      console.log(t);
+      let num = 0;
+      t.forEach((d) => {
+        this.$axios({
+          method: "get",
+          url: `gongsi/${d.code}`,
+        }).then((res) => {
+          num++;
+          if (res.resultCode == 0 && Object.keys(res.data).length) {
+            d.hangye = `(${res.data["所属申万行业："].replace(" — ", "-")})`;
+          }
+        });
+      });
+      let time = setInterval(() => {
+        if (num === t.length) {
+          this.jishu = t;
+          this.toShow = true;
+          clearInterval(time);
+        }
+      }, 500);
     },
     makeChart() {
       let forY = this.jishu.map((t) => t.name),

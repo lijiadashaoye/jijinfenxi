@@ -154,16 +154,17 @@ export default {
     getData() {
       let proArr = [],
         jijin = this.allDatas.map((t) => t.code); // 提取基金号
+
       for (let i = 0; i < jijin.length; i++) {
         proArr.push(
           this.$axios({
             method: "get",
-            url: jijin[i],
+            url: `jijin/${jijin[i]}`,
           })
         );
       }
       Promise.all(proArr).then((res) => {
-        this.httpData = res;
+        this.httpData = res.map((t) => t.data.stock);
         this.laping(this.httpData);
       });
     },
@@ -185,11 +186,12 @@ export default {
           this.jijinName.push(t);
         }
       });
+      let arr = [];
       // 统计数据
       this.canSee.forEach((t) => {
-        let kk = this.jishu.map((u) => u.code);
+        let kk = arr.map((u) => u.code);
         if (!kk.includes(t.zcCode)) {
-          this.jishu.push({
+          arr.push({
             zhangfu: t.rate, // 涨幅
             code: t.zcCode, //  股票代码
             name: t.zcName,
@@ -202,20 +204,42 @@ export default {
 
       this.canSee.forEach((t) => {
         let code = t.zcCode, //  股票代码
-          inJishu = this.jishu.filter((h) => h.code == code)[0], // 找出股票的数据
+          inJishu = arr.filter((h) => h.code == code)[0], // 找出股票的数据
           jijin = this.allDatas.filter((h) => h.code == t.code)[0]; // 找出基金的名字
         inJishu.jijin.push(jijin.name);
         inJishu.jijinCode.push(jijin.code);
         inJishu.num++;
       });
       // 全部数据
-      this.jishu = this.jishu.sort((a, b) => {
+      arr = arr.sort((a, b) => {
         return b.num - a.num;
       });
+      this.jishu = arr;
+      this.toShow = true;
+
+      // this.getCompany(arr);
+
       // 筛选num=1的
       // this.jishu = this.jishu.filter((t) => t.num == 1);
 
-      this.makeChart();
+      // this.makeChart();
+    },
+
+    getCompany(t) {
+      console.log(t)
+      let arr = [];
+      for (let i = t.length; i--; ) {
+        
+        arr.push(
+          this.$axios({
+            method: "get",
+            url: `gongsi/${t[i].code}`,
+          })
+        );
+      }
+      Promise.all(arr).then(res=>{
+        console.log(res)
+      })
     },
     makeChart() {
       let forY = this.jishu.map((t) => t.name),
@@ -299,7 +323,7 @@ export default {
       //   ],
       // };
 
-      this.toShow = true;
+      // this.toShow = true;
 
       // setTimeout(() => {
       //   var myChart = echarts.init(document.getElementById("main"));

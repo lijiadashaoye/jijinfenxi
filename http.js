@@ -2,7 +2,13 @@ let http = require('http');
 
 http.createServer((req, res) => {
     if (req.url != '/favicon.ico') {
-        let url = `http://fund.10jqka.com.cn/web/fund/stockAndBond${req.url}`;
+        let k = req.url.slice(1).split('/'),
+            url = '';
+        if (k[0] === 'jijin') {
+            url = `http://fund.10jqka.com.cn/web/fund/stockAndBond/${k[1]}`;
+        } else {
+            url = `http://stockpage.10jqka.com.cn/${k[1]}/company`;
+        }
         http.get(url,
             (req, r) => {
                 var datas = '';

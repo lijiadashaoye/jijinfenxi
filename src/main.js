@@ -9,7 +9,7 @@ as.defaults.baseURL = 'http://localhost:6634';
 // http响应拦截器
 as.interceptors.response.use(res => {
   if (res.status == 200) {
-    return res.data.data.stock
+    return res.data
   }
 
 });

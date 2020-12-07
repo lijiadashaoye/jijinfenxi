@@ -86,6 +86,32 @@
         </tr>
       </tbody>
     </table>
+
+    <table
+      border="1"
+      collpase
+      v-if="toShow"
+    >
+      <thead>
+        <tr>
+          <th colspan="3">重合分析</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="(t,ind) in chonghe"
+          :key="ind"
+        >
+          <td>
+            <p style="font-size:12px;margin:2px;">{{t.one.name}}</p>
+            <p style="font-size:12px;margin:2px;">{{t.two.name}}</p>
+          </td>
+          <td style="font-size:12px;">{{t.num}}</td>
+          <td style="font-size:12px;">{{(t.chong.map(d=>d.zcName)).join('，')}}</td>
+        </tr>
+      </tbody>
+    </table>
+
   </div>
 </template>
 
@@ -108,6 +134,8 @@ export default {
       jishu: [], // 统计股票被持仓数量
       toShow: false,
       shaixuan: 5, // 用来筛选被持有量
+      chonghe: [], // 用来求重合
+      chongheNum: 3, // 用来定义重合数量
 
       setWidth: 0,
       setHeight: 0,
@@ -135,9 +163,17 @@ export default {
           code: "" + t["代码"],
           name: "" + t["名字"],
         }));
-        _this.getData();
+
+        let kk = sessionStorage.getItem("httpData");
+        if (kk) {
+          _this.httpData = JSON.parse(kk);
+          _this.laping(_this.httpData);
+        } else {
+          _this.getData();
+        }
       };
     },
+    // 根据持有量或当日收益排序
     toSort(type) {
       if (type) {
         //  按被持仓次数排序
@@ -168,6 +204,7 @@ export default {
       Promise.all(proArr).then((res) => {
         this.httpData = res.map((t) => t.data.stock);
         this.laping(this.httpData);
+        sessionStorage.setItem("httpData", JSON.stringify(this.httpData));
       });
     },
     // 将多维数组，拉成一维数组，并去除空数组
@@ -217,36 +254,98 @@ export default {
         return b.num - a.num;
       });
 
-      this.getCompany(arr);
+      // this.getCompany(arr);
 
       // 筛选num=1的
       // this.jishu = this.jishu.filter((t) => t.num == 1);
-
+      this.jishu = arr;
+      this.fenxi();
       // this.makeChart();
     },
+    fenxi() {
+      for (let j = this.httpData.length; j--; ) {
+        let e = this.httpData[j];
+        if (e.length) {
+          let code = e[0].code,
+            tar = this.allDatas.find((t) => t.code == code);
+          tar.gupiao = e.map((t) => ({
+            zcName: t.zcName,
+            zcCode: t.zcCode,
+          }));
+        }
+      }
 
-    getCompany(t) {
-      console.log(t);
-      let num = 0;
-      t.forEach((d) => {
-        this.$axios({
+      this.allDatas.forEach((t) => {
+        if (t.gupiao) {
+          let gupiao = t.gupiao.map((k) => k.zcCode);
+
+          for (let i = this.allDatas.length; i--; ) {
+            if (this.allDatas[i].code != t.code && this.allDatas[i].gupiao) {
+              let d = this.allDatas[i].gupiao.map((k) => k.zcCode),
+                num = 0;
+              gupiao.forEach((j) => {
+                if (d.includes(j)) {
+                  num++;
+                }
+              });
+              if (num > this.chongheNum) {
+                let a = new Set(t.gupiao.map((d) => d.zcCode));
+                let b = new Set(this.allDatas[i].gupiao.map((d) => d.zcCode));
+                let kk = [...new Set([...a].filter((x) => b.has(x)))];
+
+                let obj = {
+                  one: t,
+                  two: this.allDatas[i],
+                  num: num,
+                  chong: t.gupiao.filter((t) => kk.includes(t.zcCode)),
+                };
+                this.chonghe.push(obj);
+              }
+            }
+          }
+        }
+      });
+      setTimeout(() => {
+        console.log(this.chonghe);
+        this.toShow = true;
+      });
+    },
+    async getCompany(t) {
+      for (let i = t.length; i--; ) {
+        await this.$axios({
           method: "get",
-          url: `gongsi/${d.code}`,
+          url: `gongsi/${t[i].code}`,
         }).then((res) => {
-          num++;
           if (res.resultCode == 0 && Object.keys(res.data).length) {
-            d.hangye = `(${res.data["所属申万行业："].replace(" — ", "-")})`;
+            t[i].hangye = `(${res.data.businessType.replace(" — ", "-")})`;
           }
         });
-      });
-      let time = setInterval(() => {
-        if (num === t.length) {
-          this.jishu = t;
-          this.toShow = true;
-          clearInterval(time);
-        }
-      }, 500);
+      }
+      this.jishu = t;
+      this.toShow = true;
     },
+
+    // getCompany(t) {
+    //   let num = 0;
+    //   t.forEach((d) => {
+    //     this.$axios({
+    //       method: "get",
+    //       url: `gongsi/${d.code}`,
+    //     }).then((res) => {
+    //       num++;
+    //       if (res.resultCode == 0 && Object.keys(res.data).length) {
+    //         d.hangye = `(${res.data["所属申万行业："].replace(" — ", "-")})`;
+    //       }
+    //     });
+    //   });
+    //   let time = setInterval(() => {
+    //     if (num === t.length) {
+    //       this.jishu = t;
+    //       this.toShow = true;
+    //       clearInterval(time);
+    //     }
+    //   }, 500);
+    // },
     makeChart() {
       let forY = this.jishu.map((t) => t.name),
         forX = this.jijinName.map((t) => t.name);

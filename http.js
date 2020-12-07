@@ -8,7 +8,7 @@ http.createServer((req, res) => {
             url = `http://fund.10jqka.com.cn/web/fund/stockAndBond/${k[1]}`;
         } else {
             url = `http://liuup.com/apis/fund/findFundInfoById?id=${k[1]}`
-            // url = `http://stockpage.10jqka.com.cn/${k[1]}/company`;
+            // url = `http://stockpage.10jqka.com.cn/${k[1]}/company.html`;
         }
 
         http.get(url,

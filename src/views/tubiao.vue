@@ -274,7 +274,7 @@ export default {
           }));
         }
       }
-
+      let arrs = [];
       this.allDatas.forEach((t) => {
         if (t.gupiao) {
           let gupiao = t.gupiao.map((k) => k.zcCode);
@@ -299,14 +299,35 @@ export default {
                   num: num,
                   chong: t.gupiao.filter((t) => kk.includes(t.zcCode)),
                 };
-                this.chonghe.push(obj);
+                arrs.push(obj);
               }
             }
           }
         }
       });
+
       setTimeout(() => {
-        console.log(this.chonghe);
+        for (let j = arrs.length; j--; ) {
+          let one = arrs[j].one.code,
+            two = arrs[j].two.code,
+            sortArr = [one, two].sort();
+          if (!this.chonghe.length) {
+            this.chonghe.push(arrs[j]);
+          } else {
+            let isIn = false;
+            for (let i = this.chonghe.length; i--; ) {
+              let one = this.chonghe[i].one.code,
+                two = this.chonghe[i].two.code,
+                sortArr1 = [one, two].sort();
+              if (sortArr[0] == sortArr1[0] && sortArr[1] == sortArr1[1]) {
+                isIn = true;
+              }
+            }
+            if (!isIn) {
+              this.chonghe.push(arrs[j]);
+            }
+          }
+        }
         this.toShow = true;
       });
     },

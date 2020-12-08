@@ -164,13 +164,7 @@ export default {
           name: "" + t["名字"],
         }));
 
-        let kk = sessionStorage.getItem("httpData");
-        if (kk) {
-          _this.httpData = JSON.parse(kk);
-          _this.laping(_this.httpData);
-        } else {
-          _this.getData();
-        }
+        _this.getData();
       };
     },
     // 根据持有量或当日收益排序
@@ -255,9 +249,16 @@ export default {
       });
 
       // this.getCompany(arr);
-
       // 筛选num=1的
-      // this.jishu = this.jishu.filter((t) => t.num == 1);
+      // this.jishu = arr.filter((t) => t.num == 1);
+
+      // 统计有几个股票被持有1次
+      arr.forEach((t) => {
+        if (t.num == 1) {
+          this.single += +t.num;
+        }
+      });
+
       this.jishu = arr;
       this.fenxi();
       // this.makeChart();
@@ -384,9 +385,6 @@ export default {
       this.setWidth = this.setWidth + forX.length * 24;
       this.setHeight = this.setHeight + forY.length * 24;
       this.jishu.forEach((t, ind) => {
-        if (t.num == 1) {
-          this.single += +t.num;
-        }
         t.jijinCode.forEach((d) => {
           let num = this.allDatas.findIndex((k) => k.code == d);
           // 点位数据，以索引标定位置 [x,y,tip]

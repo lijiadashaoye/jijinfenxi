@@ -103,7 +103,7 @@
           :key="ind"
         >
           <td>
-            <p style="font-size:12px;margin:2px;">{{t.one.name}}</p>
+            <p style="font-size:12px;margin:2px;color:red;">{{t.one.name}}</p>
             <p style="font-size:12px;margin:2px;">{{t.two.name}}</p>
           </td>
           <td style="font-size:12px;">{{t.num}}</td>

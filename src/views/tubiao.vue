@@ -135,7 +135,7 @@ export default {
       toShow: false,
       shaixuan: 5, // 用来筛选被持有量
       chonghe: [], // 用来求重合
-      chongheNum: 3, // 用来定义重合数量
+      chongheNum: 4, // 用来定义重合数量
 
       setWidth: 0,
       setHeight: 0,

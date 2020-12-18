@@ -135,13 +135,18 @@ export default {
       toShow: false,
       shaixuan: 5, // 用来筛选被持有量
       chonghe: [], // 用来求重合
-      chongheNum: 4, // 用来定义重合数量
+      chongheNum: 2, // 用来定义重合数量
 
       setWidth: 0,
       setHeight: 0,
       single: 0, // 记录只被持有一次的个数
-      range: "A1:B200",
+      range: "",
     };
+  },
+  created() {
+    this.range = "A1:B200";
+    // this.range = "C1:D200";
+    // this.range = "E1:F200";
   },
   methods: {
     readExcel(ev) {

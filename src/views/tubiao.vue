@@ -16,7 +16,7 @@
     >
       <thead>
         <tr>
-          <th colspan="2">没有持仓数据的</th>
+          <th colspan="2">没有持仓数据的，{{`${kong.length}个`}}</th>
         </tr>
       </thead>
       <tbody>
@@ -29,7 +29,32 @@
         </tr>
       </tbody>
     </table>
-
+    <!-- 重合分析 -->
+    <table
+      border="1"
+      collpase
+      v-if="toShow"
+    >
+      <thead>
+        <tr>
+          <th colspan="3">重合分析</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="(t,ind) in chonghe"
+          :key="ind"
+        >
+          <td>
+            <p style="font-size:12px;margin:2px;color:rgb(216, 90, 201);">{{t.one.name}}</p>
+            <p style="font-size:12px;margin:2px;">{{t.two.name}}</p>
+          </td>
+          <td style="font-size:12px;">{{t.num}}</td>
+          <td style="font-size:12px;">{{(t.chong.map(d=>d.zcName)).sort().join('，')}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 数据统计 -->
     <table
       border="1"
       collpase
@@ -40,8 +65,8 @@
           <th colspan="4">数据统计</th>
         </tr>
         <tr>
-          <th>共{{allDatas.length}}个基金</th>
-          <th colspan="3">{{kong.length}}个看不到持仓</th>
+          <th colspan="4">共{{allDatas.length}}个基金，
+            {{kong.length}}个看不到持仓</th>
         </tr>
       </thead>
       <tbody>
@@ -87,31 +112,6 @@
       </tbody>
     </table>
 
-    <table
-      border="1"
-      collpase
-      v-if="toShow"
-    >
-      <thead>
-        <tr>
-          <th colspan="3">重合分析</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(t,ind) in chonghe"
-          :key="ind"
-        >
-          <td>
-            <p style="font-size:12px;margin:2px;color:red;">{{t.one.name}}</p>
-            <p style="font-size:12px;margin:2px;">{{t.two.name}}</p>
-          </td>
-          <td style="font-size:12px;">{{t.num}}</td>
-          <td style="font-size:12px;">{{(t.chong.map(d=>d.zcName)).join('，')}}</td>
-        </tr>
-      </tbody>
-    </table>
-
   </div>
 </template>
 
@@ -135,7 +135,7 @@ export default {
       toShow: false,
       shaixuan: 5, // 用来筛选被持有量
       chonghe: [], // 用来求重合
-      chongheNum: 2, // 用来定义重合数量
+      chongheNum: 4, // 用来定义重合数量
 
       setWidth: 0,
       setHeight: 0,
@@ -254,8 +254,6 @@ export default {
       });
 
       // this.getCompany(arr);
-      // 筛选num=1的
-      // this.jishu = arr.filter((t) => t.num == 1);
 
       // 统计有几个股票被持有1次
       arr.forEach((t) => {
@@ -263,8 +261,10 @@ export default {
           this.single += +t.num;
         }
       });
-
+      // 全部数据
       this.jishu = arr;
+      // 持有量小于一定数目个的数据
+      // this.jishu = arr.filter(t=>t.num<3);
       this.fenxi();
       // this.makeChart();
     },
@@ -334,6 +334,7 @@ export default {
             }
           }
         }
+
         this.toShow = true;
       });
     },
@@ -479,7 +480,7 @@ export default {
 
 <style>
 table {
-  border: 1px solid red;
+  border: 1px solid rgb(230, 123, 159);
   border-collapse: collapse; /*关键代码*/
 }
 th {

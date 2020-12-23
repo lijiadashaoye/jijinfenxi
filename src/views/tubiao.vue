@@ -141,9 +141,21 @@ export default {
       setHeight: 0,
       single: 0, // 记录只被持有一次的个数
       range: "",
+
+      allJiJin: [],
     };
   },
   created() {
+    if (sessionStorage.getItem("datas")) {
+      this.allJiJin = JSON.parse(sessionStorage.getItem("datas"));
+    } else {
+      this.allJiJin = require("./data.json").map((t) => ({
+        code: t[0],
+        name: t[2],
+        type: t[3],
+      }));
+      sessionStorage.setItem("datas", JSON.stringify(this.allJiJin));
+    }
     this.range = "A1:B200";
     // this.range = "C1:D200";
     // this.range = "E1:F200";
@@ -261,6 +273,7 @@ export default {
           this.single += +t.num;
         }
       });
+      console.log(this.canSee);
       // 全部数据
       this.jishu = arr;
       // 持有量小于一定数目个的数据

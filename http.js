@@ -10,7 +10,6 @@ http.createServer((req, res) => {
             url = `http://liuup.com/apis/fund/findFundInfoById?id=${k[1]}`
             // url = `http://stockpage.10jqka.com.cn/${k[1]}/company.html`;
         }
-
         http.get(url,
             (req, r) => {
                 var datas = '';
@@ -28,5 +27,3 @@ http.createServer((req, res) => {
     }
 
 }).listen(6634)
-
-

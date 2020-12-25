@@ -6,56 +6,89 @@
       @change="readExcel"
     />
     <!-- echarts 显示 -->
-    <!-- <div style="width:100%;overflow:scroll" v-if="toShow">
-      <div id="main" :style="{width:`${setWidth}px`,height:`${setHeight}px`}"></div>
-    </div>-->
-    <table
-      border="1"
-      collpase
-      v-if="toShow&&kong.length"
-    >
-      <thead>
-        <tr>
-          <th colspan="2">没有持仓数据的，{{`${kong.length}个`}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="t in kong"
-          :key="t.code"
+    <div
+      v-if="chartShow"
+      id="main"
+      :style="{width:`${setWidth}px`,height:`${setHeight}px`}"
+    ></div>
+
+    <div class="kong">
+      <!-- 重合分析 -->
+      <table
+        border="1"
+        collpase
+        v-if="toShow&&chonghe.length"
+      >
+        <thead>
+          <tr>
+            <th colspan="3">重合分析</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(t,ind) in chonghe"
+            :key="ind"
+          >
+            <td style="width:180px">
+              <p style="margin:1px;color:rgb(216, 90, 201);">{{t.one.name}}</p>
+              <p style="margin:1px;">{{t.two.name}}</p>
+            </td>
+            <td>{{t.num}}</td>
+            <td>{{(t.chong.map(d=>d.zcName)).sort().join('，')}}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="width:60%;flex-shrink:0">
+        <table
+          border="1"
+          collpase
+          v-if="toShow&&httpData.kong.length"
         >
-          <td>{{t.code}}</td>
-          <td>{{t.name}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- 重合分析 -->
-    <table
-      border="1"
-      collpase
-      v-if="toShow"
-    >
-      <thead>
-        <tr>
-          <th colspan="3">重合分析</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(t,ind) in chonghe"
-          :key="ind"
+          <thead>
+            <tr>
+              <th colspan="2">没有持仓数据的，{{`${httpData.kong.length}个`}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="t in httpData.kong"
+              :key="t.code"
+            >
+              <td>{{t.code}}</td>
+              <td>{{t.name}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 基金类型统计 -->
+        <table
+          style="margin-top:10px"
+          border="1"
+          collpase
+          v-if="toShow"
         >
-          <td>
-            <p style="font-size:12px;margin:2px;color:rgb(216, 90, 201);">{{t.one.name}}</p>
-            <p style="font-size:12px;margin:2px;">{{t.two.name}}</p>
-          </td>
-          <td style="font-size:12px;">{{t.num}}</td>
-          <td style="font-size:12px;">{{(t.chong.map(d=>d.zcName)).sort().join('，')}}</td>
-        </tr>
-      </tbody>
-    </table>
+          <thead>
+            <tr>
+              <th colspan="2">基金类型统计</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="t in Object.keys(jijinType)"
+              :key="t"
+            >
+              <td style="width:55px;text-align:center;">{{t}}</td>
+              <td>{{jijinType[t].join('，')}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
     <!-- 数据统计 -->
     <table
+      class="see"
       border="1"
       collpase
       v-if="toShow"
@@ -66,7 +99,7 @@
         </tr>
         <tr>
           <th colspan="4">共{{allDatas.length}}个基金，
-            {{kong.length}}个看不到持仓</th>
+            {{httpData.kong.length}}个看不到持仓</th>
         </tr>
       </thead>
       <tbody>
@@ -100,14 +133,15 @@
           :ref="t.code"
         >
           <td
+            :id="t.id"
             :class="{'bk':t.num>=shaixuan}"
-            style=" min-width: 125px;text-align: center;font-size: 16px;"
+            style=" min-width: 125px;text-align: center;font-size:14px;"
           >{{t.name}}
-            <p style="margin:2px 0; min-width: 125px;text-align: center;font-size: 12px;">{{t.hangye}}</p>
+            <p style="margin:2px 0; min-width: 125px;text-align: center;">{{t.hangye}}</p>
           </td>
-          <td style="text-align: center;">{{t.num}}</td>
-          <td style="text-align: center;">{{t.zhangfu}}</td>
-          <td style="font-size:12px;">{{t.jijin.join('，')}}</td>
+          <td style="text-align: center;font-size:14px;">{{t.num}}</td>
+          <td style="text-align: center;font-size:14px;">{{t.zhangfu}}</td>
+          <td>{{t.jijin.join('，')}}</td>
         </tr>
       </tbody>
     </table>
@@ -116,7 +150,7 @@
 </template>
 
 <script>
-// import * as echarts from "echarts";
+import * as echarts from "echarts";
 // https://www.jianshu.com/p/31534691ed53
 import XLSX from "xlsx";
 
@@ -126,9 +160,10 @@ export default {
       jijins: "", // 搜索基金用
       // 目前持有的基金
       allDatas: [],
-      httpData: [], // 拉取得的服务器数据
-      kong: [], // 保存为空的基金
-      canSee: [], // 排除服务器数据中为空的基金
+      httpData: {
+        kong: [],
+        see: [],
+      }, // 拉取得的服务器数据
       jijinName: [], // 基金名称
       finallData: [],
       jishu: [], // 统计股票被持仓数量
@@ -137,25 +172,15 @@ export default {
       chonghe: [], // 用来求重合
       chongheNum: 4, // 用来定义重合数量
 
-      setWidth: 0,
-      setHeight: 0,
+      setWidth: 1300,
+      setHeight: 650,
       single: 0, // 记录只被持有一次的个数
       range: "",
-
-      allJiJin: [],
+      jijinType: [],
+      chartShow: false,
     };
   },
   created() {
-    if (sessionStorage.getItem("datas")) {
-      this.allJiJin = JSON.parse(sessionStorage.getItem("datas"));
-    } else {
-      this.allJiJin = require("./data.json").map((t) => ({
-        code: t[0],
-        name: t[2],
-        type: t[3],
-      }));
-      sessionStorage.setItem("datas", JSON.stringify(this.allJiJin));
-    }
     this.range = "A1:B200";
     // this.range = "C1:D200";
     // this.range = "E1:F200";
@@ -166,7 +191,6 @@ export default {
         files = ev.target.files[0],
         reader = new FileReader();
       reader.readAsArrayBuffer(files);
-
       reader.onload = function (e) {
         let fff = 0,
           workbook = XLSX.read(e.target.result, {
@@ -180,7 +204,6 @@ export default {
           code: "" + t["代码"],
           name: "" + t["名字"],
         }));
-
         _this.getData();
       };
     },
@@ -201,47 +224,101 @@ export default {
     },
     // 获取所有基金的持股
     getData() {
-      let proArr = [],
-        jijin = this.allDatas.map((t) => t.code); // 提取基金号
-
-      for (let i = 0; i < jijin.length; i++) {
-        proArr.push(
-          this.$axios({
-            method: "get",
-            url: `jijin/${jijin[i]}`,
+      let proArr = [];
+      // 获取自己的基金数据
+      if (sessionStorage.getItem("httpData")) {
+        // 读取缓存的数据
+        let kk = JSON.parse(sessionStorage.getItem("httpData")),
+          // 读取excel文件的基金code
+          excelCode = this.allDatas.map((t) => t.code),
+          // 存储目前session的基金
+          sessionCode = [
+            ...kk.see.map((t) => t.code),
+            ...kk.kong.map((t) => t.code),
+          ],
+          // 选出文件里有但缓存里没有的基金,需要去http获取数据
+          needHttp = excelCode.filter((t) => !sessionCode.includes(t));
+        this.httpData = {
+          all: [...kk.all],
+          kong: kk.kong.filter((t) => excelCode.includes(t.code)),
+          see: [],
+        };
+        for (let i = kk.see.length; i--; ) {
+          if (excelCode.includes(kk.see[i].code)) {
+            this.httpData.see.unshift(kk.see[i]);
+          }
+        }
+        // 获取新增的基金数据
+        if (needHttp.length) {
+          for (let i = 0; i < needHttp.length; i++) {
+            proArr.push(
+              this.$axios({
+                method: "get",
+                url: `jijin/${needHttp[i]}`,
+              })
+            );
+          }
+          // 获取多余的基金的数据
+          Promise.all(proArr)
+            .then((res) => {
+              // 需要再次查看http获取的数据中的基金是否为空
+              let dd = res.map((t) => t.data.stock);
+              dd.forEach((t, index) => {
+                this.httpData.all.push(t);
+                if (t.length) {
+                  this.httpData.see.push(...t);
+                } else {
+                  this.httpData.kong.push({
+                    code: needHttp[index],
+                    name: this.allDatas.filter(
+                      (t) => t.code == needHttp[index]
+                    )[0].name,
+                  });
+                }
+              });
+            })
+            .then(() => {
+              sessionStorage.setItem("httpData", JSON.stringify(this.httpData));
+              this.laping();
+            });
+        } else {
+          this.laping();
+        }
+      } else {
+        // 从零读取文件
+        let jijin = this.allDatas.map((t) => t.code); // 提取基金号
+        for (let i = 0; i < jijin.length; i++) {
+          proArr.push(
+            this.$axios({
+              method: "get",
+              url: `jijin/${jijin[i]}`,
+            })
+          );
+        }
+        Promise.all(proArr)
+          .then((res) => {
+            this.httpData.all = res.map((t) => t.data.stock);
+            this.httpData.all.forEach((t, ind) => {
+              if (t.length) {
+                this.httpData.see.push(...t);
+              } else {
+                this.httpData.kong.push(this.allDatas[ind]);
+              }
+            });
+            sessionStorage.setItem("httpData", JSON.stringify(this.httpData));
           })
-        );
+          .then(this.laping);
       }
-      Promise.all(proArr).then((res) => {
-        this.httpData = res.map((t) => t.data.stock);
-        this.laping(this.httpData);
-        sessionStorage.setItem("httpData", JSON.stringify(this.httpData));
-      });
     },
     // 将多维数组，拉成一维数组，并去除空数组
-    laping(data) {
-      // 选出空数组
-      data.forEach((t, ind) => {
-        if (t.length) {
-          this.canSee.push(...t);
-        } else {
-          this.kong.push(this.allDatas[ind]);
-        }
-      });
-
-      // 选出不为空的基金
-      let kongArr = this.kong.map((t) => t.code);
-      this.allDatas.forEach((t) => {
-        if (!kongArr.includes(t.code)) {
-          this.jijinName.push(t);
-        }
-      });
-      let arr = [];
+    laping() {
       // 统计数据
-      this.canSee.forEach((t) => {
-        let kk = arr.map((u) => u.code);
+      let id = 0;
+      this.httpData.see.forEach((t) => {
+        let kk = this.jishu.map((u) => u.code);
         if (!kk.includes(t.zcCode)) {
-          arr.push({
+          this.jishu.push({
+            id: ++id,
             zhangfu: t.rate, // 涨幅
             code: t.zcCode, //  股票代码
             name: t.zcName,
@@ -251,39 +328,61 @@ export default {
           });
         }
       });
-
-      this.canSee.forEach((t) => {
+      this.httpData.see.forEach((t) => {
         let code = t.zcCode, //  股票代码
-          inJishu = arr.filter((h) => h.code == code)[0], // 找出股票的数据
+          inJishu = this.jishu.filter((h) => h.code == code)[0], // 找出股票的数据
           jijin = this.allDatas.filter((h) => h.code == t.code)[0]; // 找出基金的名字
         inJishu.jijin.push(jijin.name);
         inJishu.jijinCode.push(jijin.code);
         inJishu.num++;
       });
       // 全部数据
-      arr = arr.sort((a, b) => {
+      this.jishu = this.jishu.sort((a, b) => {
         return b.num - a.num;
       });
 
-      // this.getCompany(arr);
-
       // 统计有几个股票被持有1次
-      arr.forEach((t) => {
+      this.jishu.forEach((t) => {
         if (t.num == 1) {
           this.single += +t.num;
         }
       });
-      console.log(this.canSee);
-      // 全部数据
-      this.jishu = arr;
       // 持有量小于一定数目个的数据
-      // this.jishu = arr.filter(t=>t.num<3);
-      this.fenxi();
-      // this.makeChart();
+      // this.jishu = this.jishu.filter(t=>t.num<3);
+
+      this.chongFeFenXi();
+      this.leiXing();
+      this.makeChart();
+      // this.getCompany();
     },
-    fenxi() {
-      for (let j = this.httpData.length; j--; ) {
-        let e = this.httpData[j];
+    leiXing() {
+      // 基金类型数据
+      let kk = require("./data.json").map((t) => ({
+          code: t[0],
+          name: t[2],
+          type: t[3],
+        })),
+        zz = this.httpData.all.reduce((all, now) => {
+          if (now.length) {
+            all.push(now[0].code);
+          }
+          return all;
+        }, []);
+
+      this.jijinType = kk
+        .filter((t) => zz.includes(t.code))
+        .reduce((all, now) => {
+          if (!all[now["type"]]) {
+            all[now["type"]] = [];
+          }
+          all[now["type"]].push(now.name);
+          return all;
+        }, {});
+    },
+    // 重合分析
+    chongFeFenXi() {
+      for (let j = this.httpData.all.length; j--; ) {
+        let e = this.httpData.all[j];
         if (e.length) {
           let code = e[0].code,
             tar = this.allDatas.find((t) => t.code == code);
@@ -297,7 +396,6 @@ export default {
       this.allDatas.forEach((t) => {
         if (t.gupiao) {
           let gupiao = t.gupiao.map((k) => k.zcCode);
-
           for (let i = this.allDatas.length; i--; ) {
             if (this.allDatas[i].code != t.code && this.allDatas[i].gupiao) {
               let d = this.allDatas[i].gupiao.map((k) => k.zcCode),
@@ -308,23 +406,21 @@ export default {
                 }
               });
               if (num > this.chongheNum) {
-                let a = new Set(t.gupiao.map((d) => d.zcCode));
-                let b = new Set(this.allDatas[i].gupiao.map((d) => d.zcCode));
-                let kk = [...new Set([...a].filter((x) => b.has(x)))];
-
-                let obj = {
-                  one: t,
-                  two: this.allDatas[i],
-                  num: num,
-                  chong: t.gupiao.filter((t) => kk.includes(t.zcCode)),
-                };
+                let a = new Set(t.gupiao.map((d) => d.zcCode)),
+                  b = new Set(this.allDatas[i].gupiao.map((d) => d.zcCode)),
+                  kk = [...new Set([...a].filter((x) => b.has(x)))],
+                  obj = {
+                    one: t,
+                    two: this.allDatas[i],
+                    num: num,
+                    chong: t.gupiao.filter((t) => kk.includes(t.zcCode)),
+                  };
                 arrs.push(obj);
               }
             }
           }
         }
       });
-
       setTimeout(() => {
         for (let j = arrs.length; j--; ) {
           let one = arrs[j].one.code,
@@ -347,141 +443,138 @@ export default {
             }
           }
         }
-
         this.toShow = true;
       });
     },
-    async getCompany(t) {
-      for (let i = t.length; i--; ) {
-        await this.$axios({
-          method: "get",
-          url: `gongsi/${t[i].code}`,
-        }).then((res) => {
-          if (res.resultCode == 0 && Object.keys(res.data).length) {
-            t[i].hangye = `(${res.data.businessType.replace(" — ", "-")})`;
-          }
-        });
-      }
-      this.jishu = t;
-      this.toShow = true;
-    },
-
-    // getCompany(t) {
-    //   let num = 0;
-    //   t.forEach((d) => {
-    //     this.$axios({
-    //       method: "get",
-    //       url: `gongsi/${d.code}`,
-    //     }).then((res) => {
-    //       num++;
-    //       if (res.resultCode == 0 && Object.keys(res.data).length) {
-    //         d.hangye = `(${res.data["所属申万行业："].replace(" — ", "-")})`;
-    //       }
-    //     });
-    //   });
-    //   let time = setInterval(() => {
-    //     if (num === t.length) {
-    //       this.jishu = t;
-    //       this.toShow = true;
-    //       clearInterval(time);
+    // async getCompany() {
+    //   for (let i = this.jishu.length; i--; ) {
+    //     let reg = /^\d./gi;
+    //     if (reg.test(this.jishu[i].code)) {
+    //       await this.$axios({
+    //         method: "get",
+    //         url: `gongsi/${this.jishu[i].code}`,
+    //       }).then((res) => {
+    //         if (res.resultCode == 0 && Object.keys(res.data).length) {
+    //           this.jishu[i].hangye = `(${res.data.businessType.replace(
+    //             " — ",
+    //             "-"
+    //           )})`;
+    //         }
+    //       });
     //     }
-    //   }, 500);
+    //   }
     // },
+    // getCompany() {
+    //   this.jishu.forEach((d) => {
+    //     let reg = /^\d./gi;
+    //     if (reg.test(d.code)) {
+    //       this.$axios({
+    //         method: "get",
+    //         url: `gongsi/${d.code}`,
+    //       }).then((res) => {
+    //         if (res.resultCode == 0 && Object.keys(res.data).length) {
+    //           d.hangye = `(${res.data["businessType"].replace(" — ", "-")})`;
+    //           console.log(d);
+    //         }
+    //       });
+    //     }
+    //   });
+    // },
+
     makeChart() {
-      let forY = this.jishu.map((t) => t.name),
-        forX = this.jijinName.map((t) => t.name);
-
-      forX.forEach((t) => {
-        if (t.length > this.setHeight) {
-          this.setHeight = t.length * 20;
+      let obj = {};
+      Object.keys(this.jijinType).forEach((t) => {
+        let arr = [];
+        for (let i = 0; i < this.jijinType[t].length; i += 3) {
+          arr.push(this.jijinType[t].slice(i, i + 3));
         }
+        obj[t] = arr;
       });
-      forY.forEach((t) => {
-        if (t.length > this.setWidth) {
-          this.setWidth = t.length * 20;
-        }
-      });
-      this.setWidth = this.setWidth + forX.length * 24;
-      this.setHeight = this.setHeight + forY.length * 24;
-      this.jishu.forEach((t, ind) => {
-        t.jijinCode.forEach((d) => {
-          let num = this.allDatas.findIndex((k) => k.code == d);
-          // 点位数据，以索引标定位置 [x,y,tip]
-          this.finallData.push([num, ind, t.zhangfu]);
-        });
-      });
-      // let option = {
-      //   title: {
-      //     text: "股票投资公司分部",
-      //   },
-      //   tooltip: {
-      //     position: "top",
-      //     formatter: function (params) {
-      //       return ` 日涨幅 ${params.value[2]}%`;
-      //     },
-      //   },
-      //   grid: {
-      //     left: 2,
-      //     bottom: 5,
-      //     right: 5,
-      //     containLabel: true,
-      //   },
-      //   xAxis: {
-      //     type: "category",
-      //     data: forX,
-      //     axisLabel: { rotate: 90 },
-      //     splitLine: {
-      //       show: true,
-      //       lineStyle: {
-      //         color: "#d3d0d0",
-      //         type: "dashed",
-      //       },
-      //     },
-      //     axisLine: {
-      //       show: false,
-      //     },
-      //   },
-      //   yAxis: {
-      //     name: "股票",
-      //     type: "category",
-      //     data: forY,
-      //     axisLine: {
-      //       show: false,
-      //     },
-      //     splitLine: {
-      //       show: true,
-      //       lineStyle: {
-      //         color: "#d3d0d0",
-      //         type: "dashed",
-      //       },
-      //     },
-      //   },
-      //   series: [
-      //     {
-      //       type: "scatter",
-      //       symbolSize: 10, //图元的大小
-      //       data: this.finallData,
-      //       color: "blue",
-      //     },
-      //   ],
-      // };
-
-      // this.toShow = true;
-
-      // setTimeout(() => {
-      //   var myChart = echarts.init(document.getElementById("main"));
-      //   myChart.setOption(option);
-      //   myChart.on("click", (params) => {
-      //     let ind = params.value[0];
-      //     window.open(`http://fund.10jqka.com.cn/${this.canSee[ind].code}/`);
-      //   });
-      // }, 100);
+      let option = {
+        title: {
+          text: "基金类型分析",
+          left: "center",
+        },
+        tooltip: {
+          trigger: "item",
+          formatter: `{b}:{d}%`,
+        },
+        legend: {
+          top: 30,
+          left: "center",
+          data: Object.keys(obj),
+        },
+        series: [
+          {
+            labelLine: {
+              length: 10,
+              length2: 30,
+            },
+            type: "pie",
+            radius: "25%",
+            center: ["50%", "70%"],
+            data: Object.keys(obj).map((t) => ({
+              value: obj[t].length,
+              name: t,
+              label: {
+                formatter: [
+                  `{title|{b}，${this.jijinType[t].length}个}{abg|}`,
+                  ...obj[t].map((e) => `{weatherHead|${e.join("，")}}`),
+                ].join("\n"),
+                backgroundColor: "#eee",
+                borderColor: "#777",
+                borderWidth: 1,
+                borderRadius: 4,
+                rich: {
+                  title: {
+                    color: "#eee",
+                    align: "center",
+                    padding: [0, 10, 0, 10],
+                  },
+                  abg: {
+                    backgroundColor: "#333",
+                    width: "100%",
+                    align: "right",
+                    height: 20,
+                    borderRadius: [4, 4, 0, 0],
+                  },
+                  weatherHead: {
+                    color: "#333",
+                    align: "left",
+                    height: 16,
+                    padding: [0, 5, 0, 5],
+                  },
+                  value: {
+                    width: 20,
+                    padding: [0, 20, 0, 30],
+                    align: "left",
+                  },
+                },
+              },
+            })),
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: "rgba(0, 0, 0, 0.5)",
+              },
+            },
+          },
+        ],
+      };
+      this.chartShow = true;
+      setTimeout(() => {
+        var myChart = echarts.init(document.getElementById("main"));
+        myChart.setOption(option);
+      }, 100);
     },
     search() {
       if (this.jijins != "") {
+        console.log(this.jijins);
         let code = this.jishu.filter((t) => t.name == this.jijins)[0].code;
         let tar = this.$refs[code][0];
         tar.setAttribute("style", "background:red;");
+        // tar.scrollIntoView()
         setTimeout(() => {
           this.$refs[code][0].removeAttribute("style");
         }, 5000);
@@ -511,6 +604,20 @@ button {
   cursor: pointer;
 }
 .bk {
-  background: palegoldenrod;
+  background: rgb(237, 231, 194);
+}
+.kong {
+  font-size: 12px;
+  display: flex;
+}
+.kong thead,
+.see thead {
+  font-size: 16px;
+}
+.kong table {
+  margin-right: 20px;
+}
+.see {
+  font-size: 12px;
 }
 </style>

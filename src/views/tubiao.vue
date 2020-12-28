@@ -259,7 +259,9 @@ export default {
     this.range = "A1:B200";
     // this.range = "C1:D200";
     // this.range = "E1:F200";
-    this.autoRead(); // 自动读取本地excel文件
+
+    // 自动读取本地excel文件
+    this.autoRead();
   },
   methods: {
     autoRead() {

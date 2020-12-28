@@ -1,10 +1,11 @@
 <template>
   <div>
-    <input
+    <!-- 手动选择文件 -->
+    <!-- <input
       type="file"
       style="margin-bottom:10px;"
       @change="readExcel"
-    />
+    /> -->
     <!-- echarts 显示 -->
     <div
       v-if="chartShow"
@@ -34,16 +35,40 @@
               <p style="margin:1px;">{{t.two.name}}</p>
             </td>
             <td>{{t.num}}</td>
-            <td>{{(t.chong.map(d=>d.zcName)).sort().join('，')}}</td>
+            <td>{{(t.chong.map(d=>d.zcName)).sort().join('  ')}}</td>
           </tr>
         </tbody>
       </table>
 
       <div style="width:60%;flex-shrink:0">
+        <!-- 基金类型统计 -->
         <table
+          style="margin-bottom:10px"
           border="1"
           collpase
-          v-if="toShow&&httpData.kong.length"
+          v-if="toShow"
+        >
+          <thead>
+            <tr>
+              <th colspan="2">基金类型统计</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="t in Object.keys(jijinType)"
+              :key="t"
+            >
+              <td style="width:55px;text-align:center;">{{t}}</td>
+              <td>{{jijinType[t].join('  ')}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table
+          style="margin-bottom:10px"
+          border="1"
+          collpase
+          v-if="httpData.kong.length"
         >
           <thead>
             <tr>
@@ -61,25 +86,23 @@
           </tbody>
         </table>
 
-        <!-- 基金类型统计 -->
         <table
-          style="margin-top:10px"
           border="1"
           collpase
-          v-if="toShow"
+          v-if="chongfu.length"
         >
           <thead>
             <tr>
-              <th colspan="2">基金类型统计</th>
+              <th colspan="2">excel 里重复的{{`${chongfu.length}个`}}</th>
             </tr>
           </thead>
           <tbody>
             <tr
-              v-for="t in Object.keys(jijinType)"
-              :key="t"
+              v-for="t in chongfu"
+              :key="t.code"
             >
-              <td style="width:55px;text-align:center;">{{t}}</td>
-              <td>{{jijinType[t].join('，')}}</td>
+              <td>{{t.code}}</td>
+              <td>{{t.name}}</td>
             </tr>
           </tbody>
         </table>
@@ -103,6 +126,29 @@
         </tr>
       </thead>
       <tbody>
+
+        <tr>
+          <td
+            colspan="4"
+            class="sticky"
+          >
+            <div>
+              <div>
+                <input
+                  style="padding:5px 2px;"
+                  type="text"
+                  placeholder="输入股票名称"
+                  v-model="jijins"
+                  @keyup.enter="search"
+                />
+                <button @click="search">搜索基金</button>
+              </div>
+            </div>
+
+          </td>
+
+        </tr>
+
         <tr>
           <th>股票名称</th>
           <th
@@ -115,15 +161,9 @@
             title="点击排序"
             @click="toSort(false)"
           >日涨幅 %</th>
-          <th>
+          <th style="font-size:16px;">
             持仓基金&nbsp;&nbsp;
-            <span>{{jishu.length}}个股票，{{single}} 个股票被持有一次</span>&nbsp;&nbsp;
-            <input
-              type="text"
-              placeholder="输入股票名称"
-              v-model="jijins"
-            />
-            <button @click="search">搜索基金</button>
+            <span>{{jishu.length}}个股票，{{single}} 个股票被持有一次</span>
           </th>
         </tr>
 
@@ -141,7 +181,39 @@
           </td>
           <td style="text-align: center;font-size:14px;">{{t.num}}</td>
           <td style="text-align: center;font-size:14px;">{{t.zhangfu}}</td>
-          <td>{{t.jijin.join('，')}}</td>
+          <td>{{t.jijin.join(' , ')}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 根据股票被持有次数的多上进行分组 -->
+    <table
+      style="margin-top:10px;"
+      border="1"
+      collpase
+      v-if="toShowFew"
+    >
+      <thead>
+        <tr>
+          <th colspan="2">持有数量较少的</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr
+          v-for="t in numQuFen"
+          :key="t.name"
+          style="margin:2px;"
+        >
+          <td>{{t.name}}</td>
+          <td style="font-size:12px;">
+            <ul
+              v-for="(d,i) in t.jijin"
+              :key="d+i"
+            >
+              <li>{{d.code}}&nbsp;&nbsp;&nbsp;{{d.name}}</li>
+            </ul>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -173,38 +245,64 @@ export default {
       chongheNum: 4, // 用来定义重合数量
 
       setWidth: 1300,
-      setHeight: 650,
+      setHeight: 800,
       single: 0, // 记录只被持有一次的个数
       range: "",
       jijinType: [],
       chartShow: false,
+      toShowFew: false,
+      numQuFen: [], // 用来将被持有数量太少的股票的基金进行分组
+      chongfu: [],
     };
   },
   created() {
     this.range = "A1:B200";
     // this.range = "C1:D200";
     // this.range = "E1:F200";
+    this.autoRead(); // 自动读取本地excel文件
   },
   methods: {
-    readExcel(ev) {
-      var _this = this,
-        files = ev.target.files[0],
-        reader = new FileReader();
-      reader.readAsArrayBuffer(files);
-      reader.onload = function (e) {
-        let fff = 0,
-          workbook = XLSX.read(e.target.result, {
+    autoRead() {
+      this.$axios({
+        method: "get",
+        url: `wenjian`,
+        responseType: "arraybuffer",
+      }).then((res) => {
+        let workbook = XLSX.read(res, {
             type: "buffer",
           }),
           sheetNames = workbook.SheetNames; // 工作表名称集合
-        let worksheet = workbook.Sheets[sheetNames[fff]], // 这里我们只读取第一张sheet1
-          csv = XLSX.utils.sheet_to_json(worksheet, { range: _this.range });
-
-        _this.allDatas = csv.map((t) => ({
+        let worksheet = workbook.Sheets[sheetNames[0]], // 这里我们只读取第一张sheet1
+          csv = XLSX.utils.sheet_to_json(worksheet, { range: this.range });
+        this.allDatas = csv.map((t) => ({
           code: "" + t["代码"],
           name: "" + t["名字"],
         }));
-        _this.getData();
+        this.getData();
+      });
+    },
+    readExcel(ev) {
+      var files = ev.target.files[0],
+        reader = new FileReader();
+
+      // 以二进制字符串流的方式读取文件
+      // reader.readAsBinaryString(files);
+
+      // 以二进制数组的方式读取文件
+      reader.readAsArrayBuffer(files);
+      reader.onload = (e) => {
+        let workbook = XLSX.read(e.target.result, {
+            //  type: "binary",
+            type: "buffer",
+          }),
+          sheetNames = workbook.SheetNames; // 工作表名称集合
+        let worksheet = workbook.Sheets[sheetNames[0]], // 这里我们只读取第一张sheet1
+          csv = XLSX.utils.sheet_to_json(worksheet, { range: this.range });
+        this.allDatas = csv.map((t) => ({
+          code: "" + t["代码"],
+          name: "" + t["名字"],
+        }));
+        this.getData();
       };
     },
     // 根据持有量或当日收益排序
@@ -224,30 +322,31 @@ export default {
     },
     // 获取所有基金的持股
     getData() {
-      let proArr = [];
+      let proArr = [],
+        excelCode = [];
+      for (let i = this.allDatas.length; i--; ) {
+        if (!excelCode.includes(this.allDatas[i].code)) {
+          excelCode.push(this.allDatas[i].code);
+        } else {
+          this.chongfu.push(this.allDatas.splice(i, 1)[0]);
+        }
+      }
       // 获取自己的基金数据
       if (sessionStorage.getItem("httpData")) {
         // 读取缓存的数据
         let kk = JSON.parse(sessionStorage.getItem("httpData")),
-          // 读取excel文件的基金code
-          excelCode = this.allDatas.map((t) => t.code),
           // 存储目前session的基金
           sessionCode = [
-            ...kk.see.map((t) => t.code),
+            ...Array.from(new Set(kk.see.map((t) => t.code))),
             ...kk.kong.map((t) => t.code),
           ],
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
           needHttp = excelCode.filter((t) => !sessionCode.includes(t));
         this.httpData = {
-          all: [...kk.all],
           kong: kk.kong.filter((t) => excelCode.includes(t.code)),
-          see: [],
+          see: kk.see.filter((t) => excelCode.includes(t.code)),
         };
-        for (let i = kk.see.length; i--; ) {
-          if (excelCode.includes(kk.see[i].code)) {
-            this.httpData.see.unshift(kk.see[i]);
-          }
-        }
+
         // 获取新增的基金数据
         if (needHttp.length) {
           for (let i = 0; i < needHttp.length; i++) {
@@ -263,19 +362,16 @@ export default {
             .then((res) => {
               // 需要再次查看http获取的数据中的基金是否为空
               let dd = res.map((t) => t.data.stock);
-              dd.forEach((t, index) => {
-                this.httpData.all.push(t);
-                if (t.length) {
-                  this.httpData.see.push(...t);
+              for (let i = 0; i < dd.length; i++) {
+                if (dd[i].length) {
+                  this.httpData.see.push(...dd[i]);
                 } else {
                   this.httpData.kong.push({
-                    code: needHttp[index],
-                    name: this.allDatas.filter(
-                      (t) => t.code == needHttp[index]
-                    )[0].name,
+                    code: needHttp[i],
+                    name: this.allDatas.find((t) => t.code == needHttp[i]).name,
                   });
                 }
-              });
+              }
             })
             .then(() => {
               sessionStorage.setItem("httpData", JSON.stringify(this.httpData));
@@ -285,26 +381,26 @@ export default {
           this.laping();
         }
       } else {
-        // 从零读取文件
-        let jijin = this.allDatas.map((t) => t.code); // 提取基金号
-        for (let i = 0; i < jijin.length; i++) {
+        for (let i = 0; i < excelCode.length; i++) {
           proArr.push(
             this.$axios({
               method: "get",
-              url: `jijin/${jijin[i]}`,
+              url: `jijin/${excelCode[i]}`,
             })
           );
         }
         Promise.all(proArr)
           .then((res) => {
-            this.httpData.all = res.map((t) => t.data.stock);
-            this.httpData.all.forEach((t, ind) => {
-              if (t.length) {
-                this.httpData.see.push(...t);
+            let zz = res.map((t) => t.data.stock);
+            for (let i = 0; i < zz.length; i++) {
+              if (zz[i].length) {
+                this.httpData.see.push(...zz[i]);
               } else {
-                this.httpData.kong.push(this.allDatas[ind]);
+                this.httpData.kong.push(
+                  this.allDatas.find((k) => k.code == excelCode[i])
+                );
               }
-            });
+            }
             sessionStorage.setItem("httpData", JSON.stringify(this.httpData));
           })
           .then(this.laping);
@@ -315,17 +411,32 @@ export default {
       // 统计数据
       let id = 0;
       this.httpData.see.forEach((t) => {
-        let kk = this.jishu.map((u) => u.code);
+        let kk = this.jishu.map((u) => u.code),
+          zz = this.jishu.map((u) => u.name);
+
         if (!kk.includes(t.zcCode)) {
-          this.jishu.push({
-            id: ++id,
-            zhangfu: t.rate, // 涨幅
-            code: t.zcCode, //  股票代码
-            name: t.zcName,
-            num: 0,
-            jijin: [],
-            jijinCode: [], // 基金的代码
-          });
+          // 有的股票名字相同，但所在股市不同，需要加以区分
+          if (!zz.includes(t.zcName)) {
+            this.jishu.push({
+              id: ++id,
+              zhangfu: t.rate, // 涨幅
+              code: t.zcCode, //  股票代码
+              name: t.zcName,
+              num: 0,
+              jijin: [],
+              jijinCode: [], // 基金的代码
+            });
+          } else {
+            this.jishu.push({
+              id: ++id,
+              zhangfu: t.rate, // 涨幅
+              code: t.zcCode, //  股票代码
+              name: t.zcName + " " + id,
+              num: 0,
+              jijin: [],
+              jijinCode: [], // 基金的代码
+            });
+          }
         }
       });
       this.httpData.see.forEach((t) => {
@@ -333,7 +444,10 @@ export default {
           inJishu = this.jishu.filter((h) => h.code == code)[0], // 找出股票的数据
           jijin = this.allDatas.filter((h) => h.code == t.code)[0]; // 找出基金的名字
         inJishu.jijin.push(jijin.name);
-        inJishu.jijinCode.push(jijin.code);
+        inJishu.jijinCode.push({
+          name: jijin.name,
+          code: jijin.code,
+        });
         inJishu.num++;
       });
       // 全部数据
@@ -352,8 +466,9 @@ export default {
 
       this.chongFeFenXi();
       this.leiXing();
-      this.makeChart();
+      // this.makeChart();
       // this.getCompany();
+      // this.makeNumQuFen();
     },
     leiXing() {
       // 基金类型数据
@@ -362,12 +477,7 @@ export default {
           name: t[2],
           type: t[3],
         })),
-        zz = this.httpData.all.reduce((all, now) => {
-          if (now.length) {
-            all.push(now[0].code);
-          }
-          return all;
-        }, []);
+        zz = Array.from(new Set(this.httpData.see.map((t) => t.code)));
 
       this.jijinType = kk
         .filter((t) => zz.includes(t.code))
@@ -381,21 +491,15 @@ export default {
     },
     // 重合分析
     chongFeFenXi() {
-      for (let j = this.httpData.all.length; j--; ) {
-        let e = this.httpData.all[j];
-        if (e.length) {
-          let code = e[0].code,
-            tar = this.allDatas.find((t) => t.code == code);
-          tar.gupiao = e.map((t) => ({
-            zcName: t.zcName,
-            zcCode: t.zcCode,
-          }));
-        }
+      for (let i = this.allDatas.length; i--; ) {
+        this.allDatas[i]["gupiao"] = this.httpData.see.filter(
+          (t) => t.code == this.allDatas[i].code
+        );
       }
       let arrs = [];
       this.allDatas.forEach((t) => {
         if (t.gupiao) {
-          let gupiao = t.gupiao.map((k) => k.zcCode);
+          let gupiao = t.gupiao.map((k) => k.zcCode); // 选出基金所持股票的代码
           for (let i = this.allDatas.length; i--; ) {
             if (this.allDatas[i].code != t.code && this.allDatas[i].gupiao) {
               let d = this.allDatas[i].gupiao.map((k) => k.zcCode),
@@ -480,7 +584,7 @@ export default {
     //     }
     //   });
     // },
-
+    // 绘制echarts
     makeChart() {
       let obj = {};
       Object.keys(this.jijinType).forEach((t) => {
@@ -497,7 +601,9 @@ export default {
         },
         tooltip: {
           trigger: "item",
-          formatter: `{b}:{d}%`,
+          formatter: (k) => {
+            return `${k.name}，${k.value * 3}个，${k.percent}%`;
+          },
         },
         legend: {
           top: 30,
@@ -512,21 +618,23 @@ export default {
             },
             type: "pie",
             radius: "25%",
-            center: ["50%", "70%"],
+            center: ["50%", "80%"],
             data: Object.keys(obj).map((t) => ({
               value: obj[t].length,
               name: t,
               label: {
                 formatter: [
                   `{title|{b}，${this.jijinType[t].length}个}{abg|}`,
-                  ...obj[t].map((e) => `{weatherHead|${e.join("，")}}`),
+                  ...obj[t].map((e) => `{weatherHead|${e.join("   ")}}`),
                 ].join("\n"),
+                // backgroundColor: this.makeColor(),
                 backgroundColor: "#eee",
                 borderColor: "#777",
                 borderWidth: 1,
                 borderRadius: 4,
                 rich: {
                   title: {
+                    fontSize: 16,
                     color: "#eee",
                     align: "center",
                     padding: [0, 10, 0, 10],
@@ -535,11 +643,11 @@ export default {
                     backgroundColor: "#333",
                     width: "100%",
                     align: "right",
-                    height: 20,
+                    height: 22,
                     borderRadius: [4, 4, 0, 0],
                   },
                   weatherHead: {
-                    color: "#333",
+                    color: "black",
                     align: "left",
                     height: 16,
                     padding: [0, 5, 0, 5],
@@ -568,25 +676,51 @@ export default {
         myChart.setOption(option);
       }, 100);
     },
+    makeColor() {
+      let a = Math.floor(Math.random() * 255),
+        b = Math.floor(Math.random() * 255),
+        c = Math.floor(Math.random() * 255);
+      return `rgba(${a}, ${b},${c})`;
+    },
     search() {
       if (this.jijins != "") {
-        console.log(this.jijins);
         let code = this.jishu.filter((t) => t.name == this.jijins)[0].code;
         let tar = this.$refs[code][0];
         tar.setAttribute("style", "background:red;");
-        // tar.scrollIntoView()
+        tar.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
+        });
         setTimeout(() => {
           this.$refs[code][0].removeAttribute("style");
         }, 5000);
       }
+    },
+    // 整理被持有数量小于3个的股票
+    makeNumQuFen() {
+      this.jishu.forEach((t) => {
+        if (t.num < 3) {
+          this.numQuFen.push({
+            name: t.name,
+            jijin: t.jijinCode,
+          });
+        }
+      });
+      this.toShowFew = true;
     },
   },
 };
 </script>
 
 <style>
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 2px;
+}
 table {
-  border: 1px solid rgb(230, 123, 159);
+  border: 1px solid rgb(228, 178, 195);
   border-collapse: collapse; /*关键代码*/
 }
 th {
@@ -619,5 +753,21 @@ button {
 }
 .see {
   font-size: 12px;
+}
+.sticky {
+  width: 100%;
+  position: sticky;
+  top: 50px;
+  text-align: right;
+}
+.sticky > div {
+  width: 100%;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
+.sticky > div > div {
+  width: 250px;
+  background: royalblue;
 }
 </style>

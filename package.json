@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "vue": "vue-cli-service serve --open --port 2656",
-    "start": "concurrently \"npm run node\" \"npm run vue\"",
-    "node": "node http.js"
+    "node": "node http.js",
+    "start": "concurrently \"npm run node\" \"npm run vue\""
   },
   "dependencies": {
     "axios": "^0.19.2",

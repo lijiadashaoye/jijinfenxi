@@ -2,7 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
 import as from "axios";
 as.defaults.baseURL = 'http://localhost:6634';

@@ -20,7 +20,6 @@
 
     <div class="kong">
       <div>
-
         <!-- 重合分析 -->
         <table
           border="1"
@@ -95,28 +94,6 @@
 
       </div>
       <div style="width:60%;flex-shrink:0">
-        <!-- 基金类型统计 -->
-        <table
-          style="margin-bottom:20px"
-          border="1"
-          collpase
-          v-if="toShow&&Object.keys(jijinType).length"
-        >
-          <thead>
-            <tr>
-              <th colspan="2">基金类型统计</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="t in Object.keys(jijinType)"
-              :key="t"
-            >
-              <td style="width:75px;text-align:center;">{{t}}</td>
-              <td>{{jijinType[t].join('  ')}}</td>
-            </tr>
-          </tbody>
-        </table>
         <!-- 根据概念区分 -->
         <table
           style="margin-bottom:20px"
@@ -134,8 +111,30 @@
               v-for="t in Object.keys(gaiNian)"
               :key="t"
             >
-              <td style="width:75px;text-align:center;">{{t}}</td>
+              <td style="width:85px;text-align:center;">{{t}}</td>
               <td>{{gaiNian[t].join('  ')}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- 基金类型统计 -->
+        <table
+          style="margin-bottom:20px"
+          border="1"
+          collpase
+          v-if="toShow&&Object.keys(jijinType).length"
+        >
+          <thead>
+            <tr>
+              <th colspan="2">基金类型统计</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="t in Object.keys(jijinType)"
+              :key="t"
+            >
+              <td style="width:85px;text-align:center;">{{t}}</td>
+              <td>{{jijinType[t].join('  ')}}</td>
             </tr>
           </tbody>
         </table>
@@ -1097,6 +1096,7 @@ button {
 .kong {
   font-size: 12px;
   display: flex;
+  margin-top: 30px;
 }
 .kong thead,
 .see thead {

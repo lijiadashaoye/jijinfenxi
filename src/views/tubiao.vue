@@ -73,7 +73,7 @@
             style="margin-top:10px;"
             border="1"
             collpase
-            v-if="chongfu.length"
+            v-if="toShow&&chongfu.length"
           >
             <thead>
               <tr>
@@ -433,9 +433,9 @@ export default {
   },
   components: { jiazai },
   created() {
-    this.range = "A1:B200";
-    // this.range = "C1:D200";
-    // this.range = "E1:F200";
+    this.range = "A1:B300";
+    // this.range = "C1:D300";
+    // this.range = "E1:F300";
 
     this.autoRead();
   },

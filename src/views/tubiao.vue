@@ -139,8 +139,31 @@
           </tbody>
         </table>
       </div>
-
     </div>
+
+    <!-- 基金类型统计 -->
+    <table
+      style="margin-bottom:20px"
+      border="1"
+      collpase
+      v-if="toShow&&Object.keys(jingliList).length"
+    >
+      <thead>
+        <tr>
+          <th colspan="2">基金经理汇总</th>
+        </tr>
+      </thead>
+      <tbody class="jinglis">
+        <tr
+          v-for="t in Object.keys(jingliList)"
+          :key="t"
+        >
+          <td style="width:85px;text-align:center;">{{t}}</td>
+          <td>{{jingliList[t].join('  ')}}</td>
+        </tr>
+      </tbody>
+    </table>
+
     <!-- 数据统计 -->
     <table
       class="see"
@@ -404,7 +427,8 @@ export default {
       numQuFen: [], // 用来将被持有数量太少的股票的基金进行分组
       chongfu: [],
       colorObj: {}, // 存储每个概念的颜色
-      gaiNian: {},
+      gaiNian: {}, // 存储根据概念区分基金
+      jingliList: {}, // 根据基金经理区分基金
     };
   },
   components: { jiazai },
@@ -841,6 +865,16 @@ export default {
           }
         });
       this.httpData.fenxi.forEach((t) => {
+        let names = Object.keys(this.jingliList);
+        if (names.length) {
+          if (!names.includes(t.jingli)) {
+            this.jingliList[t.jingli] = [];
+          }
+          this.jingliList[t.jingli].push(t.name);
+        } else {
+          this.jingliList[t.jingli] = [t.name];
+        }
+
         if (t.theme && t.theme.length) {
           t.theme.forEach((d) => {
             if (arr.includes(d)) {
@@ -1210,5 +1244,17 @@ button {
   display: inline-block;
   width: 38px;
   text-align: right;
+}
+.jinglis {
+  display: flex;
+  flex-wrap: wrap;
+}
+.jinglis > tr {
+  width: 50%;
+  display: flex;
+  font-size: 14px;
+}
+.jinglis > tr td:nth-of-type(2) {
+  width: calc(100% - 85px);
 }
 </style>

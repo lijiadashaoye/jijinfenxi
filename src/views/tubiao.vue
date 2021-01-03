@@ -3,7 +3,7 @@
     <!-- 手动选择文件 -->
     <!-- <input
       type="file"
-      style="margin-bottom:10px;"
+      style="margin-bottom:20px;"
       @change="readExcel"
     /> -->
     <!-- echarts 显示 -->
@@ -97,7 +97,7 @@
       <div style="width:60%;flex-shrink:0">
         <!-- 基金类型统计 -->
         <table
-          style="margin-bottom:10px"
+          style="margin-bottom:20px"
           border="1"
           collpase
           v-if="toShow&&Object.keys(jijinType).length"
@@ -119,7 +119,7 @@
         </table>
         <!-- 根据概念区分 -->
         <table
-          style="margin-bottom:10px"
+          style="margin-bottom:20px"
           border="1"
           collpase
           v-if="toShow&&Object.keys(gaiNian).length"
@@ -413,6 +413,7 @@ export default {
     this.range = "A1:B200";
     // this.range = "C1:D200";
     // this.range = "E1:F200";
+
     this.autoRead();
   },
   methods: {
@@ -835,11 +836,13 @@ export default {
       let arr = [];
       this.httpData.fenxi
         .map((t) => t.theme)
-        .forEach((t) => {
-          arr.push(...t);
+        .forEach((ty) => {
+          if (ty) {
+            arr.push(...ty);
+          }
         });
       this.httpData.fenxi.forEach((t) => {
-        if (t.theme.length) {
+        if (t.theme && t.theme.length) {
           t.theme.forEach((d) => {
             if (arr.includes(d)) {
               if (!Object.keys(this.gaiNian).includes(d)) {
@@ -1012,7 +1015,6 @@ export default {
                   `{title|{b}，${this.jijinType[t].length}个}{abg|}`,
                   ...obj[t].map((e) => `{weatherHead|${e.join("   ")}}`),
                 ].join("\n"),
-                // backgroundColor: this.makeColor(),
                 backgroundColor: "#eee",
                 borderColor: "#777",
                 borderWidth: 1,

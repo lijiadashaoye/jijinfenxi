@@ -1,12 +1,16 @@
 <template>
   <div class="wap">
-    <p>首次预计4分钟加载完</p>
-    <ul class="content">
-      <li
-        v-for="i of arr"
-        :key="i"
-      ></li>
-    </ul>
+
+    <div class="zhong">
+      <p>首次预计4分钟加载完</p>
+      <ul class="content">
+        <li
+          v-for="i of arr"
+          :key="i"
+        ></li>
+      </ul>
+    </div>
+
   </div>
 </template>
 <script>
@@ -40,11 +44,24 @@ export default {
   text-align: center;
   font-size: 20px;
 }
-.content {
+.zhong {
   width: 200px;
   height: 200px;
   position: relative;
+}
+.zhong > p {
+  position: absolute;
+  top: 44%;
+  left:6px;
+}
+.content {
+  width: 100%;
+  height: 100%;
+  position: relative;
   animation: zhuan 2s linear infinite;
+}
+.content > p {
+  position: absolute;
 }
 .content > li {
   background: red;

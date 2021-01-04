@@ -436,6 +436,15 @@ export default {
     // this.range = "C1:D300";
     // this.range = "E1:F300";
 
+    if (localStorage.getItem("httpData")) {
+      let time = JSON.parse(localStorage.getItem("httpData")).time,
+        now = new Date().getTime();
+      // 超过一小时未操作，就重新拉取数据
+      if (now - time > 1000 * 60 * 60) {
+        localStorage.removeItem("httpData");
+      }
+    }
+
     this.autoRead();
   },
   methods: {
@@ -466,13 +475,6 @@ export default {
         } else {
           this.chongfu.push(this.allDatas.splice(i, 1)[0]);
         }
-      }
-
-      let time = JSON.parse(localStorage.getItem("httpData")).time,
-        now = new Date().getTime();
-      // 超过一小时未操作，就重新拉取数据
-      if (now - time > 1000 * 60 * 60) {
-        localStorage.removeItem("httpData");
       }
       this.getData(excelCode);
     },
@@ -1130,7 +1132,7 @@ ul {
 }
 table {
   border: 1px solid rgb(228, 178, 195);
-  border-collapse: collapse; /*关键代码*/
+  border-collapse: collapse;
 }
 th {
   min-width: 50px;

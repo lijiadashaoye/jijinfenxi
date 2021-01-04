@@ -467,14 +467,21 @@ export default {
           this.chongfu.push(this.allDatas.splice(i, 1)[0]);
         }
       }
+
+      let time = JSON.parse(localStorage.getItem("httpData")).time,
+        now = new Date().getTime();
+      // 超过一小时未操作，就重新拉取数据
+      if (now - time > 1000 * 60 * 60) {
+        localStorage.removeItem("httpData");
+      }
       this.getData(excelCode);
     },
     // 获取所有基金的持股
     async getData(excelCode) {
       // 获取自己的基金数据
-      if (sessionStorage.getItem("httpData")) {
+      if (localStorage.getItem("httpData")) {
         // 读取缓存的数据
-        let kk = JSON.parse(sessionStorage.getItem("httpData")),
+        let kk = JSON.parse(localStorage.getItem("httpData")),
           // 存储目前session的基金
           sessionCode = [
             ...Array.from(new Set(kk.see.map((t) => t.code))),
@@ -487,6 +494,14 @@ export default {
           kong: kk.kong.filter((t) => excelCode.includes(t.code)),
           see: kk.see.filter((t) => excelCode.includes(t.code)),
         };
+        // 转译特殊字符
+        this.httpData.fenxi.forEach((t) => {
+          t.peizhi.forEach((d) => {
+            if (d.name.indexOf("�") > -1) {
+              t.name = "其他";
+            }
+          });
+        });
         // 获取新增的基金数据
         if (needHttp.length) {
           let proArr = [];
@@ -579,17 +594,21 @@ export default {
                   break;
                 case "Data_assetAllocation": // 资产配置
                   k = eval("(" + arr[1] + ")");
-                  obj["peizhi"] = k.series.map((t) => ({
-                    name: t.name == "净资产" ? "规模" : t.name.slice(0, 2) + "",
-                    num:
-                      t.name == "净资产"
-                        ? t.data[0]
+
+                  obj["peizhi"] = k.series.map((t) => {
+                    return {
+                      name:
+                        t.name != "净资产" ? t.name.slice(0, 2) + "" : "规模",
+                      num:
+                        t.name == "净资产"
+                          ? t.data[0]
+                            ? t.data[0].toFixed(2)
+                            : ""
+                          : t.data[0]
                           ? t.data[0].toFixed(2)
-                          : ""
-                        : t.data[0]
-                        ? t.data[0].toFixed(2)
-                        : "",
-                  }));
+                          : "",
+                    };
+                  });
                   break;
                 case "Data_currentFundManager": // 现任基金经理
                   k = eval("(" + arr[1] + ")")[0];
@@ -686,7 +705,8 @@ export default {
       setTimeout(() => {
         this.makeColor();
         this.toShow = true;
-        sessionStorage.setItem("httpData", JSON.stringify(this.httpData));
+        this.httpData.time = new Date().getTime();
+        localStorage.setItem("httpData", JSON.stringify(this.httpData));
         // 持有量小于一定数目个的数据
         // this.jishu = this.jishu.filter(t=>t.num<3);
         this.chongHeFenXi();

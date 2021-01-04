@@ -45,53 +45,6 @@
             </tr>
           </tbody>
         </table>
-
-        <div style="display:flex;">
-          <table
-            style="margin:10px 10px 0 0;"
-            border="1"
-            collpase
-            v-if="toShow&&httpData.kong.length"
-          >
-            <thead>
-              <tr>
-                <th colspan="2">没有持仓数据的，{{`${httpData.kong.length}个`}}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="t in httpData.kong"
-                :key="t.code"
-              >
-                <td>{{t.code}}</td>
-                <td>{{t.name}}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <table
-            style="margin-top:10px;"
-            border="1"
-            collpase
-            v-if="toShow&&chongfu.length"
-          >
-            <thead>
-              <tr>
-                <th colspan="2">excel 里重复的{{`${chongfu.length}个`}}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="t in chongfu"
-                :key="t.code"
-              >
-                <td>{{t.code}}</td>
-                <td>{{t.name}}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
       </div>
       <div style="width:60%;flex-shrink:0">
         <!-- 根据概念区分 -->
@@ -108,8 +61,8 @@
           </thead>
           <tbody>
             <tr
-              v-for="t in Object.keys(gaiNian)"
-              :key="t"
+              v-for="(t,ind) in Object.keys(gaiNian)"
+              :key="ind"
             >
               <td style="width:85px;text-align:center;">{{t}}</td>
               <td>{{gaiNian[t].join('  ')}}</td>
@@ -130,14 +83,60 @@
           </thead>
           <tbody>
             <tr
-              v-for="t in Object.keys(jijinType)"
-              :key="t"
+              v-for="(t,ind) in Object.keys(jijinType)"
+              :key="ind"
             >
               <td style="width:85px;text-align:center;">{{t}}</td>
               <td>{{jijinType[t].join('  ')}}</td>
             </tr>
           </tbody>
         </table>
+
+        <div style="display:flex;">
+          <table
+            style="margin:10px 10px 0 0;"
+            border="1"
+            collpase
+            v-if="toShow&&httpData.kong.length"
+          >
+            <thead>
+              <tr>
+                <th colspan="2">没有持仓数据的，{{`${httpData.kong.length}个`}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(t,ind) in httpData.kong"
+                :key="ind"
+              >
+                <td>{{t.code}}</td>
+                <td>{{t.name}}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table
+            style="margin-top:10px;"
+            border="1"
+            collpase
+            v-if="toShow&&chongfu.length"
+          >
+            <thead>
+              <tr>
+                <th colspan="2">excel 里重复的{{`${chongfu.length}个`}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(t,ind) in chongfu"
+                :key="ind"
+              >
+                <td>{{t.code}}</td>
+                <td>{{t.name}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -155,8 +154,8 @@
       </thead>
       <tbody class="jinglis">
         <tr
-          v-for="t in Object.keys(jingliList)"
-          :key="t"
+          v-for="(t,ind) in Object.keys(jingliList)"
+          :key="ind"
         >
           <td style="width:85px;text-align:center;">{{t}}</td>
           <td>{{jingliList[t].join('  ')}}</td>
@@ -255,8 +254,8 @@
       </thead>
       <tbody>
         <tr
-          v-for="t in numQuFen"
-          :key="t.name"
+          v-for="(t,ind) in numQuFen"
+          :key="ind"
           style="margin:2px;"
         >
           <td>{{t.name}}</td>
@@ -286,8 +285,8 @@
       <tbody>
         <tr class="fenxi">
           <td
-            v-for="t in httpData.fenxi"
-            :key="t.code"
+            v-for="(t,ind) in httpData.fenxi"
+            :key="ind"
           >
             <div class="bili">
               <div :id="t.code"></div>
@@ -460,6 +459,7 @@ export default {
       });
       // 选出excel里重复的
       let excelCode = [];
+      this.chongfu = [];
       for (let i = this.allDatas.length; i--; ) {
         if (!excelCode.includes(this.allDatas[i].code)) {
           excelCode.push(this.allDatas[i].code);
@@ -754,36 +754,37 @@ export default {
           }
         }
       });
-      setTimeout(() => {
-        for (let j = arrs.length; j--; ) {
-          let one = arrs[j].one.code,
-            two = arrs[j].two.code,
-            sortArr = [one, two].sort();
-          if (!this.chonghe.length) {
-            this.chonghe.push(arrs[j]);
-          } else {
-            let isIn = false;
-            for (let i = this.chonghe.length; i--; ) {
-              let one = this.chonghe[i].one.code,
-                two = this.chonghe[i].two.code,
-                sortArr1 = [one, two].sort();
-              if (sortArr[0] == sortArr1[0] && sortArr[1] == sortArr1[1]) {
-                isIn = true;
-              }
-            }
-            if (!isIn) {
-              this.chonghe.push(arrs[j]);
+      for (let j = arrs.length; j--; ) {
+        let one = arrs[j].one.code,
+          two = arrs[j].two.code,
+          sortArr = [one, two].sort();
+        if (!this.chonghe.length) {
+          this.chonghe.push(arrs[j]);
+        } else {
+          let isIn = false;
+          for (let i = this.chonghe.length; i--; ) {
+            let one = this.chonghe[i].one.code,
+              two = this.chonghe[i].two.code,
+              sortArr1 = [one, two].sort();
+            if (sortArr[0] == sortArr1[0] && sortArr[1] == sortArr1[1]) {
+              isIn = true;
             }
           }
+          if (!isIn) {
+            this.chonghe.push(arrs[j]);
+          }
         }
-      });
+      }
     },
+    // 点击基金经理名字
     showManager(c) {
       window.open(`http://fund.10jqka.com.cn//${c}/interduce.html#manager`);
     },
+    // 点击基金号
     showJiJin(c) {
       window.open(`http://fund.10jqka.com.cn/${c}`);
     },
+    // 绘制每个基金的echrts
     makeXiangQingChart() {
       setTimeout(() => {
         this.httpData.fenxi.forEach((t) => {
@@ -961,6 +962,7 @@ export default {
         }));
         // 选出excel里重复的
         let excelCode = [];
+        this.chongfu = [];
         for (let i = this.allDatas.length; i--; ) {
           if (!excelCode.includes(this.allDatas[i].code)) {
             excelCode.push(this.allDatas[i].code);
@@ -1123,6 +1125,10 @@ button {
 }
 .sorrs {
   cursor: pointer;
+}
+.sorrs:hover {
+  transform: rotate(1.2);
+  color: red;
 }
 .bk {
   background: rgb(237, 231, 194);

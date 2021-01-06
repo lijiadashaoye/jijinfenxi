@@ -1,6 +1,5 @@
 <template>
   <div class="wap">
-
     <div class="zhong">
       <p>首次预计4分钟加载完</p>
       <ul class="content">
@@ -10,12 +9,10 @@
         ></li>
       </ul>
     </div>
-
   </div>
 </template>
 <script>
 export default {
-  props: ["show"],
   data() {
     return {
       arr: [],
@@ -30,12 +27,16 @@ export default {
 
 <style scoped>
 .wap {
-  height: 100%;
   background: rgb(224, 222, 222);
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
+  position: fixed;
+  z-index: 50;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
 }
 .wap > p {
   position: absolute;
@@ -52,13 +53,14 @@ export default {
 .zhong > p {
   position: absolute;
   top: 44%;
-  left:6px;
+  left: 6px;
 }
 .content {
   width: 100%;
   height: 100%;
   position: relative;
   animation: zhuan 2s linear infinite;
+  list-style-type: none;
 }
 .content > p {
   position: absolute;

@@ -1,7 +1,4 @@
 {
-  "name": "tongji",
-  "version": "0.1.0",
-  "private": true,
   "scripts": {
     "vue": "vue-cli-service serve --open --port 2656",
     "node": "node http.js",

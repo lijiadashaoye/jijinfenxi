@@ -1,5 +1,5 @@
 <template>
-  <router-view style="height:100%;"/>
+  <router-view style="height:100%;" />
 </template>
 <style>
 body,

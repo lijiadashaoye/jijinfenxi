@@ -375,6 +375,8 @@ export default {
         see: [], // 可以看到持仓的基金
         kong: [], // 看不到持仓数据的基金
         fenxi: [],
+        history: [], // 存储浏览过的基金数据
+        time: "",
       },
       single: 0, // 记录只被持有一次的个数
       range: "",
@@ -390,6 +392,7 @@ export default {
       chartList: [], //用来显示echarts分析
       showchartList: false, // 用echarts 分析基金
       colorObj: {}, // 存储不同概念的颜色
+      caches: null, // 判断是否有缓存
     };
   },
   components: { jiazai },
@@ -397,12 +400,13 @@ export default {
     this.range = "A1:B300";
     // this.range = "C1:D300";
     // this.range = "E1:F300";
+    this.caches = localStorage.getItem("zhengli");
 
-    if (localStorage.getItem("zhengli")) {
-      let time = JSON.parse(localStorage.getItem("zhengli")).time,
+    if (this.caches) {
+      let time = JSON.parse(this.caches).time,
         now = new Date().getTime();
-      // 超过一小时未操作，就重新拉取数据
-      if (now - time > 1000 * 60 * 60) {
+      // 超过三天未操作，就重新拉取数据
+      if (now - time > 1000 * 60 * 60 * 24 * 3) {
         localStorage.removeItem("zhengli");
       }
     }
@@ -424,6 +428,15 @@ export default {
           csv = XLSX.utils.sheet_to_json(worksheet, { range: this.range }),
           excelCode = [];
         csv.forEach((t) => {
+          if (this.caches) {
+            let kk = JSON.parse(this.caches).history;
+            if (!kk.includes(t["代码"])) {
+              this.zhengli.history.push({
+                code: "" + t["代码"],
+                name: t["名字"],
+              });
+            }
+          }
           // 选出excel里的基金
           if (!excelCode.includes(t["代码"])) {
             this.zhengli.canUse.push({
@@ -442,15 +455,16 @@ export default {
         this.getData();
       });
     },
+
     // 获取所有基金的持股
     getData() {
       // 获取所有基金的code
       let codes = this.zhengli.canUse.map((t) => t.code),
         httptype = false;
       // 获取缓存的基金数据
-      if (localStorage.getItem("zhengli")) {
+      if (this.caches) {
         // // 读取缓存的数据
-        let kk = JSON.parse(localStorage.getItem("zhengli")),
+        let kk = JSON.parse(this.caches),
           // 读取之前缓存的基金号
           sessionCode = kk.canUse.map((t) => t.code),
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
@@ -628,7 +642,7 @@ export default {
       this.showjijinType = true;
       this.showjingli = true;
       this.showgainian = true;
-
+      this.zhengli["time"] = new Date().getTime();
       localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
       this.makeXiangQingChart();
     },

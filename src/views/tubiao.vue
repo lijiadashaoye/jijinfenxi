@@ -1157,7 +1157,7 @@ td {
   font-weight: bold;
   border: none;
   font-size: 16px;
-  border-radius: 30%;
+  border-radius: 40%;
 }
 .toChong:hover {
   cursor: pointer;

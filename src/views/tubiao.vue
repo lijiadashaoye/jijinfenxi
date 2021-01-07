@@ -147,7 +147,7 @@
             <p>{{t.one.name}}</p>
             <p>{{t.two.name}}</p>
           </td>
-          <td>{{t.num}}</td>
+          <td style="font-size:14px;">{{t.num}}</td>
           <td>{{t.chong.join(' ')}}</td>
 
           <td>
@@ -215,13 +215,10 @@
         >
           <td
             :id="t.id"
-            :class="{'bg':t.jijin.length>=shaixuan}"
+            :class="{'bg':t.jijin.length>=shaixuan,seegupiao:true}"
+            @click="seeGuPiao(t.code)"
           >
-            <span
-              title="点击查看股票"
-              class="seegupiao"
-              @click="seeGuPiao(t.code)"
-            >{{t.name}}</span>
+            <span title="点击查看股票">{{t.name}}</span>
           </td>
           <td>{{t.jijin.length}}</td>
           <td>{{t.zhangfu}}</td>
@@ -954,6 +951,7 @@ td {
     }
   }
   td:nth-of-type(2) {
+    min-width: 62px;
     text-align: center;
   }
   .chongheTitle {
@@ -1195,7 +1193,7 @@ td {
   font-weight: bold;
   border: none;
   font-size: 16px;
-  border-radius: 40%;
+  border-radius: 0 0 20% 20%;
   opacity: 0.5;
   background: none;
   outline: none;
@@ -1209,12 +1207,15 @@ td {
   content: "去重合分析头部";
   position: fixed;
   right: 15px;
-  bottom: 90px;
+  bottom: 83px;
   color: black;
   font-size: 12px;
+  background: rgb(25, 233, 236);
+  padding: 2px;
+  z-index: 80;
 }
 .seegupiao:hover {
   cursor: pointer;
-  transform: scale(1.2);
+  background: rgb(32, 228, 100);
 }
 </style>

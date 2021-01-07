@@ -161,7 +161,6 @@
 
     <!-- 数据统计 -->
     <table
-      id="tongji"
       class="shuju"
       collpase
       v-if="showgupiao"
@@ -174,22 +173,15 @@
           <th colspan="4">共{{zhengli.canUse.length}}个基金，
             {{zhengli.kong.length}}个看不到持仓</th>
         </tr>
-        <tr>
-          <th
-            colspan="4"
-            class="stickyd"
-          >
-            <div>
-              <input
-                type="text"
-                placeholder="输入股票名称"
-                v-model="jijins"
-                @keyup.enter="search"
-              />
-              <button @click="search">搜索股票</button>
-            </div>
-          </th>
-        </tr>
+        <div class="stickyd">
+          <input
+            type="text"
+            placeholder="输入股票名称"
+            v-model="jijins"
+            @keyup.enter="search"
+          />
+          <button @click="search">搜索股票</button>
+        </div>
       </thead>
       <tbody>
         <tr>
@@ -1039,23 +1031,21 @@ td {
   }
 }
 .stickyd {
-  div {
-    opacity: 0.3;
-    display: inline-block;
-    padding: 2px 4px;
-    background: rgb(15, 188, 190);
-  }
-
-  input {
-    padding: 4px 4px;
-    margin-right: 5px;
-  }
-  div:hover {
-    opacity: 1;
-  }
-  position: sticky;
+  opacity: 0.3;
+  display: inline-block;
+  padding: 2px 4px 4px 4px;
+  background: rgb(15, 188, 190);
+  position: fixed;
+  right: 20px;
   top: 20px;
   text-align: right;
+  input {
+    padding: 4px;
+    margin-right: 5px;
+  }
+  &:hover {
+    opacity: 1;
+  }
 }
 .fenxi {
   width: 100%;

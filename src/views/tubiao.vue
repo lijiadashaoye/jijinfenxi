@@ -1,118 +1,132 @@
 <template>
   <div class="wap">
     <jiazai v-if="!showchartList" />
+    <button
+      title="跳转到重合分析头部"
+      class="toChong"
+      @click="tochong"
+    >
+      <!--js 特殊字符表 http://www.360doc.com/content/19/0316/09/281812_821845466.shtml -->
+      &#8679;
+    </button>
 
-    <!-- 重合分析 -->
-    <table
-      class="chonghe"
-      border="1"
-      collpase
-      v-if="showchonghe"
-    >
-      <thead>
-        <tr>
-          <th colspan="3">重合分析</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(t,ind) in chonghe"
-          :key="ind"
+    <div class="gainians">
+      <!-- 根据概念区分 -->
+      <table
+        class="gainian"
+        collpase
+        v-if="showgainian"
+      >
+        <thead>
+          <tr>
+            <th colspan="2">概念类型统计</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(t,ind) in Object.keys(gaiNian)"
+            :key="ind"
+          >
+            <td>{{t}}</td>
+            <td>{{gaiNian[t].join('  ')}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div>
+        <!-- 基金类型统计 -->
+        <table
+          class="typeJiJin"
+          collpase
+          v-if="showjijinType"
         >
-          <td>
-            <p>{{t.one.name}}</p>
-            <p>{{t.two.name}}</p>
-          </td>
-          <td>{{t.num}}</td>
-          <td>{{(t.chong.map(d=>d.zcName)).sort().join('  ')}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- 根据概念区分 -->
-    <table
-      class="gainian"
-      collpase
-      v-if="showgainian"
-    >
-      <thead>
-        <tr>
-          <th colspan="2">概念类型统计</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(t,ind) in Object.keys(gaiNian)"
-          :key="ind"
+          <thead>
+            <tr>
+              <th colspan="2">基金类型统计</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(t,ind) in Object.keys(jijinType)"
+              :key="ind"
+            >
+              <td>{{t}}</td>
+              <td>{{jijinType[t].join('  ')}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 没有持仓数据的 -->
+        <table
+          class="noChiCang"
+          collpase
+          v-if="zhengli.kong.length"
         >
-          <td>{{t}}</td>
-          <td>{{gaiNian[t].join('  ')}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- 基金类型统计 -->
-    <table
-      class="typeJiJin"
-      collpase
-      v-if="showjijinType"
-    >
-      <thead>
-        <tr>
-          <th colspan="2">基金类型统计</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(t,ind) in Object.keys(jijinType)"
-          :key="ind"
+          <thead>
+            <tr>
+              <th colspan="4">没有持仓数据的，{{`${zhengli.kong.length}个`}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(t,ind) in zhengli.kong"
+              :key="ind"
+            >
+              <td>{{t.code}}</td>
+              <td>{{t.name}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- excel 里重复的 -->
+        <table
+          class="excelChongFu"
+          collpase
+          v-if="zhengli.chongfu.length"
         >
-          <td>{{t}}</td>
-          <td>{{jijinType[t].join('  ')}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- 没有持仓数据的 -->
-    <table
-      class="noChiCang"
-      collpase
-      v-if="zhengli.kong.length"
-    >
-      <thead>
-        <tr>
-          <th colspan="2">没有持仓数据的，{{`${zhengli.kong.length}个`}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(t,ind) in zhengli.kong"
-          :key="ind"
+          <thead>
+            <tr>
+              <th colspan="4">excel 里重复的{{`${zhengli.chongfu.length}个`}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(t,ind) in zhengli.chongfu"
+              :key="ind"
+            >
+              <td>{{t.code}}</td>
+              <td>{{t.name}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 重合分析 -->
+        <table
+          ref="chong"
+          class="chonghe"
+          collpase
+          v-if="showchonghe"
         >
-          <td>{{t.code}}</td>
-          <td>{{t.name}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- excel 里重复的 -->
-    <table
-      class="excelChongFu"
-      collpase
-      v-if="zhengli.chongfu.length"
-    >
-      <thead>
-        <tr>
-          <th colspan="2">excel 里重复的{{`${zhengli.chongfu.length}个`}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(t,ind) in zhengli.chongfu"
-          :key="ind"
-        >
-          <td>{{t.code}}</td>
-          <td>{{t.name}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- 基金类型统计 -->
+          <thead>
+            <tr>
+              <th colspan="3">重合分析</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(t,ind) in chonghe"
+              :key="ind"
+            >
+              <td>
+                <p>{{t.one.name}}</p>
+                <p>{{t.two.name}}</p>
+              </td>
+              <td>{{t.num}}</td>
+              <td>{{(t.chong.map(d=>d.zcName)).sort().join('  ')}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 基金经理汇总 -->
     <table
       class="typeTongJi"
       collpase
@@ -120,7 +134,7 @@
     >
       <thead>
         <tr>
-          <th colspan="2">基金经理汇总</th>
+          <th colspan="4">基金经理汇总</th>
         </tr>
       </thead>
       <tbody>
@@ -850,13 +864,20 @@ export default {
         // 让元素顺滑的滚动到页面中间
         tar.scrollIntoView({
           behavior: "smooth",
-          block: "center",
+          block: "center", // "start", "center", "end"
           inline: "nearest",
         });
         setTimeout(() => {
           this.$refs[code][0].removeAttribute("style");
         }, 5000);
       }
+    },
+    tochong() {
+      this.$refs.chong.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
+      });
     },
   },
 };
@@ -865,7 +886,7 @@ export default {
 <style lang="scss" scoped>
 table {
   border-collapse: collapse;
-  border: 1px solid rgb(188, 181, 181);
+
   margin: 20px;
 }
 ul {
@@ -878,11 +899,10 @@ ul {
   justify-content: center;
 }
 td {
-  padding: 2px 4px;
+  padding: 2px;
   font-size: 12px;
 }
 .chonghe {
-  width: 100%;
   tr {
     width: 100%;
   }
@@ -890,9 +910,12 @@ td {
     width: 100%;
     font-size: 16px;
   }
-
+  td {
+    border: 1px solid rgb(188, 181, 181);
+  }
   td:nth-of-type(1) {
-    width: 115px;
+    width: 200px;
+    flex-shrink: 0;
     p:nth-of-type(1) {
       color: rgb(196, 31, 196);
     }
@@ -909,11 +932,30 @@ td {
   td {
     font-size: 12px;
     border: 1px solid rgb(188, 181, 181);
+    border-collapse: collapse;
   }
   tr > td:nth-of-type(1) {
     width: 90px;
+    flex-shrink: 0;
     text-align: center;
-    color: rgb(100, 3, 107);
+    color: rgb(50, 32, 214);
+  }
+}
+.typeTongJi > tbody,
+.excelChongFu > tbody,
+.noChiCang > tbody {
+  display: flex;
+  flex-wrap: wrap;
+  tr {
+    display: flex;
+    width: 50%;
+    td:nth-of-type(1) {
+      width: 70px !important;
+      flex-shrink: 0;
+    }
+    td:nth-of-type(2) {
+      width: 100%;
+    }
   }
 }
 .shuju {
@@ -1100,5 +1142,24 @@ td {
 }
 .gai > span:nth-child(2) {
   margin-right: 10px;
+}
+.gainians {
+  display: flex;
+}
+.toChong {
+  position: fixed;
+  right: 5px;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  background: rgba(224, 222, 222, 0.5);
+  color: red;
+  font-weight: bold;
+  border: none;
+  font-size: 16px;
+  border-radius: 30%;
+}
+.toChong:hover {
+  cursor: pointer;
 }
 </style>

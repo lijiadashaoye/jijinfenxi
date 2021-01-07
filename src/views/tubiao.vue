@@ -125,7 +125,7 @@
       ref="chong"
       class="chonghe"
       collpase
-      v-if="showchonghe"
+      v-if="chonghe.length"
     >
       <thead>
         <tr>
@@ -226,8 +226,8 @@
     >
       <thead>
         <tr>
-          <th :colspan="zhengli.fenxi.length">
-            {{`共 ${zhengli.fenxi.length} 个`}}
+          <th colspan="3">
+            基金详情，{{`共 ${zhengli.fenxi.length} 个`}}
           </th>
         </tr>
       </thead>
@@ -386,7 +386,6 @@ export default {
       gaiNian: {}, // 存储根据概念区分基金
       showgainian: false, // 显示根据概念区分的表格
       chonghe: [], // 用来存储有重合的基金
-      showchonghe: false, // 重合分析表格
       jijinType: {}, // 基金类型统计
       showjijinType: false, // 显示根据基金概念区分的表格
       chartList: [], //用来显示echarts分析
@@ -627,6 +626,10 @@ export default {
       this.chongHeFenXi();
       this.showgupiao = true;
       this.showchartList = true;
+      this.showjijinType = true;
+      this.showjingli = true;
+      this.showgainian = true;
+
       localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
       this.makeXiangQingChart();
     },
@@ -649,7 +652,6 @@ export default {
           delete this.jijinType[t];
         }
       });
-      this.showjijinType = true;
     },
     // 重合分析
     chongHeFenXi() {
@@ -722,9 +724,6 @@ export default {
             this.chonghe.push(arrs[j]);
           }
         }
-      }
-      if (this.chonghe.length) {
-        this.showchonghe = true;
       }
     },
     // 点击基金经理名字
@@ -858,8 +857,6 @@ export default {
           c = Math.floor(Math.random() * 255);
         this.colorObj[t] = `rgba(${a}, ${b},${c})`;
       });
-      this.showjingli = true;
-      this.showgainian = true;
     },
     // 根据持有量或当日收益排序
     toSort(type) {
@@ -1003,6 +1000,7 @@ td {
     tr {
       th {
         padding: 3px;
+        font-size: 16px;
       }
       th:nth-of-type(2) {
         width: 90px;
@@ -1052,14 +1050,14 @@ td {
   tbody tr {
     margin-bottom: 5px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
   }
   td {
     width: 380px;
     border: 1px solid rgb(188, 181, 181);
   }
   td:nth-of-type(2n) {
-    margin: 0 4px;
+    margin: 0 5px;
   }
 }
 .bili {

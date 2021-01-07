@@ -240,7 +240,7 @@
               </ul>
             </div>
             <div class="xiangqing">
-              <div>
+              <div class="names">
                 <p
                   title="点击查看基金"
                   class="showManager"
@@ -428,7 +428,7 @@ export default {
     getData() {
       // 获取所有基金的code
       let codes = this.zhengli.canUse.map((t) => t.code),
-        httptype = true;
+        httptype = false;
       // 获取缓存的基金数据
       if (localStorage.getItem("zhengli")) {
         // // 读取缓存的数据
@@ -518,7 +518,7 @@ export default {
                   obj["peizhi"] = k.series.map((t) => {
                     // 转译特殊字符
                     if (t.name.indexOf("�") > -1) {
-                      t.name = "其他";
+                      t.name = "股票";
                     }
                     return {
                       name:
@@ -981,6 +981,7 @@ td {
 .fenxi {
   width: 100%;
   tbody tr {
+    margin-bottom: 5px;
     display: flex;
     justify-content: space-between;
   }
@@ -1011,19 +1012,22 @@ td {
 .xiangqing {
   font-size: 12px;
 }
-.xiangqing > p {
-  display: flex;
-  justify-content: space-between;
-}
 .xiangqing > div {
   display: flex;
   justify-content: space-around;
   margin: 2px 0;
 }
-.xiangqing > div p {
-  width: 50%;
-  display: flex;
-  justify-content: center;
+.xiangqing > div {
+  p:nth-of-type(1) {
+    width: 35%;
+  }
+  p:nth-of-type(2) {
+    width: 65%;
+  }
+  p {
+    display: flex;
+    justify-content: center;
+  }
 }
 .xiangqing > div p {
   width: 50%;
@@ -1031,6 +1035,16 @@ td {
 .xiangqing > div > p > span {
   display: inline-block;
   width: 50%;
+}
+.names {
+  display: flex;
+  p {
+    width: 50%;
+  }
+  p:nth-of-type(2) {
+    font-size: 14px;
+    color: rgb(243, 33, 33);
+  }
 }
 .zhang {
   display: flex;
@@ -1080,7 +1094,7 @@ td {
   justify-content: flex-start !important;
 }
 .gai > span:nth-child(1) {
-  width: 95px;
+  width: 66px;
   text-align: right;
   flex-shrink: 0;
 }

@@ -437,19 +437,32 @@ export default {
               });
             }
           }
+
+          let kk = this.caches
+            ? JSON.parse(this.caches).history.find((f) => f.code == t["代码"])
+            : false;
           // 选出excel里的基金
           if (!excelCode.includes(t["代码"])) {
-            this.zhengli.canUse.push({
-              code: "" + t["代码"],
-              name: t["名字"],
-            });
-            excelCode.push("" + t["代码"]);
+            if (kk) {
+              this.zhengli.canUse.push(kk);
+              excelCode.push(kk.code);
+            } else {
+              this.zhengli.canUse.push({
+                code: "" + t["代码"],
+                name: t["名字"],
+              });
+              excelCode.push("" + t["代码"]);
+            }
           } else {
-            // 选出excel里重复的
-            this.zhengli.chongfu.push({
-              code: "" + t["代码"],
-              name: t["名字"],
-            });
+            if (kk) {
+              this.zhengli.chongfu.push(kk);
+            } else {
+              // 选出excel里重复的
+              this.zhengli.chongfu.push({
+                code: "" + t["代码"],
+                name: t["名字"],
+              });
+            }
           }
         });
         this.getData();
@@ -599,6 +612,7 @@ export default {
     },
     // 将多维数组，拉成一维数组，并去除空数组
     makeTongJi() {
+      console.log(this.zhengli)
       // 统计数据
       for (let i = this.zhengli.see.length; i--; ) {
         let codes = this.gupiao.map((t) => t.code), // 股票代码数组

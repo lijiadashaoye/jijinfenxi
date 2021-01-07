@@ -2,7 +2,6 @@
   <div class="wap">
     <jiazai v-if="!showchartList" />
     <button
-      title="跳转到重合分析头部"
       class="toChong"
       @click="tochong"
     >
@@ -97,33 +96,6 @@
             </tr>
           </tbody>
         </table>
-
-        <!-- 重合分析 -->
-        <table
-          ref="chong"
-          class="chonghe"
-          collpase
-          v-if="showchonghe"
-        >
-          <thead>
-            <tr>
-              <th colspan="3">重合分析</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(t,ind) in chonghe"
-              :key="ind"
-            >
-              <td>
-                <p>{{t.one.name}}</p>
-                <p>{{t.two.name}}</p>
-              </td>
-              <td>{{t.num}}</td>
-              <td>{{(t.chong.map(d=>d.zcName)).sort().join('  ')}}</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
     <!-- 基金经理汇总 -->
@@ -147,6 +119,46 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- 重合分析 -->
+    <table
+      ref="chong"
+      class="chonghe"
+      collpase
+      v-if="showchonghe"
+    >
+      <thead>
+        <tr>
+          <th colspan="4">重合分析</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="chongheTitle">
+          <td>基金</td>
+          <td>重合数量</td>
+          <td>重合的股票</td>
+          <td>不重合的股票</td>
+        </tr>
+        <tr
+          v-for="(t,ind) in chonghe"
+          :key="ind"
+        >
+          <td>
+            <p>{{t.one.name}}</p>
+            <p>{{t.two.name}}</p>
+          </td>
+          <td>{{t.num}}</td>
+          <td>{{t.chong.join(' ')}}</td>
+
+          <td>
+            <p>{{t.oneOther.join(' ')}}</p>
+            <p>{{t.twoOther.join(' ')}}</p>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+
     <!-- 数据统计 -->
     <table
       id="tongji"
@@ -204,7 +216,12 @@
           <td
             :id="t.id"
             :class="{'bg':t.jijin.length>=shaixuan}"
-          >{{t.name}}
+          >
+            <span
+              title="点击查看股票"
+              class="seegupiao"
+              @click="seeGuPiao(t.code)"
+            >{{t.name}}</span>
           </td>
           <td>{{t.jijin.length}}</td>
           <td>{{t.zhangfu}}</td>
@@ -654,14 +671,16 @@ export default {
       }
       let arrs = [];
       this.zhengli.canUse.forEach((t) => {
-        if (t.gupiao) {
-          let gupiao = t.gupiao.map((k) => k.zcCode); // 选出基金所持股票的代码
+        if (t.gupiao.length) {
+          let gupiao = t.gupiao.map((k) => k.zcCode); // 选出当前基金所持股票的代码
           for (let i = this.zhengli.canUse.length; i--; ) {
+            let jj = this.zhengli.canUse[i];
             if (
-              this.zhengli.canUse[i].code != t.code &&
-              this.zhengli.canUse[i].gupiao
+              // 排除自己且其他基金有股票数据
+              jj.code != t.code &&
+              jj.gupiao.length
             ) {
-              let d = this.zhengli.canUse[i].gupiao.map((k) => k.zcCode),
+              let d = jj.gupiao.map((k) => k.zcCode),
                 num = 0;
               gupiao.forEach((j) => {
                 if (d.includes(j)) {
@@ -670,15 +689,22 @@ export default {
               });
               if (num > this.chongheNum) {
                 let a = new Set(t.gupiao.map((d) => d.zcCode)),
-                  b = new Set(
-                    this.zhengli.canUse[i].gupiao.map((d) => d.zcCode)
-                  ),
+                  b = new Set(jj.gupiao.map((d) => d.zcCode)),
                   kk = [...new Set([...a].filter((x) => b.has(x)))],
+                  linshi = t.gupiao
+                    .filter((t) => kk.includes(t.zcCode))
+                    .map((t) => t.zcName),
                   obj = {
                     one: t,
-                    two: this.zhengli.canUse[i],
+                    oneOther: t.gupiao
+                      .map((d) => d.zcName)
+                      .filter((f) => !linshi.includes(f)),
+                    two: jj,
+                    twoOther: jj.gupiao
+                      .map((d) => d.zcName)
+                      .filter((f) => !linshi.includes(f)),
                     num: num,
-                    chong: t.gupiao.filter((t) => kk.includes(t.zcCode)),
+                    chong: linshi,
                   };
                 arrs.push(obj);
               }
@@ -693,6 +719,7 @@ export default {
         if (!this.chonghe.length) {
           this.chonghe.push(arrs[j]);
         } else {
+          // 基金位置排序后如果相同，则视为同一组重合对比
           let isIn = false;
           for (let i = this.chonghe.length; i--; ) {
             let one = this.chonghe[i].one.code,
@@ -718,6 +745,10 @@ export default {
     // 点击基金号
     showJiJin(c) {
       window.open(`http://fund.10jqka.com.cn/${c}`);
+    },
+    // 点击股票名称
+    seeGuPiao(c) {
+      window.open(`http://stockpage.10jqka.com.cn/${c}`);
     },
     // 绘制每个基金的echrts
     makeXiangQingChart() {
@@ -872,7 +903,9 @@ export default {
         }, 5000);
       }
     },
+    // 跳转到查看重复表格头部
     tochong() {
+      console.log(this.chonghe);
       this.$refs.chong.scrollIntoView({
         behavior: "smooth",
         block: "start",
@@ -908,13 +941,13 @@ td {
   }
   th {
     width: 100%;
-    font-size: 16px;
+    font-size: 20px;
   }
   td {
     border: 1px solid rgb(188, 181, 181);
   }
-  td:nth-of-type(1) {
-    width: 200px;
+  td:nth-of-type(1),
+  td:nth-of-type(4) {
     flex-shrink: 0;
     p:nth-of-type(1) {
       color: rgb(196, 31, 196);
@@ -922,6 +955,12 @@ td {
   }
   td:nth-of-type(2) {
     text-align: center;
+  }
+  .chongheTitle {
+    text-align: center;
+    td {
+      font-size: 14px;
+    }
   }
 }
 .gainian,
@@ -966,7 +1005,7 @@ td {
     border: 1px solid rgb(188, 181, 181);
   }
   th {
-    font-size: 16px;
+    font-size: 20px;
     border: 1px solid rgb(188, 181, 181);
   }
 
@@ -1148,18 +1187,34 @@ td {
 }
 .toChong {
   position: fixed;
-  right: 5px;
-  top: 50%;
+  right: 15px;
+  bottom: 60px;
   width: 30px;
   height: 30px;
-  background: rgba(183, 238, 182, 0.5);
   color: red;
   font-weight: bold;
   border: none;
   font-size: 16px;
   border-radius: 40%;
+  opacity: 0.5;
+  background: none;
+  outline: none;
 }
 .toChong:hover {
   cursor: pointer;
+  opacity: 1;
+  background: rgb(25, 233, 236);
+}
+.toChong:hover::before {
+  content: "去重合分析头部";
+  position: fixed;
+  right: 15px;
+  bottom: 90px;
+  color: black;
+  font-size: 12px;
+}
+.seegupiao:hover {
+  cursor: pointer;
+  transform: scale(1.2);
 }
 </style>

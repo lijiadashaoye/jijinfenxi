@@ -59,7 +59,7 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
-  animation: zhuan 2s linear infinite;
+  animation: zhuan 4s linear infinite;
   list-style-type: none;
 }
 .content > p {

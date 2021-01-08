@@ -1,357 +1,359 @@
 <template>
-  <div class="wap">
-    <jiazai v-if="!showchartList" />
+  <div>
+    <jiazai v-if="!showAll" />
     <button
       class="toChong"
       @click="tochong"
+      v-show="showAll"
     >
       <!--js 特殊字符表 http://www.360doc.com/content/19/0316/09/281812_821845466.shtml -->
-      &#8679;
+      &#8607;
     </button>
+    <button
+      class="clear"
+      @click="clearCache"
+    >
+      清除缓存，重新拉取数据
+    </button>
+    <div
+      class="wap"
+      v-show="showAll"
+    >
+      <div class="gainians">
+        <!-- 根据概念区分 -->
+        <table
+          class="gainian"
+          collpase
+        >
+          <thead>
+            <tr>
+              <th colspan="2">概念类型统计</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(t,ind) in Object.keys(gaiNian)"
+              :key="ind"
+            >
+              <td>{{t}}</td>
+              <td>{{gaiNian[t].join('  ')}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div>
+          <!-- 基金类型统计 -->
+          <table
+            class="typeJiJin"
+            collpase
+          >
+            <thead>
+              <tr>
+                <th colspan="2">基金类型统计</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(t,ind) in Object.keys(jijinType)"
+                :key="ind"
+              >
+                <td>{{t}}</td>
+                <td>{{jijinType[t].join('  ')}}</td>
+              </tr>
+            </tbody>
+          </table>
 
-    <div class="gainians">
-      <!-- 根据概念区分 -->
+          <!-- 没有持仓数据的 -->
+          <table
+            class="noChiCang"
+            collpase
+          >
+            <thead>
+              <tr>
+                <th colspan="4">没有持仓数据的，{{`${zhengli.kong.length}个`}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(t,ind) in zhengli.kong"
+                :key="ind"
+              >
+                <td>{{t.code}}</td>
+                <td>{{t.name}}</td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- excel 里重复的 -->
+          <table
+            class="excelChongFu"
+            collpase
+          >
+            <thead>
+              <tr>
+                <th colspan="4">excel 里重复的{{`${zhengli.chongfu.length}个`}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(t,ind) in zhengli.chongfu"
+                :key="ind"
+              >
+                <td>{{t.code}}</td>
+                <td>{{t.name}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- 基金经理汇总 -->
       <table
-        class="gainian"
+        class="typeTongJi"
         collpase
-        v-if="showgainian"
       >
         <thead>
           <tr>
-            <th colspan="2">概念类型统计</th>
+            <th colspan="4">基金经理汇总</th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="(t,ind) in Object.keys(gaiNian)"
+            v-for="(t,ind) in Object.keys(jingliList)"
             :key="ind"
           >
             <td>{{t}}</td>
-            <td>{{gaiNian[t].join('  ')}}</td>
+            <td>{{jingliList[t].join('  ')}}</td>
           </tr>
         </tbody>
       </table>
-      <div>
-        <!-- 基金类型统计 -->
-        <table
-          class="typeJiJin"
-          collpase
-          v-if="showjijinType"
-        >
-          <thead>
-            <tr>
-              <th colspan="2">基金类型统计</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(t,ind) in Object.keys(jijinType)"
-              :key="ind"
-            >
-              <td>{{t}}</td>
-              <td>{{jijinType[t].join('  ')}}</td>
-            </tr>
-          </tbody>
-        </table>
 
-        <!-- 没有持仓数据的 -->
-        <table
-          class="noChiCang"
-          collpase
-          v-if="zhengli.kong.length"
-        >
-          <thead>
-            <tr>
-              <th colspan="4">没有持仓数据的，{{`${zhengli.kong.length}个`}}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(t,ind) in zhengli.kong"
-              :key="ind"
-            >
-              <td>{{t.code}}</td>
-              <td>{{t.name}}</td>
-            </tr>
-          </tbody>
-        </table>
-        <!-- excel 里重复的 -->
-        <table
-          class="excelChongFu"
-          collpase
-          v-if="zhengli.chongfu.length"
-        >
-          <thead>
-            <tr>
-              <th colspan="4">excel 里重复的{{`${zhengli.chongfu.length}个`}}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(t,ind) in zhengli.chongfu"
-              :key="ind"
-            >
-              <td>{{t.code}}</td>
-              <td>{{t.name}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <!-- 基金经理汇总 -->
-    <table
-      class="typeTongJi"
-      collpase
-      v-if="showjingli"
-    >
-      <thead>
-        <tr>
-          <th colspan="4">基金经理汇总</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(t,ind) in Object.keys(jingliList)"
-          :key="ind"
-        >
-          <td>{{t}}</td>
-          <td>{{jingliList[t].join('  ')}}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- 重合分析 -->
-    <table
-      ref="chong"
-      class="chonghe"
-      collpase
-      v-if="chonghe.length"
-    >
-      <thead>
-        <tr>
-          <th colspan="4">重合分析</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="chongheTitle">
-          <td>基金</td>
-          <td>重合数量</td>
-          <td>重合的股票</td>
-          <td>不重合的股票</td>
-        </tr>
-        <tr
-          v-for="(t,ind) in chonghe"
-          :key="ind"
-        >
-          <td>
-            <p>{{t.one.name}}</p>
-            <p>{{t.two.name}}</p>
-          </td>
-          <td style="font-size:14px;">{{t.num}}</td>
-          <td>{{t.chong.join(' ')}}</td>
-
-          <td>
-            <p>{{t.oneOther.join(' ')}}</p>
-            <p>{{t.twoOther.join(' ')}}</p>
-          </td>
-
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- 数据统计 -->
-    <table
-      class="shuju"
-      collpase
-      v-if="showgupiao"
-    >
-      <thead>
-        <tr>
-          <th colspan="4">数据统计</th>
-        </tr>
-        <tr>
-          <th colspan="4">共{{zhengli.canUse.length}}个基金，
-            {{zhengli.kong.length}}个看不到持仓</th>
-        </tr>
-        <div class="stickyd">
-          <input
-            type="text"
-            placeholder="输入股票名称"
-            v-model="jijins"
-            @keyup.enter="search"
-          />
-          <button @click="search">搜索股票</button>
-        </div>
-      </thead>
-      <tbody>
-        <tr>
-          <th>股票名称</th>
-          <th
-            title="点击排序"
-            @click="toSort(true)"
-          >被持仓次数</th>
-          <th
-            title="点击排序"
-            @click="toSort(false)"
-          >日涨幅 %</th>
-          <th>
-            持仓该股票的基金，&nbsp;&nbsp;
-            <span>{{single}} 个股票被持有一次</span>
-          </th>
-        </tr>
-
-        <tr
-          v-for="(t,ind) in gupiao"
-          :key="ind"
-          :ref="t.code"
-        >
-          <td
-            :id="t.id"
-            :class="{'bg':t.jijin.length>=shaixuan,seegupiao:true}"
-            @click="seeGuPiao(t.code)"
-          >
-            <span title="点击查看股票">{{t.name}}</span>
-          </td>
-          <td>{{t.jijin.length}}</td>
-          <td>{{t.zhangfu}}</td>
-          <td>{{t.jijin.join(' , ')}}</td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- 每个基金的分析 -->
-    <table
-      class="fenxi"
-      collpase
-      v-if="showchartList"
-    >
-      <thead>
-        <tr>
-          <th colspan="3">
-            基金详情，{{`共 ${zhengli.fenxi.length} 个`}}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(d,ind) in chartList "
-          :key="ind"
-        >
-          <td
-            v-for="(t,ind) in d "
+      <!-- 重合分析 -->
+      <table
+        ref="chong"
+        class="chonghe"
+        collpase
+      >
+        <thead>
+          <tr>
+            <th colspan="4">重合分析</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="chongheTitle">
+            <td>基金</td>
+            <td>重合数量</td>
+            <td>重合的股票</td>
+            <td>不重合的股票</td>
+          </tr>
+          <tr
+            v-for="(t,ind) in chonghe"
             :key="ind"
           >
-            <div class="bili">
-              <div :id="t.code"></div>
-              <ul>
-                <li>
-                  <span class="leixingName">
-                    {{`${t.leixing}：`}}</span>
-                  <span>{{t.fengxian}}</span>
-                </li>
-                <li
-                  v-for="(d,ind) of t.peizhi"
-                  :key="ind"
-                >
-                  <span class="leixingName">{{`${d.name}：`}}</span>
-                  <span v-if="d.name!='规模'">{{d.num?d.num+' %':'--'}}</span>
-                  <span v-else>{{d.num?d.num+' 亿':'--'}}</span>
-                  <span v-if="d.name=='规模'&&t.chengli">{{' ('+t.chengli.slice(5)+')'}} </span>
-                </li>
-              </ul>
-            </div>
-            <div class="xiangqing">
-              <div class="names">
-                <p
-                  title="点击查看基金"
-                  class="showManager"
-                  @click="showJiJin(t.code)"
-                >
-                  <span>基金号：</span>
-                  <span>{{t.code}}</span>
-                </p>
-                <p>{{t.name}}</p>
-              </div>
+            <td>
+              <p>{{t.one.name}}</p>
+              <p>{{t.two.name}}</p>
+            </td>
+            <td style="font-size:14px;">{{t.num}}</td>
+            <td>{{t.chong.join(' ')}}</td>
 
-              <div>
-                <p
-                  title="点击查看基金经理管理的基金"
-                  class="showManager"
-                  @click="showManager(t.code)"
-                >
-                  <span>基金经理：</span>
-                  <span>{{t.jingli}}</span>
-                <p>{{t.chengli+' 成立'}}</p>
-              </div>
+            <td>
+              <p>{{t.oneOther.join(' ')}}</p>
+              <p>{{t.twoOther.join(' ')}}</p>
+            </td>
 
-              <div class="gai">
-                <span>概念：</span>
-                <span
-                  v-for="(d,ind) of t.theme"
-                  :key="ind"
-                  :style="{color:colorObj[d],fontWeight:'bold'}"
-                >
-                  {{d}}
-                </span>
-              </div>
+          </tr>
+        </tbody>
+      </table>
 
-              <div class="zhang">
-                <p>
-                  <span>净值：</span>
-                  <span>{{t.jingzhi}}</span>
-                </p>
-                <p>
-                  <span>统计日期：</span>
-                  <span>{{`${t.jingTime}`}}</span>
-                </p>
-              </div>
+      <!-- 数据统计 -->
+      <table
+        class="shuju"
+        collpase
+      >
+        <thead>
+          <tr>
+            <th colspan="4">数据统计</th>
+          </tr>
+          <tr>
+            <th colspan="4">共{{zhengli.canUse.length}}个基金，
+              {{zhengli.kong.length}}个看不到持仓</th>
+          </tr>
+          <div class="stickyd">
+            <input
+              type="text"
+              placeholder="输入股票名称"
+              v-model="jijins"
+              @keyup.enter="search"
+            />
+            <button @click="search">搜索股票</button>
+          </div>
+        </thead>
+        <tbody>
+          <tr>
+            <th>股票名称</th>
+            <th
+              title="点击排序"
+              @click="toSort(true)"
+            >被持仓次数</th>
+            <th
+              title="点击排序"
+              @click="toSort(false)"
+            >日涨幅 %</th>
+            <th>
+              持仓该股票的基金，&nbsp;&nbsp;
+              <span>{{single}} 个股票被持有一次</span>
+            </th>
+          </tr>
 
-              <div class="zhang">
-                <p>
-                  <span>日涨幅：</span>&nbsp;
-                  <span>{{`${t.zhangfu}%`}}</span>
-                </p>
-                <p>
-                  <span>购买费率：</span>&nbsp;
-                  <span>{{t.feilv?t.feilv+'%':''}}</span>
-                </p>
+          <tr
+            v-for="(t,ind) in gupiao"
+            :key="ind"
+            :ref="t.code"
+          >
+            <td
+              :id="t.id"
+              :class="{'bg':t.jijin.length>=shaixuan,seegupiao:true}"
+              @click="seeGuPiao(t.code)"
+            >
+              <span title="点击查看股票">{{t.name}}</span>
+            </td>
+            <td>{{t.jijin.length}}</td>
+            <td>{{t.zhangfu}}</td>
+            <td>{{t.jijin.join(' , ')}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 每个基金的分析 -->
+      <table
+        class="fenxi"
+        collpase
+      >
+        <thead>
+          <tr>
+            <th colspan="3">
+              基金详情，{{`共 ${zhengli.fenxi.length} 个`}}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(d,ind) in chartList "
+            :key="ind"
+          >
+            <td
+              v-for="(t,ind) in d "
+              :key="ind"
+            >
+              <div class="bili">
+                <div :id="t.code"></div>
+                <ul>
+                  <li>
+                    <span class="leixingName">
+                      {{`${t.leixing}：`}}</span>
+                    <span>{{t.fengxian}}</span>
+                  </li>
+                  <li
+                    v-for="(d,ind) of t.peizhi"
+                    :key="ind"
+                  >
+                    <span class="leixingName">{{`${d.name}：`}}</span>
+                    <span v-if="d.name!='规模'">{{d.num?d.num+' %':'--'}}</span>
+                    <span v-else>{{d.num?d.num+' 亿':'--'}}</span>
+                    <span v-if="d.name=='规模'&&t.chengli">{{' ('+t.chengli.slice(5)+')'}} </span>
+                  </li>
+                </ul>
               </div>
+              <div class="xiangqing">
+                <div class="names">
+                  <p
+                    title="点击查看基金"
+                    class="showManager"
+                    @click="showJiJin(t.code)"
+                  >
+                    <span>基金号：</span>
+                    <span>{{t.code}}</span>
+                  </p>
+                  <p>{{t.name}}</p>
+                </div>
 
-              <div class="zhang">
-                <p> <span>近1月：</span>&nbsp;
-                  <span>{{t.yue_1+' %'}}</span>
-                </p>
-                <p> <span>近3月：</span>&nbsp;
-                  <span>{{t.yue_3+' %'}}</span>
-                </p>
+                <div>
+                  <p
+                    title="点击查看基金经理管理的基金"
+                    class="showManager"
+                    @click="showManager(t.code)"
+                  >
+                    <span>基金经理：</span>
+                    <span>{{t.jingli}}</span>
+                  <p>{{t.chengli+' 成立'}}</p>
+                </div>
+
+                <div class="gai">
+                  <span>概念：</span>
+                  <span
+                    v-for="(d,ind) of t.theme"
+                    :key="ind"
+                    :style="{color:colorObj[d],fontWeight:'bold'}"
+                  >
+                    {{d}}
+                  </span>
+                </div>
+
+                <div class="zhang">
+                  <p>
+                    <span>净值：</span>
+                    <span>{{t.jingzhi}}</span>
+                  </p>
+                  <p>
+                    <span>统计日期：</span>
+                    <span>{{`${t.jingTime}`}}</span>
+                  </p>
+                </div>
+
+                <div class="zhang">
+                  <p>
+                    <span>日涨幅：</span>&nbsp;
+                    <span>{{`${t.zhangfu}%`}}</span>
+                  </p>
+                  <p>
+                    <span>购买费率：</span>&nbsp;
+                    <span>{{t.feilv?t.feilv+'%':''}}</span>
+                  </p>
+                </div>
+
+                <div class="zhang">
+                  <p> <span>近1月：</span>&nbsp;
+                    <span>{{t.yue_1+' %'}}</span>
+                  </p>
+                  <p> <span>近3月：</span>&nbsp;
+                    <span>{{t.yue_3+' %'}}</span>
+                  </p>
+                </div>
+
+                <div class="zhang">
+                  <p>
+                    <span>近6月：</span>&nbsp;
+                    <span>{{t.yue_6+' %'}}</span>
+                  </p>
+                  <p>
+                    <span>近1年：</span>&nbsp;
+                    <span>{{t.nian+' %'}}</span>
+                  </p>
+                </div>
+                <div class="zhang">
+                  <p>
+                    <span>今年：</span>&nbsp;
+                    <span>{{t.nowyear+' %'}}</span>
+                  </p>
+                  <p>
+                    <span>成立以来：</span>&nbsp;
+                    <span>{{t.tyear+' %'}}</span>
+                  </p>
+                </div>
+
               </div>
-
-              <div class="zhang">
-                <p>
-                  <span>近6月：</span>&nbsp;
-                  <span>{{t.yue_6+' %'}}</span>
-                </p>
-                <p>
-                  <span>近1年：</span>&nbsp;
-                  <span>{{t.nian+' %'}}</span>
-                </p>
-              </div>
-              <div class="zhang">
-                <p>
-                  <span>今年：</span>&nbsp;
-                  <span>{{t.nowyear+' %'}}</span>
-                </p>
-                <p>
-                  <span>成立以来：</span>&nbsp;
-                  <span>{{t.tyear+' %'}}</span>
-                </p>
-              </div>
-
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -375,24 +377,20 @@ export default {
         see: [], // 可以看到持仓的基金
         kong: [], // 看不到持仓数据的基金
         fenxi: [],
-        history: [], // 存储浏览过的基金数据
         time: "",
       },
       single: 0, // 记录只被持有一次的个数
       range: "",
       gupiao: [], // 记录根据股票进行分析的基金
-      showgupiao: false, // 根据股票分析表格
+
       jingliList: {}, // 根据基金经理区分基金
-      showjingli: false, // 显示根据基金经理区分的表格
       gaiNian: {}, // 存储根据概念区分基金
-      showgainian: false, // 显示根据概念区分的表格
       chonghe: [], // 用来存储有重合的基金
       jijinType: {}, // 基金类型统计
-      showjijinType: false, // 显示根据基金概念区分的表格
       chartList: [], //用来显示echarts分析
-      showchartList: false, // 用echarts 分析基金
       colorObj: {}, // 存储不同概念的颜色
       caches: null, // 判断是否有缓存
+      showAll: false,
     };
   },
   components: { jiazai },
@@ -427,48 +425,26 @@ export default {
         let worksheet = workbook.Sheets[sheetNames[0]], // 这里我们只读取第一张sheet1
           csv = XLSX.utils.sheet_to_json(worksheet, { range: this.range }),
           excelCode = [];
-        csv.forEach((t) => {
-          if (this.caches) {
-            let kk = JSON.parse(this.caches).history;
-            if (!kk.includes(t["代码"])) {
-              this.zhengli.history.push({
-                code: "" + t["代码"],
-                name: t["名字"],
-              });
-            }
-          }
 
-          let kk = this.caches
-            ? JSON.parse(this.caches).history.find((f) => f.code == t["代码"])
-            : false;
+        csv.forEach((t) => {
           // 选出excel里的基金
           if (!excelCode.includes(t["代码"])) {
-            if (kk) {
-              this.zhengli.canUse.push(kk);
-              excelCode.push(kk.code);
-            } else {
-              this.zhengli.canUse.push({
-                code: "" + t["代码"],
-                name: t["名字"],
-              });
-              excelCode.push("" + t["代码"]);
-            }
+            this.zhengli.canUse.push({
+              code: "" + t["代码"],
+              name: t["名字"],
+            });
+            excelCode.push("" + t["代码"]);
           } else {
-            if (kk) {
-              this.zhengli.chongfu.push(kk);
-            } else {
-              // 选出excel里重复的
-              this.zhengli.chongfu.push({
-                code: "" + t["代码"],
-                name: t["名字"],
-              });
-            }
+            // 选出excel里重复的
+            this.zhengli.chongfu.push({
+              code: "" + t["代码"],
+              name: t["名字"],
+            });
           }
         });
         this.getData();
       });
     },
-
     // 获取所有基金的持股
     getData() {
       // 获取所有基金的code
@@ -612,7 +588,6 @@ export default {
     },
     // 将多维数组，拉成一维数组，并去除空数组
     makeTongJi() {
-      console.log(this.zhengli)
       // 统计数据
       for (let i = this.zhengli.see.length; i--; ) {
         let codes = this.gupiao.map((t) => t.code), // 股票代码数组
@@ -636,7 +611,6 @@ export default {
       this.gupiao = this.gupiao.sort((a, b) => {
         return b.jijin.length - a.jijin.length;
       });
-
       // 统计有几个股票被持有1次
       this.gupiao.forEach((t) => {
         if (t.jijin.length == 1) {
@@ -651,11 +625,6 @@ export default {
       this.makeColor();
       this.leiXingTongJi();
       this.chongHeFenXi();
-      this.showgupiao = true;
-      this.showchartList = true;
-      this.showjijinType = true;
-      this.showjingli = true;
-      this.showgainian = true;
       this.zhengli["time"] = new Date().getTime();
       localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
       this.makeXiangQingChart();
@@ -767,18 +736,20 @@ export default {
     },
     // 绘制每个基金的echrts
     makeXiangQingChart() {
-      this.zhengli.fenxi.forEach(async (t) => {
-        await new Promise((res) => {
+      this.zhengli.fenxi.forEach(async (t, ind) => {
+        new Promise((res) => {
           let kk = setInterval(() => {
             let tar = document.getElementById(`${t.code}`);
             if (tar) {
               clearInterval(kk);
+              if (ind == this.zhengli.fenxi.length - 1) {
+                this.showAll = true;
+              }
               hua(tar, t, res);
             }
           }, 50);
         });
       });
-
       function hua(tar, data, res) {
         let option = {
           title: {
@@ -925,6 +896,11 @@ export default {
         inline: "nearest",
       });
     },
+    // 清除缓存，重新拉取数据
+    clearCache() {
+      sessionStorage.removeItem("zhengli");
+      this.autoRead();
+    },
   },
 };
 </script>
@@ -939,10 +915,10 @@ ul {
   list-style-type: none;
 }
 .wap {
-  padding: 50px 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  padding-bottom: 0;
 }
 td {
   padding: 2px;
@@ -958,6 +934,7 @@ td {
   }
   td {
     border: 1px solid rgb(188, 181, 181);
+    padding: 0 4px;
   }
   td:nth-of-type(1),
   td:nth-of-type(4) {
@@ -1200,14 +1177,14 @@ td {
 }
 .toChong {
   position: fixed;
-  right: 15px;
+  right: 10px;
   bottom: 60px;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 50px;
   color: red;
   font-weight: bold;
   border: none;
-  font-size: 16px;
+  font-size: 40px;
   border-radius: 0 0 20% 20%;
   opacity: 0.5;
   background: none;
@@ -1221,16 +1198,22 @@ td {
 .toChong:hover::before {
   content: "去重合分析头部";
   position: fixed;
-  right: 15px;
-  bottom: 83px;
+  right: 10px;
+  bottom: 95px;
   color: black;
   font-size: 12px;
   background: rgb(25, 233, 236);
-  padding: 2px;
+  padding: 2px 4px;
   z-index: 80;
+  border-radius: 5px;
 }
 .seegupiao:hover {
   cursor: pointer;
   background: rgb(32, 228, 100);
+}
+.clear {
+  outline: none;
+  font-size: 14px;
+  margin: 20px 0 0 20px;
 }
 </style>

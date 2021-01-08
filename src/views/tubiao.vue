@@ -111,7 +111,7 @@
       >
         <thead>
           <tr>
-            <th colspan="4">基金经理汇总</th>
+            <th colspan="6">基金经理汇总</th>
           </tr>
         </thead>
         <tbody>
@@ -413,6 +413,7 @@ export default {
   methods: {
     // 自动读取本地excel文件
     async autoRead() {
+      this.showAll = false;
       await this.$axios({
         method: "get",
         url: `wenjian`,
@@ -898,7 +899,7 @@ export default {
     },
     // 清除缓存，重新拉取数据
     clearCache() {
-      sessionStorage.removeItem("zhengli");
+      localStorage.removeItem("zhengli");
       this.autoRead();
     },
   },
@@ -908,8 +909,7 @@ export default {
 <style lang="scss" scoped>
 table {
   border-collapse: collapse;
-
-  margin: 20px;
+  margin: 10px;
 }
 ul {
   list-style-type: none;
@@ -976,9 +976,10 @@ td {
 .noChiCang > tbody {
   display: flex;
   flex-wrap: wrap;
+
   tr {
     display: flex;
-    width: 50%;
+    width: 33.2%;
     td:nth-of-type(1) {
       width: 70px !important;
       flex-shrink: 0;

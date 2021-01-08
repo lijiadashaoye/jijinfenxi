@@ -948,7 +948,7 @@ td {
   td:nth-of-type(4) {
     flex-shrink: 0;
     p:nth-of-type(1) {
-      color: rgb(196, 31, 196);
+      color: rgb(231, 14, 144);
     }
   }
   td:nth-of-type(2) {

@@ -899,7 +899,6 @@ export default {
     },
     // 跳转到查看重复表格头部
     tochong() {
-      console.log(this.chonghe);
       this.$refs.chong.scrollIntoView({
         behavior: "smooth",
         block: "start",

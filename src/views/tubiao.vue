@@ -353,6 +353,11 @@
                 </div>
 
               </div>
+              <div
+                v-if="t.shouyi"
+                class="zoushi"
+                :id="`${t.code}_bing`"
+              ></div>
             </td>
           </tr>
         </tbody>
@@ -539,6 +544,7 @@ export default {
                 });
               bili.forEach((t) => {
                 let arr = t.split("=").map((t) => t.trim());
+                // 资产配置
                 if (arr[0] == "Data_assetAllocation") {
                   let k = eval("(" + arr[1] + ")");
                   obj["peizhi"] = k.series.map((t) => {
@@ -559,6 +565,11 @@ export default {
                           : "",
                     };
                   });
+                }
+                // 累计收益率走势
+                if (arr[0] == "Data_grandTotal") {
+                  // 收益走势图
+                  obj["shouyi"] = eval("(" + arr[1] + ")");
                 }
               });
               // 基金详细数据
@@ -632,7 +643,9 @@ export default {
       this.chongHeFenXi();
       this.zhengli["time"] = new Date().getTime();
       localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
+      this.showAll = true;
       this.makeXiangQingChart();
+      this.makeShouYiChart();
     },
     // 基金类型统计
     leiXingTongJi() {
@@ -744,17 +757,15 @@ export default {
     seeGuPiao(c) {
       window.open(`http://stockpage.10jqka.com.cn/${c}`);
     },
-    // 绘制每个基金的echrts
+    // 绘制每个基金的echrts 饼图
     makeXiangQingChart() {
-      this.zhengli.fenxi.forEach(async (t, ind) => {
+      this.zhengli.fenxi.forEach(async (t) => {
         new Promise((res) => {
           let kk = setInterval(() => {
             let tar = document.getElementById(`${t.code}`);
             if (tar) {
               clearInterval(kk);
-              if (ind == this.zhengli.fenxi.length - 1) {
-                this.showAll = true;
-              }
+
               hua(tar, t, res);
             }
           }, 50);
@@ -819,6 +830,95 @@ export default {
               }, []),
             },
           ],
+        };
+        res(echarts.init(tar).setOption(option));
+      }
+    },
+    // 绘制每个基金的收益走势图
+    makeShouYiChart() {
+      this.zhengli.fenxi.forEach(async (t) => {
+        new Promise((res) => {
+          let kk = setInterval(() => {
+            let tar = document.getElementById(`${t.code}_bing`);
+            if (tar) {
+              clearInterval(kk);
+              if (t.shouyi) {
+                let legends = t.shouyi[0].data.map((w) => this.makeTime(w[0])),
+                  names = t.shouyi.map((s) => s.name);
+                bing(tar, t, legends, names, res);
+              }
+            }
+          }, 50);
+        });
+      });
+
+      function bing(tar, data, legends, names, res) {
+        let option = {
+          title: {
+            text: "收益走势对比图",
+            textStyle: {
+              fontSize: 12,
+            },
+            padding: 0,
+            left: 2,
+            top: 2,
+          },
+          tooltip: {
+            trigger: "axis",
+            backgroundColor: "rgba(50,50,50,0.8)",
+            textStyle: {
+              fontSize: 12,
+            },
+            formatter: (t) => {
+              let str = "";
+              t.forEach((d, ind) => {
+                if (!str) {
+                  str += `<p style="font-size:14px;color:#ffaa16;padding-right:20px;">${legends[ind].forTip}</p>`;
+                }
+                str += `<div style="display:flex;justify-content:space-between;">
+                          <p style="width:calc(100% - 52px);text-align:right;">${names[ind]} :&nbsp;</p>
+                          <p style="width:50px;text-align:left;color:#ffaa16;flex-shrink:0;">${d.data}%</p>
+                        </div>`;
+              });
+              return str;
+            },
+          },
+          legend: {
+            data: names,
+          },
+          grid: {
+            left: "3%",
+            right: "4%",
+            bottom: "3%",
+            containLabel: true,
+          },
+          xAxis: {
+            type: "category",
+            boundaryGap: false,
+            data: legends.map((t) => t.forX),
+          },
+          yAxis: {
+            type: "value",
+            nameTextStyle: {
+              label: {
+                formatter: ["{a}%"],
+                rich: {
+                  a: {
+                    color: "red",
+                    lineHeight: 10,
+                  }
+                },
+              },
+            },
+          },
+          series: data.shouyi.map((w, index) => {
+            return {
+              name: legends.map((t) => t.forX)[index],
+              type: "line",
+              stack: "总量",
+              data: w.data.map((t) => t[1]),
+            };
+          }),
         };
         res(echarts.init(tar).setOption(option));
       }
@@ -909,6 +1009,17 @@ export default {
     clearCache() {
       localStorage.removeItem("zhengli");
       this.autoRead();
+    },
+    // 转换收益走势的时间
+    makeTime(t) {
+      let da = new Date(t);
+      let one1 = da.getFullYear(); //  取得年
+      let one2 = da.getMonth() + 1; //  取得月
+      let one3 = da.getDate(); //  取得日
+      return {
+        forX: `${one2}-${one3}`,
+        forTip: `${one1}-${one2}-${one3}`,
+      };
     },
   },
 };
@@ -1078,9 +1189,14 @@ td {
   justify-content: space-between;
   align-items: center;
 }
-.bili > div {
+.bili > div:nth-child(1) {
   width: 170px;
   height: 110px;
+  flex-shrink: 0;
+}
+.zoushi {
+  width: 380px;
+  height: 140px;
   flex-shrink: 0;
 }
 .bili > ul {
@@ -1226,5 +1342,8 @@ td {
 }
 .fen {
   background: rgb(240, 230, 239);
+}
+.tipTitle {
+  color: #ffaa16;
 }
 </style>

@@ -32,7 +32,7 @@ http.createServer((req, res) => {
             res.setHeader('Content-Type', 'application/javascript;charset=utf-8')
             getData();
         }
-        
+
         // 读取文件
         function getFile() {
             var fs = require('fs');

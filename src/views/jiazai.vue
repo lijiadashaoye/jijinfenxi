@@ -53,7 +53,7 @@ export default {
 .zhong > p {
   position: absolute;
   top: 44%;
-  left: 6px;
+  left: 5px;
 }
 .content {
   width: 100%;

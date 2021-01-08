@@ -119,7 +119,11 @@
             v-for="(t,ind) in Object.keys(jingliList)"
             :key="ind"
           >
-            <td>{{t}}</td>
+            <td
+              title="点击查看基金"
+              class="showManager"
+              @click="showJiJin2(t)"
+            >{{t}}</td>
             <td>{{jingliList[t].join('  ')}}</td>
           </tr>
         </tbody>
@@ -342,7 +346,7 @@
                     <span>今年：</span>&nbsp;
                     <span>{{t.nowyear+' %'}}</span>
                   </p>
-                  <p>
+                  <p style="color:red;">
                     <span>成立以来：</span>&nbsp;
                     <span>{{t.tyear+' %'}}</span>
                   </p>
@@ -730,6 +734,11 @@ export default {
     // 点击基金号
     showJiJin(c) {
       window.open(`http://fund.10jqka.com.cn/${c}`);
+    },
+    // 点击基金号
+    showJiJin2(c) {
+      let kk = this.zhengli.fenxi.find((t) => t.jingli == c).code;
+      window.open(`http://fund.10jqka.com.cn//${kk}/interduce.html#manager`);
     },
     // 点击股票名称
     seeGuPiao(c) {
@@ -1136,9 +1145,7 @@ td {
 .showManager:hover {
   position: relative;
   cursor: pointer;
-  transform: scale(1.2);
-  transform-origin: 50% 50%;
-  color: red;
+  background: rgb(229, 208, 208);
 }
 .showManager > span:nth-of-type(1) {
   width: 50%;

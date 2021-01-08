@@ -61,11 +61,11 @@
               </tr>
             </tbody>
           </table>
-
           <!-- 没有持仓数据的 -->
           <table
             class="noChiCang"
             collpase
+            v-if="zhengli.kong.length"
           >
             <thead>
               <tr>
@@ -86,6 +86,7 @@
           <table
             class="excelChongFu"
             collpase
+            v-if="zhengli.chongfu.length"
           >
             <thead>
               <tr>
@@ -134,6 +135,7 @@
         ref="chong"
         class="chonghe"
         collpase
+        v-if="chonghe.length"
       >
         <thead>
           <tr>
@@ -356,8 +358,10 @@
               <div
                 v-if="t.shouyi"
                 class="zoushi"
-                :id="`${t.code}_bing`"
-              ></div>
+                :id="`${t.code}_qushi`"
+              >
+                <div></div>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -839,36 +843,58 @@ export default {
       this.zhengli.fenxi.forEach(async (t) => {
         new Promise((res) => {
           let kk = setInterval(() => {
-            let tar = document.getElementById(`${t.code}_bing`);
+            let tar = document.getElementById(`${t.code}_qushi`);
             if (tar) {
               clearInterval(kk);
               if (t.shouyi) {
                 let legends = t.shouyi[0].data.map((w) => this.makeTime(w[0])),
                   names = t.shouyi.map((s) => s.name);
-                bing(tar, t, legends, names, res);
+                qushi(tar.children[0], t, legends, names, res);
               }
             }
           }, 50);
         });
       });
-
-      function bing(tar, data, legends, names, res) {
+      // 执行画图
+      function qushi(tar, data, legends, names, res) {
         let option = {
+          color: ["#0186fb", "#b94349", "#799290"],
           title: {
+            subtextStyle: { height: 0 },
+            itemGap: 0,
             text: "收益走势对比图",
             textStyle: {
               fontSize: 12,
+              lineHeight: 14,
+              height: 20,
             },
             padding: 0,
             left: 2,
-            top: 2,
+            top: 45,
           },
           tooltip: {
             trigger: "axis",
             backgroundColor: "rgba(50,50,50,0.8)",
+            axisPointer: {
+              type: "cross",
+              label: {
+                fontSize: 10,
+                backgroundColor: "rgba(50,50,50,0.5)",
+                color: "#02ed2d",
+                formatter: (t) => {
+                  if (t.axisDimension == "x") {
+                    return t.value;
+                  } else {
+                    return `${t.value.toFixed(2)}%`;
+                  }
+                },
+              },
+            },
             textStyle: {
               fontSize: 12,
             },
+            triggerOn: "mousemove",
+            hideDelay: 10,
             formatter: (t) => {
               let str = "";
               t.forEach((d, ind) => {
@@ -884,12 +910,22 @@ export default {
             },
           },
           legend: {
+            left: 100,
+            top: 46,
+            padding: 0,
+            itemGap: 0,
+            itemWidth: 10,
+            itemHeight: 8,
             data: names,
+            borderWidth: 0,
+            textStyle: {
+              fontSize: 10,
+            },
           },
           grid: {
-            left: "3%",
-            right: "4%",
-            bottom: "3%",
+            left: "-2px",
+            right: 5,
+            bottom: "-2px",
             containLabel: true,
           },
           xAxis: {
@@ -898,24 +934,20 @@ export default {
             data: legends.map((t) => t.forX),
           },
           yAxis: {
-            type: "value",
-            nameTextStyle: {
-              label: {
-                formatter: ["{a}%"],
-                rich: {
-                  a: {
-                    color: "red",
-                    lineHeight: 10,
-                  }
-                },
-              },
+            axisLabel: {
+              color: "#165cff",
+              fontSize: 8,
+              lineHeight: 880,
+              formatter: "{value}%",
             },
           },
           series: data.shouyi.map((w, index) => {
             return {
-              name: legends.map((t) => t.forX)[index],
               type: "line",
-              stack: "总量",
+              name: names[index],
+              lineStyle: {
+                width: 1,
+              },
               data: w.data.map((t) => t[1]),
             };
           }),
@@ -1196,8 +1228,17 @@ td {
 }
 .zoushi {
   width: 380px;
-  height: 140px;
+  height: 162px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 5;
+  div {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 205px;
+  }
 }
 .bili > ul {
   width: 190px;
@@ -1342,8 +1383,5 @@ td {
 }
 .fen {
   background: rgb(240, 230, 239);
-}
-.tipTitle {
-  color: #ffaa16;
 }
 </style>

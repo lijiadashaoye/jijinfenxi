@@ -322,7 +322,7 @@
                   </p>
                 </div>
 
-                <div class="zhang">
+                <div class="zhang fen">
                   <p> <span>近1月：</span>&nbsp;
                     <span>{{t.yue_1+' %'}}</span>
                   </p>
@@ -331,7 +331,7 @@
                   </p>
                 </div>
 
-                <div class="zhang">
+                <div class="zhang fen">
                   <p>
                     <span>近6月：</span>&nbsp;
                     <span>{{t.yue_6+' %'}}</span>
@@ -341,7 +341,7 @@
                     <span>{{t.nian+' %'}}</span>
                   </p>
                 </div>
-                <div class="zhang">
+                <div class="zhang fen">
                   <p>
                     <span>今年：</span>&nbsp;
                     <span>{{t.nowyear+' %'}}</span>
@@ -1095,7 +1095,7 @@ td {
 .xiangqing > div {
   display: flex;
   justify-content: space-around;
-  margin: 2px 0;
+  padding: 2px 0;
 }
 .xiangqing > div {
   p:nth-of-type(1) {
@@ -1133,6 +1133,7 @@ td {
 .zhang p {
   width: 49.5%;
   display: flex;
+  margin: 0;
 }
 
 .zhang p span {
@@ -1222,5 +1223,8 @@ td {
   outline: none;
   font-size: 14px;
   margin: 20px 0 0 20px;
+}
+.fen {
+  background: rgb(240, 230, 239);
 }
 </style>

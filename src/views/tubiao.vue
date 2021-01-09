@@ -1,142 +1,95 @@
 <template>
   <div>
     <jiazai v-if="!showAll" />
-    <button
-      class="toChong"
-      @click="tochong"
-      v-show="showAll"
-    >
+    <button class="toChong" @click="tochong" v-show="showAll">
       <!--js 特殊字符表 http://www.360doc.com/content/19/0316/09/281812_821845466.shtml -->
       &#8607;
     </button>
-    <button
-      class="clear"
-      @click="clearCache"
-    >
-      清除缓存，重新拉取数据
-    </button>
-    <div
-      class="wap"
-      v-show="showAll"
-    >
+    <button class="clear" @click="clearCache">清除缓存，重新拉取数据</button>
+    <div class="wap" v-show="showAll">
       <div class="gainians">
         <!-- 根据概念区分 -->
-        <table
-          class="gainian"
-          collpase
-        >
+        <table class="gainian" collpase>
           <thead>
             <tr>
               <th colspan="2">概念类型统计</th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(t,ind) in Object.keys(gaiNian)"
-              :key="ind"
-            >
-              <td>{{t}}</td>
-              <td>{{gaiNian[t].join('  ')}}</td>
+            <tr v-for="(t, ind) in Object.keys(gaiNian)" :key="ind">
+              <td>{{ t }}</td>
+              <td>{{ gaiNian[t].join("  ") }}</td>
             </tr>
           </tbody>
         </table>
         <div>
           <!-- 基金类型统计 -->
-          <table
-            class="typeJiJin"
-            collpase
-          >
+          <table class="typeJiJin" collpase>
             <thead>
               <tr>
                 <th colspan="2">基金类型统计</th>
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="(t,ind) in Object.keys(jijinType)"
-                :key="ind"
-              >
-                <td>{{t}}</td>
-                <td>{{jijinType[t].join('  ')}}</td>
+              <tr v-for="(t, ind) in Object.keys(jijinType)" :key="ind">
+                <td>{{ t }}</td>
+                <td>{{ jijinType[t].join("  ") }}</td>
               </tr>
             </tbody>
           </table>
           <!-- 没有持仓数据的 -->
-          <table
-            class="noChiCang"
-            collpase
-            v-if="zhengli.kong.length"
-          >
+          <table class="noChiCang" collpase v-if="zhengli.kong.length">
             <thead>
               <tr>
-                <th colspan="4">没有持仓数据的，{{`${zhengli.kong.length}个`}}</th>
+                <th colspan="4">
+                  没有持仓数据的，{{ `${zhengli.kong.length}个` }}
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="(t,ind) in zhengli.kong"
-                :key="ind"
-              >
-                <td>{{t.code}}</td>
-                <td>{{t.name}}</td>
+              <tr v-for="(t, ind) in zhengli.kong" :key="ind">
+                <td>{{ t.code }}</td>
+                <td>{{ t.name }}</td>
               </tr>
             </tbody>
           </table>
           <!-- excel 里重复的 -->
-          <table
-            class="excelChongFu"
-            collpase
-            v-if="zhengli.chongfu.length"
-          >
+          <table class="excelChongFu" collpase v-if="zhengli.chongfu.length">
             <thead>
               <tr>
-                <th colspan="4">excel 里重复的{{`${zhengli.chongfu.length}个`}}</th>
+                <th colspan="4">
+                  excel 里重复的{{ `${zhengli.chongfu.length}个` }}
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="(t,ind) in zhengli.chongfu"
-                :key="ind"
-              >
-                <td>{{t.code}}</td>
-                <td>{{t.name}}</td>
+              <tr v-for="(t, ind) in zhengli.chongfu" :key="ind">
+                <td>{{ t.code }}</td>
+                <td>{{ t.name }}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
       <!-- 基金经理汇总 -->
-      <table
-        class="typeTongJi"
-        collpase
-      >
+      <table class="typeTongJi" collpase>
         <thead>
           <tr>
             <th colspan="6">基金经理汇总</th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="(t,ind) in Object.keys(jingliList)"
-            :key="ind"
-          >
-            <td
-              title="点击查看基金"
-              class="showManager"
-              @click="showJiJin2(t)"
-            >{{t}}</td>
-            <td>{{jingliList[t].join('  ')}}</td>
+          <tr v-for="(t, ind) in Object.keys(jingliList)" :key="ind">
+            <td title="点击查看基金" class="showManager" @click="showJiJin2(t)">
+              {{ t }}
+            </td>
+            <td>{{ jingliList[t].join("  ") }}</td>
           </tr>
         </tbody>
       </table>
 
       <!-- 重合分析 -->
-      <table
-        ref="chong"
-        class="chonghe"
-        collpase
-        v-if="chonghe.length"
-      >
+      <table ref="chong" class="chonghe" collpase v-if="chonghe.length">
         <thead>
           <tr>
             <th colspan="4">重合分析</th>
@@ -149,38 +102,33 @@
             <td>重合的股票</td>
             <td>不重合的股票</td>
           </tr>
-          <tr
-            v-for="(t,ind) in chonghe"
-            :key="ind"
-          >
+          <tr v-for="(t, ind) in chonghe" :key="ind">
             <td>
-              <p>{{t.one.name}}</p>
-              <p>{{t.two.name}}</p>
+              <p>{{ t.one.name }}</p>
+              <p>{{ t.two.name }}</p>
             </td>
-            <td style="font-size:14px;">{{t.num}}</td>
-            <td>{{t.chong.join(' ')}}</td>
+            <td style="font-size: 14px">{{ t.num }}</td>
+            <td>{{ t.chong.join(" ") }}</td>
 
             <td>
-              <p>{{t.oneOther.join(' ')}}</p>
-              <p>{{t.twoOther.join(' ')}}</p>
+              <p>{{ t.oneOther.join(" ") }}</p>
+              <p>{{ t.twoOther.join(" ") }}</p>
             </td>
-
           </tr>
         </tbody>
       </table>
 
       <!-- 数据统计 -->
-      <table
-        class="shuju"
-        collpase
-      >
+      <table class="shuju" collpase>
         <thead>
           <tr>
             <th colspan="4">数据统计</th>
           </tr>
           <tr>
-            <th colspan="4">共{{zhengli.canUse.length}}个基金，
-              {{zhengli.kong.length}}个看不到持仓</th>
+            <th colspan="4">
+              共{{ zhengli.canUse.length }}个基金，
+              {{ zhengli.kong.length }}个看不到持仓
+            </th>
           </tr>
           <div class="stickyd">
             <input
@@ -195,75 +143,54 @@
         <tbody>
           <tr>
             <th>股票名称</th>
-            <th
-              title="点击排序"
-              @click="toSort(true)"
-            >被持仓次数</th>
-            <th
-              title="点击排序"
-              @click="toSort(false)"
-            >日涨幅 %</th>
+            <th title="点击排序" @click="toSort(true)">被持仓次数</th>
+            <th title="点击排序" @click="toSort(false)">日涨幅 %</th>
             <th>
               持仓该股票的基金，&nbsp;&nbsp;
-              <span>{{single}} 个股票被持有一次</span>
+              <span>{{ single }} 个股票被持有一次</span>
             </th>
           </tr>
 
-          <tr
-            v-for="(t,ind) in gupiao"
-            :key="ind"
-            :ref="t.code"
-          >
+          <tr v-for="(t, ind) in gupiao" :key="ind" :ref="t.code">
             <td
               :id="t.id"
-              :class="{'bg':t.jijin.length>=shaixuan,seegupiao:true}"
+              :class="{ bg: t.jijin.length >= shaixuan, seegupiao: true }"
               @click="seeGuPiao(t.code)"
             >
-              <span title="点击查看股票">{{t.name}}</span>
+              <span title="点击查看股票">{{ t.name }}</span>
             </td>
-            <td>{{t.jijin.length}}</td>
-            <td>{{t.zhangfu}}</td>
-            <td>{{t.jijin.join(' , ')}}</td>
+            <td>{{ t.jijin.length }}</td>
+            <td>{{ t.zhangfu }}</td>
+            <td>{{ t.jijin.join(" , ") }}</td>
           </tr>
         </tbody>
       </table>
       <!-- 每个基金的分析 -->
-      <table
-        class="fenxi"
-        collpase
-      >
+      <table class="fenxi" collpase>
         <thead>
           <tr>
-            <th colspan="3">
-              基金详情，{{`共 ${zhengli.fenxi.length} 个`}}
-            </th>
+            <th colspan="3">基金详情，{{ `共 ${zhengli.fenxi.length} 个` }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="(d,ind) in chartList "
-            :key="ind"
-          >
-            <td
-              v-for="(t,ind) in d "
-              :key="ind"
-            >
+          <tr v-for="(d, ind) in chartList" :key="ind">
+            <td v-for="(t, ind) in d" :key="ind">
               <div class="bili">
                 <div :id="t.code"></div>
                 <ul>
                   <li>
-                    <span class="leixingName">
-                      {{`${t.leixing}：`}}</span>
-                    <span>{{t.fengxian}}</span>
+                    <span class="leixingName"> {{ `${t.leixing}：` }}</span>
+                    <span>{{ t.fengxian }}</span>
                   </li>
-                  <li
-                    v-for="(d,ind) of t.peizhi"
-                    :key="ind"
-                  >
-                    <span class="leixingName">{{`${d.name}：`}}</span>
-                    <span v-if="d.name!='规模'">{{d.num?d.num+' %':'--'}}</span>
-                    <span v-else>{{d.num?d.num+' 亿':'--'}}</span>
-                    <span v-if="d.name=='规模'&&t.chengli">{{' ('+t.chengli.slice(5)+')'}} </span>
+                  <li v-for="(d, ind) of t.peizhi" :key="ind">
+                    <span class="leixingName">{{ `${d.name}：` }}</span>
+                    <span v-if="d.name != '规模'">{{
+                      d.num ? d.num + " %" : "--"
+                    }}</span>
+                    <span v-else>{{ d.num ? d.num + " 亿" : "--" }}</span>
+                    <span v-if="d.name == '规模' && t.chengli"
+                      >{{ " (" + t.chengli.slice(5) + ")" }}
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -275,9 +202,9 @@
                     @click="showJiJin(t.code)"
                   >
                     <span>基金号：</span>
-                    <span>{{t.code}}</span>
+                    <span>{{ t.code }}</span>
                   </p>
-                  <p>{{t.name}}</p>
+                  <p>{{ t.name }}</p>
                 </div>
 
                 <div>
@@ -287,79 +214,78 @@
                     @click="showManager(t.code)"
                   >
                     <span>基金经理：</span>
-                    <span>{{t.jingli}}</span>
-                  <p>{{t.chengli+' 成立'}}</p>
+                    <span>{{ t.jingli }}</span>
+                  </p>
+
+                  <p>{{ t.chengli + " 成立" }}</p>
                 </div>
 
                 <div class="gai">
                   <span>概念：</span>
                   <span
-                    v-for="(d,ind) of t.theme"
+                    v-for="(d, ind) of t.theme"
                     :key="ind"
-                    :style="{color:colorObj[d],fontWeight:'bold'}"
+                    :style="{ color: colorObj[d], fontWeight: 'bold' }"
                   >
-                    {{d}}
+                    {{ d }}
                   </span>
                 </div>
 
                 <div class="zhang">
                   <p>
                     <span>净值：</span>
-                    <span>{{t.jingzhi}}</span>
+                    <span>{{ t.jingzhi }}</span>
                   </p>
                   <p>
                     <span>统计日期：</span>
-                    <span>{{`${t.jingTime}`}}</span>
+                    <span>{{ `${t.jingTime}` }}</span>
                   </p>
                 </div>
 
                 <div class="zhang">
                   <p>
                     <span>日涨幅：</span>&nbsp;
-                    <span>{{`${t.zhangfu}%`}}</span>
+                    <span>{{ `${t.zhangfu}%` }}</span>
                   </p>
                   <p>
                     <span>购买费率：</span>&nbsp;
-                    <span>{{t.feilv?t.feilv+'%':''}}</span>
+                    <span>{{ t.feilv ? t.feilv + "%" : "" }}</span>
                   </p>
                 </div>
 
                 <div class="zhang fen">
-                  <p> <span>近1月：</span>&nbsp;
-                    <span>{{t.yue_1+' %'}}</span>
+                  <p>
+                    <span>近1月：</span>&nbsp;
+                    <span>{{ t.yue_1 + " %" }}</span>
                   </p>
-                  <p> <span>近3月：</span>&nbsp;
-                    <span>{{t.yue_3+' %'}}</span>
+                  <p>
+                    <span>近3月：</span>&nbsp;
+                    <span>{{ t.yue_3 + " %" }}</span>
                   </p>
                 </div>
 
                 <div class="zhang fen">
                   <p>
                     <span>近6月：</span>&nbsp;
-                    <span>{{t.yue_6+' %'}}</span>
+                    <span>{{ t.yue_6 + " %" }}</span>
                   </p>
                   <p>
                     <span>近1年：</span>&nbsp;
-                    <span>{{t.nian+' %'}}</span>
+                    <span>{{ t.nian + " %" }}</span>
                   </p>
                 </div>
                 <div class="zhang fen">
                   <p>
                     <span>今年：</span>&nbsp;
-                    <span>{{t.nowyear+' %'}}</span>
+                    <span>{{ t.nowyear + " %" }}</span>
                   </p>
-                  <p style="color:red;">
+                  <p style="color: red">
                     <span>成立以来：</span>&nbsp;
-                    <span>{{t.tyear+' %'}}</span>
+                    <span>{{ t.tyear + " %" }}</span>
                   </p>
                 </div>
-
               </div>
-              <div
-                v-if="t.shouyi"
-                class="zoushi"
-                :id="`${t.code}_qushi`"
-              >
+              <div v-if="t.shouyi" class="zoushi" :id="`${t.code}_qushi`">
                 <div></div>
               </div>
             </td>

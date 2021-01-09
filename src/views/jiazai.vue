@@ -3,10 +3,7 @@
     <div class="zhong">
       <p>首次预计4分钟加载完</p>
       <ul class="content">
-        <li
-          v-for="i of arr"
-          :key="i"
-        ></li>
+        <li v-for="i of arr" :key="i"></li>
       </ul>
     </div>
   </div>

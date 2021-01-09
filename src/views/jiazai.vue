@@ -1,7 +1,7 @@
 <template>
   <div class="wap">
     <div class="zhong">
-      <p>首次预计4分钟加载完</p>
+      <p>首次预计10分钟加载完</p>
       <ul class="content">
         <li v-for="i of arr" :key="i"></li>
       </ul>
@@ -38,12 +38,12 @@ export default {
 .wap > p {
   position: absolute;
   top: 48%;
-  left: 41.7%;
+  left: 41%;
   text-align: center;
   font-size: 20px;
 }
 .zhong {
-  width: 200px;
+  width: 210px;
   height: 200px;
   position: relative;
 }

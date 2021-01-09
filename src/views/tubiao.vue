@@ -175,85 +175,78 @@
         <tbody>
           <tr v-for="(d, ind) in chartList" :key="ind">
             <td v-for="(t, ind) in d" :key="ind">
-              <div class="bili">
-                <div :id="t.code"></div>
-                <ul>
-                  <li>
-                    <span class="leixingName"> {{ `${t.leixing}：` }}</span>
-                    <span>{{ t.fengxian }}</span>
-                  </li>
-                  <li v-for="(d, ind) of t.peizhi" :key="ind">
-                    <span class="leixingName">{{ `${d.name}：` }}</span>
-                    <span v-if="d.name != '规模'">{{
-                      d.num ? d.num + " %" : "--"
-                    }}</span>
-                    <span v-else>{{ d.num ? d.num + " 亿" : "--" }}</span>
-                    <span v-if="d.name == '规模' && t.chengli"
-                      >{{ " (" + t.chengli.slice(5) + ")" }}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-              <div class="xiangqing">
+              <div>
                 <div class="names">
+                  <p>{{ t.name }}</p>
                   <p
                     title="点击查看基金"
                     class="showManager"
                     @click="showJiJin(t.code)"
                   >
-                    <span>基金号：</span>
                     <span>{{ t.code }}</span>
                   </p>
-                  <p>{{ t.name }}</p>
-                </div>
-
-                <div>
                   <p
                     title="点击查看基金经理管理的基金"
                     class="showManager"
                     @click="showManager(t.code)"
                   >
-                    <span>基金经理：</span>
-                    <span>{{ t.jingli }}</span>
+                    {{ t.jingli }}
                   </p>
-
-                  <p>{{ t.chengli + " 成立" }}</p>
+                  <p>
+                    <span>概念:</span>
+                    <span
+                      v-for="(d, ind) of t.theme"
+                      :key="ind"
+                      :style="{ color: colorObj[d], fontWeight: 'bold' }"
+                    >
+                      {{ d }}
+                    </span>
+                  </p>
                 </div>
-
-                <div class="gai">
-                  <span>概念：</span>
-                  <span
-                    v-for="(d, ind) of t.theme"
-                    :key="ind"
-                    :style="{ color: colorObj[d], fontWeight: 'bold' }"
-                  >
-                    {{ d }}
-                  </span>
+                <div class="bili">
+                  <div :id="t.code"></div>
+                  <ul>
+                    <li>
+                      <span class="leixingName"> {{ `${t.leixing}：` }}</span>
+                      <span>{{ t.fengxian }}</span>
+                    </li>
+                    <li v-for="(d, ind) of t.peizhi" :key="ind">
+                      <span class="leixingName">{{ `${d.name}：` }}</span>
+                      <span v-if="d.name != '规模'">{{
+                        d.num ? d.num + " %" : "--"
+                      }}</span>
+                      <span v-else>{{ d.num ? d.num + " 亿" : "--" }}</span>
+                      <span v-if="d.name == '规模' && t.chengli"
+                        >{{ " (" + t.chengli.slice(5) + ")" }}
+                      </span>
+                    </li>
+                  </ul>
+                  <ul>
+                    <li>
+                      <span class="leixingName">成立日期：</span>
+                      <span>{{ t.chengli }}</span>
+                    </li>
+                    <li>
+                      <span class="leixingName">净值：</span>
+                      <span>{{ t.jingzhi }}</span>
+                    </li>
+                    <li>
+                      <span class="leixingName">统计日期：</span>
+                      <span>{{ `${t.jingTime}` }}</span>
+                    </li>
+                    <li>
+                      <span class="leixingName">日涨幅：</span>
+                      <span>{{ `${t.zhangfu}%` }}</span>
+                    </li>
+                    <li>
+                      <span class="leixingName">购买费率：</span>
+                      <span>{{ t.feilv ? t.feilv + "%" : "" }}</span>
+                    </li>
+                  </ul>
                 </div>
-
+              </div>
+              <div class="xiangqing">
                 <div class="zhang">
-                  <p>
-                    <span>净值：</span>
-                    <span>{{ t.jingzhi }}</span>
-                  </p>
-                  <p>
-                    <span>统计日期：</span>
-                    <span>{{ `${t.jingTime}` }}</span>
-                  </p>
-                </div>
-
-                <div class="zhang">
-                  <p>
-                    <span>日涨幅：</span>&nbsp;
-                    <span>{{ `${t.zhangfu}%` }}</span>
-                  </p>
-                  <p>
-                    <span>购买费率：</span>&nbsp;
-                    <span>{{ t.feilv ? t.feilv + "%" : "" }}</span>
-                  </p>
-                </div>
-
-                <div class="zhang fen">
                   <p>
                     <span>近1月：</span>&nbsp;
                     <span>{{ t.yue_1 + " %" }}</span>
@@ -263,8 +256,7 @@
                     <span>{{ t.yue_3 + " %" }}</span>
                   </p>
                 </div>
-
-                <div class="zhang fen">
+                <div class="zhang">
                   <p>
                     <span>近6月：</span>&nbsp;
                     <span>{{ t.yue_6 + " %" }}</span>
@@ -274,7 +266,7 @@
                     <span>{{ t.nian + " %" }}</span>
                   </p>
                 </div>
-                <div class="zhang fen">
+                <div class="zhang">
                   <p>
                     <span>今年：</span>&nbsp;
                     <span>{{ t.nowyear + " %" }}</span>
@@ -285,6 +277,37 @@
                   </p>
                 </div>
               </div>
+
+              <!-- 排名分析 -->
+              <table class="paiming" collpase>
+                <tbody>
+                  <tr>
+                    <td>同类排名</td>
+                    <td v-for="(l, ind) in Object.keys(t.paiming)" :key="ind">
+                      <p>{{ t.paiming[l][3] }}</p>
+                      <span>{{ t.paiming[l][0] }}</span>
+                      <hr />
+                      <span> {{ t.paiming[l][1] }}</span>
+                      <div class="jinjie">
+                        <p
+                          :class="{ hao3: t.paiming[l][2] > 3, hao: true }"
+                        ></p>
+                        <p
+                          :class="{ hao2: t.paiming[l][2] > 2, hao: true }"
+                        ></p>
+                        <p
+                          :class="{ hao1: t.paiming[l][2] > 1, hao: true }"
+                        ></p>
+                        <p
+                          :class="{ hao0: t.paiming[l][2] > 0, hao: true }"
+                        ></p>
+                        <p>{{ setName(t.paiming[l][2]) }}</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <!-- 收益走势 -->
               <div v-if="t.shouyi" class="zoushi" :id="`${t.code}_qushi`">
                 <div></div>
               </div>
@@ -321,7 +344,6 @@ export default {
       single: 0, // 记录只被持有一次的个数
       range: "",
       gupiao: [], // 记录根据股票进行分析的基金
-
       jingliList: {}, // 根据基金经理区分基金
       gaiNian: {}, // 存储根据概念区分基金
       chonghe: [], // 用来存储有重合的基金
@@ -347,6 +369,7 @@ export default {
         localStorage.removeItem("zhengli");
       }
     }
+
     this.autoRead();
   },
   methods: {
@@ -389,6 +412,7 @@ export default {
     getData() {
       // 获取所有基金的code
       let codes = this.zhengli.canUse.map((t) => t.code),
+        // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
         httptype = false;
       // 获取缓存的基金数据
       if (this.caches) {
@@ -445,6 +469,10 @@ export default {
               this.$axios({
                 method: "get",
                 url: `xiangqing/${codes[i]}`,
+              }),
+              this.$axios({
+                method: "get",
+                url: `paiming/${codes[i]}`,
               })
             );
             await Promise.all(all).then((res) => {
@@ -502,6 +530,58 @@ export default {
                   obj["shouyi"] = eval("(" + arr[1] + ")");
                 }
               });
+              // 收益排名
+              if (res[3]) {
+                obj["paiming"] = {};
+                let kk = res[3].nowCommonTypeRank;
+
+                Object.keys(kk).forEach((t) => {
+                  obj.paiming[t] = [kk[t][0], kk[t][1]];
+                  let num = +kk[t][2];
+                  if (num > 75) {
+                    obj.paiming[t][2] = 4;
+                  }
+                  if (num <= 75 && num > 50) {
+                    obj.paiming[t][2] = 3;
+                  }
+                  if (num <= 50 && num > 25) {
+                    obj.paiming[t][2] = 2;
+                  }
+                  if (num <= 25) {
+                    obj.paiming[t][2] = 1;
+                  }
+                  switch (t) {
+                    case "fyear":
+                      obj.paiming[t][3] = "近5年";
+                      break;
+                    case "hyear":
+                      obj.paiming[t][3] = "近6月";
+                      break;
+                    case "month":
+                      obj.paiming[t][3] = "近1月";
+                      break;
+                    case "nowyear":
+                      obj.paiming[t][3] = "今年来";
+                      break;
+                    case "tmonth":
+                      obj.paiming[t][3] = "近3月";
+                      break;
+                    case "twoyear":
+                      obj.paiming[t][3] = "近2年";
+                      break;
+                    case "tyear":
+                      obj.paiming[t][3] = "近3年";
+                      break;
+                    case "week":
+                      obj.paiming[t][3] = "近1周";
+                      break;
+                    case "year":
+                      obj.paiming[t][3] = "近1年";
+                      break;
+                  }
+                });
+              }
+
               // 基金详细数据
               obj.code = xiangxi.code; // 基金号
               obj.name = xiangxi.name; // 基金名称
@@ -565,8 +645,8 @@ export default {
       });
       // 将分析数据分组显示
       this.chartList = [];
-      for (let i = 0; i < this.zhengli.fenxi.length; i += 3) {
-        this.chartList.push(this.zhengli.fenxi.slice(i, i + 3));
+      for (let i = 0; i < this.zhengli.fenxi.length; i += 2) {
+        this.chartList.push(this.zhengli.fenxi.slice(i, i + 2));
       }
       this.makeColor();
       this.leiXingTongJi();
@@ -695,7 +775,6 @@ export default {
             let tar = document.getElementById(`${t.code}`);
             if (tar) {
               clearInterval(kk);
-
               hua(tar, t, res);
             }
           }, 50);
@@ -733,7 +812,7 @@ export default {
             {
               type: "pie", // 图形类型
               radius: ["60%", "85%"], // 图形内外圈半径
-              center: ["32%", "50%"], // 图形位置
+              center: ["34%", "48%"], // 图形位置
               hoverOffset: 4, // hover是扩大的偏移量
               label: {
                 // 饼图图形上的文本
@@ -786,7 +865,6 @@ export default {
         let option = {
           color: ["#0186fb", "#b94349", "#799290"],
           title: {
-            subtextStyle: { height: 0 },
             itemGap: 0,
             text: "收益走势对比图",
             textStyle: {
@@ -795,8 +873,8 @@ export default {
               height: 20,
             },
             padding: 0,
-            left: 2,
-            top: 45,
+            left: 4,
+            top: 40,
           },
           tooltip: {
             trigger: "axis",
@@ -805,11 +883,11 @@ export default {
               type: "cross",
               label: {
                 fontSize: 10,
-                backgroundColor: "rgba(50,50,50,0.5)",
+                backgroundColor: "rgba(50,50,50,0.7)",
                 color: "#02ed2d",
                 formatter: (t) => {
                   if (t.axisDimension == "x") {
-                    return t.value;
+                    return `${t.value}`;
                   } else {
                     return `${t.value.toFixed(2)}%`;
                   }
@@ -825,7 +903,9 @@ export default {
               let str = "";
               t.forEach((d, ind) => {
                 if (!str) {
-                  str += `<p style="font-size:14px;color:#ffaa16;padding-right:20px;">${legends[ind].forTip}</p>`;
+                  str += `<p style="font-size:14px;color:#ffaa16;padding-right:20px;">${
+                    legends[d.dataIndex]
+                  }</p>`;
                 }
                 str += `<div style="display:flex;justify-content:space-between;">
                           <p style="width:calc(100% - 52px);text-align:right;">${names[ind]} :&nbsp;</p>
@@ -836,33 +916,33 @@ export default {
             },
           },
           legend: {
-            left: 100,
-            top: 46,
+            left: 120,
+            top: 44,
             padding: 0,
-            itemGap: 0,
+            itemGap: 20,
             itemWidth: 10,
             itemHeight: 8,
             data: names,
             borderWidth: 0,
             textStyle: {
-              fontSize: 10,
+              fontSize: 12,
             },
           },
           grid: {
             left: "-2px",
             right: 5,
-            bottom: "-2px",
+            bottom: 0,
             containLabel: true,
           },
           xAxis: {
             type: "category",
             boundaryGap: false,
-            data: legends.map((t) => t.forX),
+            data: legends.map((t) => t.slice(5)),
           },
           yAxis: {
             axisLabel: {
               color: "#165cff",
-              fontSize: 8,
+              fontSize: 10,
               lineHeight: 880,
               formatter: "{value}%",
             },
@@ -878,6 +958,7 @@ export default {
             };
           }),
         };
+
         res(echarts.init(tar).setOption(option));
       }
     },
@@ -966,7 +1047,31 @@ export default {
     // 清除缓存，重新拉取数据
     clearCache() {
       localStorage.removeItem("zhengli");
-      this.autoRead();
+      this.jijins = ""; // 搜索基金用
+      this.shaixuan = 4; // 用来筛选被持有量
+      this.chongheNum = 3; // 用来定义重合数量
+      // 将读取的excel文件进行数据整理
+      this.zhengli = {
+        chongfu: [], // excel里重复添加的基金
+        canUse: [], // 用来操作的读取excel后的原始数据
+        see: [], // 可以看到持仓的基金
+        kong: [], // 看不到持仓数据的基金
+        fenxi: [],
+        time: "",
+      };
+      this.single = 0; // 记录只被持有一次的个数
+      this.gupiao = []; // 记录根据股票进行分析的基金
+      this.jingliList = {}; // 根据基金经理区分基金
+      this.gaiNian = {}; // 存储根据概念区分基金
+      this.chonghe = []; // 用来存储有重合的基金
+      this.jijinType = {}; // 基金类型统计
+      this.chartList = []; //用来显示echarts分析
+      this.colorObj = {}; // 存储不同概念的颜色
+      this.caches = null; // 判断是否有缓存
+      this.showAll = false;
+      setTimeout(() => {
+        this.autoRead();
+      }, 50);
     },
     // 转换收益走势的时间
     makeTime(t) {
@@ -974,10 +1079,20 @@ export default {
       let one1 = da.getFullYear(); //  取得年
       let one2 = da.getMonth() + 1; //  取得月
       let one3 = da.getDate(); //  取得日
-      return {
-        forX: `${one2}-${one3}`,
-        forTip: `${one1}-${one2}-${one3}`,
-      };
+      return `${one1}-${one2}-${one3}`;
+    },
+    // 设置排名显示的文字
+    setName(t) {
+      switch (t) {
+        case 1:
+          return "不佳";
+        case 2:
+          return "一般";
+        case 3:
+          return "良好";
+        case 4:
+          return "优秀";
+      }
     },
   },
 };
@@ -1047,6 +1162,10 @@ td {
     text-align: center;
     color: rgb(50, 32, 214);
   }
+}
+.gainian {
+  width: 40%;
+  flex-shrink: 0;
 }
 .typeTongJi > tbody,
 .excelChongFu > tbody,
@@ -1130,16 +1249,30 @@ td {
 .fenxi {
   width: 100%;
   tbody tr {
-    margin-bottom: 5px;
+    margin-bottom: 2px;
     display: flex;
     justify-content: center;
   }
   td {
-    width: 380px;
+    box-sizing: border-box;
+    margin: 5px;
+    width: 600px;
     border: 1px solid rgb(188, 181, 181);
   }
-  td:nth-of-type(2n) {
-    margin: 0 5px;
+}
+
+.zoushi {
+  width: 100%;
+  height: 240px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 5;
+  div {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 2px;
+    height: 276px;
   }
 }
 .bili {
@@ -1149,81 +1282,72 @@ td {
 }
 .bili > div:nth-child(1) {
   width: 170px;
-  height: 110px;
+  height: 116px;
   flex-shrink: 0;
-}
-.zoushi {
-  width: 380px;
-  height: 182px;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 5;
-  div {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 225px;
-  }
 }
 .bili > ul {
-  width: 190px;
+  width: 170px;
   font-size: 12px;
   text-align: left;
 }
-
 .xiangqing {
   font-size: 12px;
-}
-.xiangqing > div {
-  display: flex;
-  justify-content: space-around;
-  padding: 2px 0;
-}
-.xiangqing > div {
-  p:nth-of-type(1) {
-    width: 35%;
-  }
-  p:nth-of-type(2) {
-    width: 65%;
-  }
-  p {
+  div {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
+    padding: 2px 0;
+    p {
+      width: 50%;
+      span {
+        display: inline-block;
+        width: 50%;
+      }
+    }
+    p:nth-of-type(1) {
+      width: 35%;
+    }
+    p:nth-of-type(2) {
+      width: 65%;
+    }
+    p {
+      display: flex;
+      justify-content: center;
+    }
   }
-}
-.xiangqing > div p {
-  width: 50%;
-}
-.xiangqing > div > p > span {
-  display: inline-block;
-  width: 50%;
 }
 .names {
   display: flex;
-  p {
-    width: 50%;
+  p:nth-of-type(1) ~ p {
+    padding: 2px 4px;
+    margin-right: 15px;
+    border: 1px solid rgb(235, 235, 235);
   }
-  p:nth-of-type(2) {
+  p:nth-of-type(1) {
     font-size: 14px;
     color: rgb(243, 33, 33);
+    margin: 0 10px 0 2px;
+  }
+  p:nth-of-type(4) {
+    span:not(:first-child) {
+      margin-right: 10px;
+    }
   }
 }
 .zhang {
   display: flex;
   justify-content: space-between;
-}
-.zhang p {
-  width: 49.5%;
-  display: flex;
-  margin: 0;
-}
-
-.zhang p span {
-  width: 50%;
-}
-.zhang p span:nth-of-type(1) {
-  text-align: right;
+  background: rgb(240, 230, 239);
+  p {
+    width: 49.5%;
+    display: flex;
+    margin: 0;
+    span {
+      width: 50%;
+    }
+    span:nth-of-type(1) {
+      text-align: right;
+    }
+  }
 }
 .showManager:hover {
   position: relative;
@@ -1254,14 +1378,14 @@ td {
 .gai {
   display: flex;
   justify-content: flex-start !important;
-}
-.gai > span:nth-child(1) {
-  width: 66px;
-  text-align: right;
-  flex-shrink: 0;
-}
-.gai > span:nth-child(2) {
-  margin-right: 10px;
+  span:nth-child(1) {
+    width: 66px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  span:nth-child(2) {
+    margin-right: 10px;
+  }
 }
 .gainians {
   display: flex;
@@ -1307,7 +1431,89 @@ td {
   font-size: 14px;
   margin: 20px 0 0 20px;
 }
-.fen {
-  background: rgb(240, 230, 239);
+.paiming {
+  margin: 0 !important;
+  background: rgb(238, 243, 221);
+  width: 100% !important;
+  tr {
+    padding: 0 !important;
+    margin: 0 !important;
+    justify-content: flex-start !important;
+  }
+  td {
+    border: none;
+  }
+  td:nth-of-type(1) {
+    width: 40px;
+    flex-shrink: 0;
+    line-height: 15px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgb(135, 57, 245);
+    text-align: center;
+    margin: 5px;
+  }
+  td:nth-of-type(1) ~ td {
+    p {
+      padding: 2px 0;
+    }
+    width: 50px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin: 0px;
+    padding: 3px 5px;
+    span:nth-of-type(1) {
+      color: rgb(4, 0, 255);
+    }
+    span:nth-of-type(2) {
+      color: black;
+    }
+    hr {
+      width: 85%;
+      margin: 2px auto;
+      border: none;
+      border-top: 1px solid rgb(168, 168, 168);
+    }
+    .jinjie {
+      margin-top: 5px;
+    }
+  }
+}
+.jinjie {
+  margin-top: 8px;
+  .hao {
+    box-sizing: border-box;
+    border: 1px solid rgb(220, 219, 219);
+  }
+  p:not(:last-child) {
+    height: 10px;
+    width: 40px;
+    border-bottom: 0;
+  }
+  :last-child() {
+    margin-top: 5px;
+  }
+  .hao3 {
+    background: #16adff;
+    border: none;
+    border-bottom: 1px solid #16adff;
+  }
+  .hao2 {
+    border: none;
+    background: #6bcbff;
+    border-bottom: 1px solid #6bcbff;
+  }
+  .hao1 {
+    border: none;
+    background: #96daff;
+    border-bottom: 1px solid #96daff;
+  }
+  .hao0 {
+    border: none;
+    background: #c3e8ff;
+    border-bottom: 1px solid #c3e8ff;
+  }
 }
 </style>

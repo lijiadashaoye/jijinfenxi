@@ -56,6 +56,7 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
+  transform-style: preserve-3d;
   animation: zhuan 4s linear infinite;
   list-style-type: none;
 }

@@ -413,7 +413,8 @@ export default {
     // 获取所有基金的持股
     getData() {
       // 获取所有基金的code
-      let codes = this.zhengli.canUse.map((t) => t.code),
+      let codes = ["001984"],
+        // this.zhengli.canUse.map((t) => t.code),
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
         httptype = false;
       // 获取缓存的基金数据
@@ -529,14 +530,16 @@ export default {
                 // 累计收益率走势
                 if (arr[0] == "Data_grandTotal") {
                   // 收益走势图
-                  obj["shouyi"] = eval("(" + arr[1] + ")");
+                  obj["shouyi"] = eval("(" + arr[1] + ")").map((t, ind) => ({
+                    name: ind == 0 ? xiangxi.name : t.name,
+                    data: t.data,
+                  }));
                 }
               });
               // 收益排名
               if (res[3]) {
                 obj["paiming"] = {};
                 let kk = res[3].nowCommonTypeRank;
-
                 Object.keys(kk).forEach((t) => {
                   obj.paiming[t] = [kk[t][0], kk[t][1]];
                   let num = +kk[t][2];
@@ -1439,7 +1442,7 @@ td {
 }
 .paiming {
   margin: 0 !important;
-  background: rgb(238, 243, 221);
+  background: rgb(241, 243, 235);
   width: 100% !important;
   tr {
     padding: 0 !important;

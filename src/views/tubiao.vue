@@ -182,6 +182,7 @@
                     title="点击查看基金"
                     class="showManager"
                     @click="showJiJin(t.code)"
+                    @contextmenu="oncontextmenu(t.code)"
                   >
                     <span>{{ t.code }}</span>
                   </p>
@@ -189,6 +190,7 @@
                     title="点击查看基金经理管理的基金"
                     class="showManager"
                     @click="showManager(t.code)"
+                    @contextmenu="oncontextmenu(t.name)"
                   >
                     {{ t.jingli }}
                   </p>
@@ -1093,6 +1095,10 @@ export default {
         case 4:
           return "优秀";
       }
+    },
+    oncontextmenu(t) {
+      console.log(t);
+      return false;
     },
   },
 };

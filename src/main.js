@@ -11,7 +11,6 @@ as.interceptors.response.use(res => {
   if (res.status == 200) {
     return res.data
   }
-
 });
 Vue.prototype.$axios = as;
 

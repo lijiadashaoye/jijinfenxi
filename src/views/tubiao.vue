@@ -367,9 +367,9 @@ export default {
   },
   components: { jiazai },
   created() {
-    this.range = "A1:B300";
-    // this.range = "C1:D300";
-    // this.range = "E1:F300";
+    this.range = "A1:B900";
+    // this.range = "C1:D900";
+    // this.range = "E1:F900";
     this.caches = localStorage.getItem("zhengli");
 
     if (this.caches) {

@@ -1208,7 +1208,6 @@ td {
     color: rgb(50, 32, 214);
   }
 }
-.typeTongJi,
 .gainian {
   width: 40%;
   flex-shrink: 0;

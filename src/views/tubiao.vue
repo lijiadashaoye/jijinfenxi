@@ -380,7 +380,6 @@ export default {
         localStorage.removeItem("zhengli");
       }
     }
-
     this.autoRead();
   },
   methods: {
@@ -423,6 +422,7 @@ export default {
     getData() {
       // 获取所有基金的code
       let codes = this.zhengli.canUse.map((t) => t.code),
+        // ["160216"],
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
         httptype = false;
       // 获取缓存的基金数据
@@ -539,14 +539,6 @@ export default {
                     };
                   });
                 }
-                // // 累计收益率走势，从同花顺拉数据
-                // if (arr[0] == "Data_grandTotal") {
-                //   // 收益走势图
-                //   obj["shouyi"] = eval("(" + arr[1] + ")").map((t, ind) => ({
-                //     name: ind == 0 ? xiangxi.name : t.name,
-                //     data: t.data,
-                //   }));
-                // }
               });
               // 收益排名
               if (res[3]) {
@@ -598,6 +590,7 @@ export default {
                   }
                 });
               }
+
               // 累计收益率走势
               if (res[4]) {
                 obj["shouyi"] = {
@@ -605,11 +598,13 @@ export default {
                   沪深300: [],
                   上证指数: [],
                 };
-                let arr = eval(
+                // 接口 4 的数据
+                let jiekou4 = eval(
                   "(" + res[4].split("=")[1].slice(0, -1) + ")"
                 ).split("|");
-                for (let i = arr.length; i--; ) {
-                  let sp = arr[i].split("_");
+
+                for (let i = jiekou4.length; i--; ) {
+                  let sp = jiekou4[i].split("_");
                   if (sp.length == 4) {
                     obj["shouyi"]["累计"].unshift([sp[0], sp[1]]);
                     obj["shouyi"]["沪深300"].unshift([sp[0], sp[2]]);
@@ -649,6 +644,7 @@ export default {
     },
     // 将多维数组，拉成一维数组，并去除空数组
     makeTongJi() {
+      console.log(this.zhengli);
       // 统计数据
       for (let i = this.zhengli.see.length; i--; ) {
         let codes = this.gupiao.map((t) => t.code), // 股票代码数组
@@ -687,7 +683,7 @@ export default {
       this.leiXingTongJi();
       this.chongHeFenXi();
       this.zhengli["time"] = new Date().getTime();
-      localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
+      // localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
       this.showAll = true;
       this.makeXiangQingChart();
       this.makeShouYiChart();
@@ -889,6 +885,8 @@ export default {
               if (t.shouyi) {
                 let legends = Object.keys(t.shouyi).map((aa) => t.shouyi[aa]),
                   names = Object.keys(t.shouyi);
+                console.log(legends);
+                console.log(names);
                 qushi(tar[0].children[0], legends, names, res);
               }
             }

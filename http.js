@@ -36,7 +36,6 @@ http.createServer((req, res) => {
             getData();
         }
 
-
         // 获取基金详情
         if (k[0] === 'xiangqing') {
             url = `http://fund.10jqka.com.cn/data/client/myfund/${k[1]}`
@@ -49,7 +48,7 @@ http.createServer((req, res) => {
             res.setHeader('Content-Type', 'application/json;charset=utf-8')
             getData();
         }
-
+     
         // 读取文件
         function getFile() {
             var fs = require('fs');

@@ -26,6 +26,17 @@ http.createServer((req, res) => {
             res.setHeader('Content-Type', 'application/javascript;charset=utf-8')
             getData();
         }
+
+        // 获取基金持仓比例
+        if (k[0] === 'zuida') {
+            // 0.7943138073284852
+            // 0.1610236146647
+            url = `http://fund.eastmoney.com/data/FundPicData.aspx?bzdm=${k[1]}&n=0&dt=all&vname=ljsylSVG_PicData&r=0.0.6311280239464019`
+            res.setHeader('Content-Type', 'text/html; charset=utf-8')
+            getData();
+        }
+
+
         // 获取基金详情
         if (k[0] === 'xiangqing') {
             url = `http://fund.10jqka.com.cn/data/client/myfund/${k[1]}`

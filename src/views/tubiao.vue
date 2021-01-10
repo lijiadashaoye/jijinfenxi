@@ -683,7 +683,7 @@ export default {
       this.leiXingTongJi();
       this.chongHeFenXi();
       this.zhengli["time"] = new Date().getTime();
-      // localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
+      localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
       this.showAll = true;
       this.makeXiangQingChart();
       this.makeShouYiChart();

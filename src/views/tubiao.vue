@@ -617,7 +617,6 @@ export default {
                   }
                 }
               }
-              console.log(obj["shouyi"]);
               // 基金详细数据
               obj.code = xiangxi.code; // 基金号
               obj.name = xiangxi.name; // 基金名称

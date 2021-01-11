@@ -421,7 +421,7 @@ export default {
     // 获取所有基金的持股
     getData() {
       // 获取所有基金的code
-      let codes = this.zhengli.canUse.map((t) => t.code),
+      let codes = this.zhengli.canUse.map((t) => t.code).slice(0, 5),
         // ["160216"],
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
         httptype = false;
@@ -593,7 +593,7 @@ export default {
               // 累计收益率走势
               if (res[4]) {
                 obj["shouyi"] = {
-                  累计: [],
+                  [xiangxi.name]: [],
                   沪深300: [],
                   上证指数: [],
                 };
@@ -601,11 +601,10 @@ export default {
                 let jiekou4 = eval(
                   "(" + res[4].split("=")[1].slice(0, -1) + ")"
                 ).split("|");
-
                 for (let i = jiekou4.length; i--; ) {
                   let sp = jiekou4[i].split("_");
                   if (sp.length == 4) {
-                    obj["shouyi"]["累计"].unshift([sp[0], sp[1]]);
+                    obj["shouyi"][xiangxi.name].unshift([sp[0], sp[1]]);
                     obj["shouyi"]["沪深300"].unshift([sp[0], sp[2]]);
                     obj["shouyi"]["上证指数"].unshift([sp[0], sp[3]]);
                   }
@@ -981,7 +980,7 @@ export default {
             return {
               type: "line",
               symbol: "pin",
-              symbolSize: 2,
+              symbolSize: 3,
               showSymbol: false,
               name: names[index],
               lineStyle: {
@@ -1199,6 +1198,10 @@ td {
     text-align: center;
     color: rgb(50, 32, 214);
   }
+  tr > td:nth-of-type(2) {
+    width: calc(100% - 100px);
+    flex-shrink: 0;
+  }
 }
 .gainian {
   width: 40%;
@@ -1209,16 +1212,12 @@ td {
 .noChiCang > tbody {
   display: flex;
   flex-wrap: wrap;
-
   tr {
     display: flex;
     width: 33.2%;
     td:nth-of-type(1) {
       width: 70px !important;
       flex-shrink: 0;
-    }
-    td:nth-of-type(2) {
-      width: 100%;
     }
   }
   .changeWidth {
@@ -1243,8 +1242,13 @@ td {
         padding: 3px;
         font-size: 16px;
       }
+      th:nth-of-type(1) {
+        width: 90px;
+        flex-shrink: 0;
+      }
       th:nth-of-type(2) {
         width: 90px;
+        flex-shrink: 0;
       }
       th:nth-of-type(3) {
         width: 70px;

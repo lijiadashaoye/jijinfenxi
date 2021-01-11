@@ -22,16 +22,14 @@ http.createServer((req, res) => {
         }
         // 获取基金持仓比例
         if (k[0] === 'bili') {
-            url = `http://fund.eastmoney.com/pingzhongdata/${k[1]}.js?v=20160518155842`
+            url = `http://fund.eastmoney.com/pingzhongdata/${k[1]}.js?v=2000011113260`
             res.setHeader('Content-Type', 'application/javascript;charset=utf-8')
             getData();
         }
 
-        // 获取基金持仓比例
-        if (k[0] === 'zuida') {
-            // 0.7943138073284852
-            // 0.1610236146647
-            url = `http://fund.eastmoney.com/data/FundPicData.aspx?bzdm=${k[1]}&n=0&dt=all&vname=ljsylSVG_PicData&r=0.0.6311280239464019`
+        // 获取基金收益走势
+        if (k[0] === 'shouyizushi') {
+            url = `http://fund.eastmoney.com/data/FundPicData.aspx?bzdm=${k[1]}&n=0&dt=all&vname=ljsylSVG_PicData&r=0.0.7943138073284852`
             res.setHeader('Content-Type', 'text/html; charset=utf-8')
             getData();
         }
@@ -48,7 +46,7 @@ http.createServer((req, res) => {
             res.setHeader('Content-Type', 'application/json;charset=utf-8')
             getData();
         }
-     
+
         // 读取文件
         function getFile() {
             var fs = require('fs');

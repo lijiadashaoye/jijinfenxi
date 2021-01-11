@@ -487,7 +487,7 @@ export default {
               }),
               this.$axios({
                 method: "get",
-                url: `zuida/${codes[i]}`,
+                url: `shouyizushi/${codes[i]}`,
               })
             );
             await Promise.all(all).then((res) => {
@@ -590,7 +590,6 @@ export default {
                   }
                 });
               }
-
               // 累计收益率走势
               if (res[4]) {
                 obj["shouyi"] = {
@@ -644,7 +643,6 @@ export default {
     },
     // 将多维数组，拉成一维数组，并去除空数组
     makeTongJi() {
-      console.log(this.zhengli);
       // 统计数据
       for (let i = this.zhengli.see.length; i--; ) {
         let codes = this.gupiao.map((t) => t.code), // 股票代码数组
@@ -683,7 +681,7 @@ export default {
       this.leiXingTongJi();
       this.chongHeFenXi();
       this.zhengli["time"] = new Date().getTime();
-      localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
+      // localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
       this.showAll = true;
       this.makeXiangQingChart();
       this.makeShouYiChart();
@@ -885,8 +883,6 @@ export default {
               if (t.shouyi) {
                 let legends = Object.keys(t.shouyi).map((aa) => t.shouyi[aa]),
                   names = Object.keys(t.shouyi);
-                console.log(legends);
-                console.log(names);
                 qushi(tar[0].children[0], legends, names, res);
               }
             }
@@ -984,10 +980,7 @@ export default {
           series: legends.map((w, index) => {
             return {
               type: "line",
-              symbol: "triangle",
-              symbolOffset: [0, -4],
-              symbolSize: 5,
-              symbolRotate: 180,
+              symbol: "none",
               name: names[index],
               lineStyle: {
                 width: 0.5,

@@ -319,9 +319,9 @@
                 </tbody>
               </table>
               <!-- 收益走势 -->
-              <div v-if="t.shouyi" class="zoushi" :ref="`${t.code}_qushi`">
+              <!-- <div v-if="t.shouyi" class="zoushi" :ref="`${t.code}_qushi`">
                 <div></div>
-              </div>
+              </div> -->
             </td>
           </tr>
         </tbody>

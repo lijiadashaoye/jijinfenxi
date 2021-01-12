@@ -424,7 +424,7 @@ export default {
     // 获取所有基金的持股
     getData() {
       // 获取所有基金的code
-      let codes = this.zhengli.canUse.map((t) => t.code).slice(0, 2),
+      let codes = this.zhengli.canUse.map((t) => t.code),
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
         httptype = false;
       // 获取缓存的基金数据

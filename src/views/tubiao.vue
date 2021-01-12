@@ -319,9 +319,9 @@
                 </tbody>
               </table>
               <!-- 收益走势 -->
-              <!-- <div v-if="t.shouyi" class="zoushi" :ref="`${t.code}_qushi`">
+              <div v-if="t.shouyi" class="zoushi" :ref="`${t.code}_qushi`">
                 <div></div>
-              </div> -->
+              </div>
             </td>
           </tr>
         </tbody>
@@ -350,6 +350,9 @@ export default {
         see: [], // 可以看到持仓的基金
         kong: [], // 看不到持仓数据的基金
         fenxi: [],
+        hushen: [], // 沪深300
+        zhong: [], // 中证500
+        shang: [], // 上证指数
         time: "",
       },
       single: 0, // 记录只被持有一次的个数
@@ -421,7 +424,7 @@ export default {
     // 获取所有基金的持股
     getData() {
       // 获取所有基金的code
-      let codes = this.zhengli.canUse.map((t) => t.code),
+      let codes = this.zhengli.canUse.map((t) => t.code).slice(0, 2),
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
         httptype = false;
       // 获取缓存的基金数据
@@ -436,6 +439,9 @@ export default {
         this.zhengli.see = kk.see.filter((t) => codes.includes(t.code)); // 可以看到持仓的基金
         this.zhengli.kong = kk.kong.filter((t) => codes.includes(t.code)); // 看不到持仓数据的基金
         this.zhengli.fenxi = kk.fenxi.filter((t) => codes.includes(t.code)); // 用到echart分析列表
+        this.zhengli.hushen = kk.hushen;
+        this.zhengli.zhong = kk.zhong;
+        this.zhengli.shang = kk.shang;
 
         this.httpType(httptype, needHttp);
       } else {
@@ -464,6 +470,48 @@ export default {
     // 需要发送http获取数据
     async useHttp(codes) {
       if (codes.length) {
+        let shichang = [
+          // 获取沪深300
+          this.$axios({
+            method: "get",
+            url: `hushen`,
+          }),
+          // 获取中证500
+          this.$axios({
+            method: "get",
+            url: `zhongzheng`,
+          }),
+          // 获取上证
+          this.$axios({
+            method: "get",
+            url: `shangzheng`,
+          }),
+        ];
+
+        await Promise.all(shichang).then((res) => {
+          // 获取沪深300
+          let hs = eval("(" + res[0].split("=")[1] + ")"),
+            hsNames = Object.keys(hs);
+          for (let i = hsNames.length; i--; ) {
+            let time = hsNames[i].replace(/-/g, "/");
+            this.zhengli.hushen.unshift([time, hs[hsNames[i]]]);
+          }
+          // 获取中证500
+          let zz = eval("(" + res[1].split("=")[1] + ")"),
+            zzNames = Object.keys(zz);
+          for (let i = zzNames.length; i--; ) {
+            let time = zzNames[i].replace(/-/g, "/");
+            this.zhengli.zhong.unshift([time, zz[zzNames[i]]]);
+          }
+          // 获取上证
+          let sz = eval("(" + res[2].split("=")[1] + ")"),
+            szNames = Object.keys(sz);
+          for (let i = szNames.length; i--; ) {
+            let time = szNames[i].replace(/-/g, "/");
+            this.zhengli.shang.unshift([time, sz[szNames[i]]]);
+          }
+        });
+
         for (let i = codes.length; i--; ) {
           if (codes[i]) {
             let all = [];
@@ -486,7 +534,11 @@ export default {
               }),
               this.$axios({
                 method: "get",
-                url: `shouyizushi/${codes[i]}`,
+                url: `shouyiqushi/${codes[i]}`,
+              }),
+              this.$axios({
+                method: "get",
+                url: `tonglei/${codes[i]}`,
               })
             );
             await Promise.all(all).then((res) => {
@@ -590,25 +642,79 @@ export default {
                 });
               }
               // 累计收益率走势
-              if (res[4]) {
+              if (res[4] && res[5]) {
                 obj["shouyi"] = {
                   [xiangxi.name]: [],
+                  同类平均: [],
                   沪深300: [],
+                  中证500: [],
                   上证指数: [],
                 };
-                // 接口 4 的数据
-                let jiekou4 = eval(
+                let pingjun = [],
+                  nameD = [],
+                  names = Object.keys(res[5]).reverse();
+
+                for (let i = names.length; i--; ) {
+                  let time = names[i].replace(/-/g, "/"),
+                    jishu = +res[5][names[0]],
+                    num = Math.abs(
+                      ((parseFloat(res[5][names[i]]) - jishu) / jishu) * 100
+                    ).toFixed(2);
+                  pingjun.unshift([time, num]);
+                }
+
+                // 接口 4 的基金的增长数据
+                let zengzhang = eval(
                   "(" + res[4].split("=")[1].slice(0, -1) + ")"
                 ).split("|");
-                for (let i = jiekou4.length; i--; ) {
-                  let sp = jiekou4[i].split("_");
-                  if (sp.length == 4) {
-                    obj["shouyi"][xiangxi.name].unshift([sp[0], sp[1]]);
-                    obj["shouyi"]["沪深300"].unshift([sp[0], sp[2]]);
-                    obj["shouyi"]["上证指数"].unshift([sp[0], sp[3]]);
-                  }
+                for (let i = zengzhang.length; i--; ) {
+                  let sp = zengzhang[i].split("_");
+                  nameD.unshift([sp[0], sp[1]]);
+                }
+                let arr1 = pingjun.map((t) => t[0]),
+                  arr2 = nameD.map((t) => t[0]),
+                  arr3 = arr1.filter((x) => arr2.includes(x)); // 取交集
+
+                obj["shouyi"][xiangxi.name] = nameD.filter((t) =>
+                  arr3.includes(t[0])
+                );
+                obj["shouyi"]["同类平均"] = pingjun.filter((t) =>
+                  arr3.includes(t[0])
+                );
+                // 整理沪深的展示数据
+                for (let i = arr3.length; i--; ) {
+                  let tar = this.zhengli.hushen.find((t) => t[0] == arr3[i]),
+                    tar0 = this.zhengli.hushen.find((t) => t[0] == arr3[0]),
+                    jishu = +tar0[1],
+                    num = Math.abs(
+                      ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                    ).toFixed(2);
+                  obj["shouyi"]["沪深300"].unshift([tar[0], num]);
+                }
+
+                // 整理中证500的展示数据
+                for (let i = arr3.length; i--; ) {
+                  let tar = this.zhengli.zhong.find((t) => t[0] == arr3[i]),
+                    tar0 = this.zhengli.zhong.find((t) => t[0] == arr3[0]),
+                    jishu = +tar0[1],
+                    num = Math.abs(
+                      ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                    ).toFixed(2);
+                  obj["shouyi"]["中证500"].unshift([tar[0], num]);
+                }
+
+                // 整理上证指数的展示数据
+                for (let i = arr3.length; i--; ) {
+                  let tar = this.zhengli.shang.find((t) => t[0] == arr3[i]),
+                    tar0 = this.zhengli.shang.find((t) => t[0] == arr3[0]),
+                    jishu = +tar0[1],
+                    num = Math.abs(
+                      ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                    ).toFixed(2);
+                  obj["shouyi"]["上证指数"].unshift([tar[0], num]);
                 }
               }
+
               // 基金详细数据
               obj.code = xiangxi.code; // 基金号
               obj.name = xiangxi.name; // 基金名称
@@ -682,7 +788,7 @@ export default {
       localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
       this.showAll = true;
       this.makeXiangQingChart();
-      // this.makeShouYiChart();
+      this.makeShouYiChart();
     },
     // 基金类型统计
     leiXingTongJi() {
@@ -891,7 +997,14 @@ export default {
       function qushi(tar, legends, names, res) {
         let times = legends[0].map((t) => t[0]);
         let option = {
-          color: ["#0186fb", "#b94349", "#799290"],
+          color: [
+            "#ff025b",
+            "#9500ff",
+            "#0290af",
+            "#070100",
+            "#e78325",
+            "#070100",
+          ],
           title: {
             itemGap: 0,
             text: "收益走势对比图",
@@ -899,10 +1012,12 @@ export default {
               fontSize: 12,
               lineHeight: 14,
               height: 20,
+              fontWeight: "bold",
+              color: "#bb5100",
             },
             padding: 0,
-            left: 4,
-            top: 41,
+            left: 0,
+            top: 40,
           },
           tooltip: {
             trigger: "axis",
@@ -912,7 +1027,7 @@ export default {
               label: {
                 fontSize: 10,
                 backgroundColor: "rgba(50,50,50,0.7)",
-                color: "#02ed2d",
+                color: "#08d62e",
                 formatter: (t) => {
                   if (t.axisDimension == "x") {
                     return `${t.value}`;
@@ -944,10 +1059,10 @@ export default {
             },
           },
           legend: {
-            left: 120,
-            top: 43,
+            left: 90,
+            top: 44,
             padding: 0,
-            itemGap: 20,
+            itemGap: 13,
             itemWidth: 10,
             itemHeight: 8,
             data: names,
@@ -980,7 +1095,6 @@ export default {
               type: "line",
               symbol: "pin",
               symbolSize: 3,
-              showSymbol: false,
               name: names[index],
               lineStyle: {
                 width: 0.5,
@@ -1101,6 +1215,7 @@ export default {
       this.caches = null; // 判断是否有缓存
       this.showAll = false;
       setTimeout(() => {
+        location.reload();
         this.autoRead();
       }, 50);
     },
@@ -1557,6 +1672,7 @@ td {
     border: none;
     background: #c3e8ff;
     border-bottom: 1px solid #c3e8ff;
+    // color:#bb5100;
   }
 }
 </style>

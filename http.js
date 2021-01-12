@@ -28,7 +28,7 @@ http.createServer((req, res) => {
         }
 
         // 获取基金收益走势
-        if (k[0] === 'shouyizushi') {
+        if (k[0] === 'shouyiqushi') {
             url = `http://fund.eastmoney.com/data/FundPicData.aspx?bzdm=${k[1]}&n=0&dt=all&vname=ljsylSVG_PicData&r=0.0.7943138073284852`
             res.setHeader('Content-Type', 'text/html; charset=utf-8')
             getData();
@@ -44,6 +44,30 @@ http.createServer((req, res) => {
         if (k[0] === 'paiming') {
             url = `http://fund.10jqka.com.cn/ifindRank/quarter_year_${k[1]}.json`
             res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            getData();
+        }
+        // 获取同类
+        if (k[0] === 'tonglei') {
+            url = `http://fund.10jqka.com.cn/ifindRank/commonTypeAvgFqNet/${k[1]}.json`
+            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            getData();
+        }
+        // 获取沪深300
+        if (k[0] === 'hushen') {
+            url = `http://fund.10jqka.com.cn/1B0300.js`
+            res.setHeader('Content-Type', 'text/javascript')
+            getData();
+        }
+        // 获取中证500
+        if (k[0] === 'zhongzheng') {
+            url = `http://fund.10jqka.com.cn/1B0905.js`
+            res.setHeader('Content-Type', 'text/javascript')
+            getData();
+        }
+        // 获取上证
+        if (k[0] === 'shangzheng') {
+            url = `http://fund.10jqka.com.cn/1A0001.js`
+            res.setHeader('Content-Type', 'text/javascript')
             getData();
         }
 

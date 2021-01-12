@@ -1120,8 +1120,8 @@ export default {
         let names = this.jingliList.map((t) => t.name),
           obj = {};
         if (!names.length || !names.includes(t.jingli)) {
-          obj["name"] = t.jingli;
-          obj["jijin"] = [t.name];
+          obj["name"] = t.jingli; // 基金经理
+          obj["jijin"] = [t.name]; // 基金名称
           this.jingliList.push(obj);
         } else {
           let kk = this.jingliList.find((s) => s.name == t.jingli);
@@ -1129,7 +1129,7 @@ export default {
             kk.jijin.push(t.name);
           }
         }
-
+        // 涉及的概念
         if (t.theme) {
           t.theme.forEach((d) => {
             if (arr.includes(d)) {

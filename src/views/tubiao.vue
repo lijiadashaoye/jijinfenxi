@@ -1408,9 +1408,8 @@ ul {
   flex-wrap: wrap;
   justify-content: center;
   padding-bottom: 0;
-  margin:0;
-  width:100%;
-
+  margin: 0;
+  width: 100%;
 }
 td {
   padding: 2px;
@@ -1713,8 +1712,8 @@ td {
 }
 .gainians {
   display: flex;
-  div{
-    width:100%;
+  div {
+    width: 100%;
   }
 }
 .toChong {

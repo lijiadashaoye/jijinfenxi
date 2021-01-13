@@ -887,12 +887,14 @@ export default {
       this.makeColor();
       this.leiXingTongJi();
       this.chongHeFenXi();
-      this.zhengli["time"] = new Date().getTime();
       this.showAll = true;
       this.makeXiangQingChart();
       this.makeShouYiChart();
 
-      localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
+      setTimeout(() => {
+        this.zhengli["time"] = new Date().getTime();
+        localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
+      });
     },
     // 基金类型统计
     leiXingTongJi() {

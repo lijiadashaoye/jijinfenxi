@@ -350,9 +350,14 @@ export default {
         see: [], // 可以看到持仓的基金
         kong: [], // 看不到持仓数据的基金
         fenxi: [],
+        time: "",
+      },
+      shichang: {
+        // 证券市场数据
         hushen: [], // 沪深300
         zhong: [], // 中证500
         shang: [], // 上证指数
+        chuang: [], // 上证指数
         time: "",
       },
       single: 0, // 记录只被持有一次的个数
@@ -373,8 +378,8 @@ export default {
     this.range = "A1:B900";
     // this.range = "C1:D900";
     // this.range = "E1:F900";
-    this.caches = localStorage.getItem("zhengli");
 
+    this.caches = localStorage.getItem("zhengli");
     if (this.caches) {
       let time = JSON.parse(this.caches).time,
         now = new Date().getTime();
@@ -383,9 +388,103 @@ export default {
         localStorage.removeItem("zhengli");
       }
     }
+
+    this.$axios({
+      method: "get",
+      url: `shichang`,
+    }).then((res) => {
+      if (!res) {
+        // 如果没有添加过市场数据，则需要初始化
+        this.getShiChang();
+      } else {
+        // 获取当天时间
+        let day = new Date().getDate();
+        if (res.time < day) {
+          this.getShiChang();
+        } else {
+          this.shichang = res;
+          this.shichang.time = day;
+        }
+      }
+    });
+    // 获取金的数据
     this.autoRead();
   },
   methods: {
+    // 获取市场数据
+    getShiChang() {
+      let shichangs = [
+        // 获取沪深300
+        this.$axios({
+          method: "get",
+          url: `hushen`,
+        }),
+        // 获取中证500
+        this.$axios({
+          method: "get",
+          url: `zhongzheng`,
+        }),
+        // 获取上证
+        this.$axios({
+          method: "get",
+          url: `shangzheng`,
+        }),
+        // 获取创业板
+        this.$axios({
+          method: "get",
+          url: `chuangyeban`,
+        }),
+      ];
+      Promise.all(shichangs).then((res) => {
+        // 获取沪深300
+        let hs = eval("(" + res[0].split("=")[1] + ")"),
+          hsNames = Object.keys(hs),
+          // 获取中证500
+          zz = eval("(" + res[1].split("=")[1] + ")"),
+          zzNames = Object.keys(zz),
+          // 获取上证
+          sz = eval("(" + res[2].split("=")[1] + ")"),
+          szNames = Object.keys(sz),
+          // 获取创业板
+          cy = eval("(" + res[3].split("=")[1] + ")"),
+          cyNames = Object.keys(cy);
+
+        for (let i = hsNames.length; i--; ) {
+          let time = hsNames[i].replace(/-/g, "/");
+          this.shichang.hushen.unshift([time, hs[hsNames[i]]]);
+        }
+        for (let i = zzNames.length; i--; ) {
+          let time = zzNames[i].replace(/-/g, "/");
+          this.shichang.zhong.unshift([time, zz[zzNames[i]]]);
+        }
+        for (let i = szNames.length; i--; ) {
+          let time = szNames[i].replace(/-/g, "/");
+          this.shichang.shang.unshift([time, sz[szNames[i]]]);
+        }
+        for (let i = cyNames.length; i--; ) {
+          let time = cyNames[i].replace(/-/g, "/");
+          this.shichang.chuang.unshift([time, cy[cyNames[i]]]);
+        }
+        this.upShiChangData();
+      });
+    },
+    // 把市场数据存储为文件
+    upShiChangData() {
+      let day = new Date().getDate(); // 获取时间
+      this.shichang.time = day;
+      this.$axios({
+        method: "post",
+        url: `upShiChang`,
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+        data: this.shichang,
+      });
+      // .then((res) => {
+      //   if (res) {
+      //   }
+      // });
+    },
     // 自动读取本地excel文件
     async autoRead() {
       this.showAll = false;
@@ -426,7 +525,7 @@ export default {
       // 获取所有基金的code
       let codes = this.zhengli.canUse.map((t) => t.code),
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
-        httptype = false;
+        httptype = true;
       // 获取缓存的基金数据
       if (this.caches) {
         // // 读取缓存的数据
@@ -435,14 +534,9 @@ export default {
           sessionCode = kk.canUse.map((t) => t.code),
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
           needHttp = codes.filter((t) => !sessionCode.includes(t));
-
         this.zhengli.see = kk.see.filter((t) => codes.includes(t.code)); // 可以看到持仓的基金
         this.zhengli.kong = kk.kong.filter((t) => codes.includes(t.code)); // 看不到持仓数据的基金
         this.zhengli.fenxi = kk.fenxi.filter((t) => codes.includes(t.code)); // 用到echart分析列表
-        this.zhengli.hushen = kk.hushen;
-        this.zhengli.zhong = kk.zhong;
-        this.zhengli.shang = kk.shang;
-
         this.httpType(httptype, needHttp);
       } else {
         this.httpType(httptype, codes);
@@ -451,299 +545,316 @@ export default {
     // 切换发送获取数据的方式
     httpType(type, arrs) {
       if (type) {
-        let inter = null,
-          time = 100,
-          num = 0;
-        inter = setInterval(() => {
-          if (num == arrs.length) {
-            clearInterval(inter);
-            inter = null;
-          }
-          // 获取新增的基金数据
-          this.useHttp(arrs.length ? [arrs[num]] : []);
-          num++;
-        }, time);
+        if (arrs.length) {
+          let inter = null,
+            time = 10000, // 控制请求间隔时间
+            num = 0; // 用来清除定时
+          inter = setInterval(() => {
+            if (num == arrs.length) {
+              clearInterval(inter);
+              inter = null;
+            }
+            // 获取新增的基金数据
+            this.useHttp(arrs.length ? [arrs[num]] : []);
+            num++;
+          }, time);
+        } else {
+          this.makeTongJi();
+        }
       } else {
-        this.useHttp(arrs);
+        if (arrs.length) {
+          this.useHttp(arrs);
+        } else {
+          this.makeTongJi();
+        }
       }
     },
     // 需要发送http获取数据
-    async useHttp(codes) {
-      if (codes.length) {
-        let shichang = [
-          // 获取沪深300
-          this.$axios({
-            method: "get",
-            url: `hushen`,
-          }),
-          // 获取中证500
-          this.$axios({
-            method: "get",
-            url: `zhongzheng`,
-          }),
-          // 获取上证
-          this.$axios({
-            method: "get",
-            url: `shangzheng`,
-          }),
-        ];
+    async useHttp(codeArray) {
+      let codes = codeArray.slice(0);
+      for (let i = codes.length; i--; ) {
+        if (codes[i]) {
+          let all = [];
+          all.push(
+            this.$axios({
+              method: "get",
+              url: `chicang/${codes[i]}`,
+            }),
+            this.$axios({
+              method: "get",
+              url: `bili/${codes[i]}`,
+            }),
+            this.$axios({
+              method: "get",
+              url: `xiangqing/${codes[i]}`,
+            }),
+            this.$axios({
+              method: "get",
+              url: `paiming/${codes[i]}`,
+            }),
+            this.$axios({
+              method: "get",
+              url: `shouyiqushi/${codes[i]}`,
+            }),
+            this.$axios({
+              method: "get",
+              url: `tonglei/${codes[i]}`,
+            })
+          );
+          await Promise.all(all).then((res) => {
+            // 基金持仓
+            let chicang = res[0].data.stock,
+              reg = /\/\*.+?\*\//gi,
+              xiangxi = res[2].data[0],
+              bili = [],
+              obj = {};
 
-        await Promise.all(shichang).then((res) => {
-          // 获取沪深300
-          let hs = eval("(" + res[0].split("=")[1] + ")"),
-            hsNames = Object.keys(hs);
-          for (let i = hsNames.length; i--; ) {
-            let time = hsNames[i].replace(/-/g, "/");
-            this.zhengli.hushen.unshift([time, hs[hsNames[i]]]);
-          }
-          // 获取中证500
-          let zz = eval("(" + res[1].split("=")[1] + ")"),
-            zzNames = Object.keys(zz);
-          for (let i = zzNames.length; i--; ) {
-            let time = zzNames[i].replace(/-/g, "/");
-            this.zhengli.zhong.unshift([time, zz[zzNames[i]]]);
-          }
-          // 获取上证
-          let sz = eval("(" + res[2].split("=")[1] + ")"),
-            szNames = Object.keys(sz);
-          for (let i = szNames.length; i--; ) {
-            let time = szNames[i].replace(/-/g, "/");
-            this.zhengli.shang.unshift([time, sz[szNames[i]]]);
-          }
-        });
-
-        for (let i = codes.length; i--; ) {
-          if (codes[i]) {
-            let all = [];
-            all.push(
-              this.$axios({
-                method: "get",
-                url: `chicang/${codes[i]}`,
-              }),
-              this.$axios({
-                method: "get",
-                url: `bili/${codes[i]}`,
-              }),
-              this.$axios({
-                method: "get",
-                url: `xiangqing/${codes[i]}`,
-              }),
-              this.$axios({
-                method: "get",
-                url: `paiming/${codes[i]}`,
-              }),
-              this.$axios({
-                method: "get",
-                url: `shouyiqushi/${codes[i]}`,
-              }),
-              this.$axios({
-                method: "get",
-                url: `tonglei/${codes[i]}`,
-              })
-            );
-            await Promise.all(all).then((res) => {
-              // 基金持仓
-              let chicang = res[0].data.stock,
-                reg = /\/\*.+?\*\//gi,
-                xiangxi = res[2].data[0],
-                bili = [],
-                obj = {};
-
-              if (chicang.length) {
-                this.zhengli.see.push(...chicang);
-              } else {
-                this.zhengli.kong.push(
-                  this.zhengli.canUse.find((k) => k.code == codes[i])
-                );
-              }
-
-              // 基金持仓比例整理
-              res[1]
-                .replace(reg, "")
-                .split("var")
-                .filter((t) => {
-                  if (t.length) {
-                    bili.push(t.trim().slice(0, -1));
-                  }
-                });
-              bili.forEach((t) => {
-                let arr = t.split("=").map((t) => t.trim());
-                // 资产配置
-                if (arr[0] == "Data_assetAllocation") {
-                  let k = eval("(" + arr[1] + ")");
-                  obj["peizhi"] = k.series.map((t) => {
-                    // 转译特殊字符
-                    if (t.name.indexOf("�") > -1) {
-                      t.name = "股票";
-                    }
-                    return {
-                      name:
-                        t.name != "净资产" ? t.name.slice(0, 2) + "" : "规模",
-                      num:
-                        t.name == "净资产"
-                          ? t.data[0]
-                            ? t.data[0].toFixed(2)
-                            : ""
-                          : t.data[0]
-                          ? t.data[0].toFixed(2)
-                          : "",
-                    };
-                  });
+            if (chicang.length) {
+              this.zhengli.see.push(...chicang);
+            } else {
+              this.zhengli.kong.push(
+                this.zhengli.canUse.find((k) => k.code == codes[i])
+              );
+            }
+            // 基金持仓比例整理
+            res[1]
+              .replace(reg, "")
+              .split("var")
+              .filter((t) => {
+                if (t.length) {
+                  bili.push(t.trim().slice(0, -1));
                 }
               });
-              // 收益排名
-              if (res[3]) {
-                obj["paiming"] = {};
-                let kk = res[3].nowCommonTypeRank;
-                Object.keys(kk).forEach((t) => {
-                  obj.paiming[t] = [kk[t][0], kk[t][1]];
-                  let num = +kk[t][2];
-                  if (num > 75) {
-                    obj.paiming[t][2] = 4;
+            bili.forEach((t) => {
+              let arr = t.split("=").map((t) => t.trim());
+              // 资产配置
+              if (arr[0] == "Data_assetAllocation") {
+                let k = eval("(" + arr[1] + ")");
+                obj["peizhi"] = k.series.map((t) => {
+                  // 转译特殊字符
+                  if (t.name.indexOf("�") > -1) {
+                    t.name = "股票";
                   }
-                  if (num <= 75 && num > 50) {
-                    obj.paiming[t][2] = 3;
-                  }
-                  if (num <= 50 && num > 25) {
-                    obj.paiming[t][2] = 2;
-                  }
-                  if (num <= 25) {
-                    obj.paiming[t][2] = 1;
-                  }
-                  switch (t) {
-                    case "fyear":
-                      obj.paiming[t][3] = "近5年";
-                      break;
-                    case "hyear":
-                      obj.paiming[t][3] = "近6月";
-                      break;
-                    case "month":
-                      obj.paiming[t][3] = "近1月";
-                      break;
-                    case "nowyear":
-                      obj.paiming[t][3] = "今年来";
-                      break;
-                    case "tmonth":
-                      obj.paiming[t][3] = "近3月";
-                      break;
-                    case "twoyear":
-                      obj.paiming[t][3] = "近2年";
-                      break;
-                    case "tyear":
-                      obj.paiming[t][3] = "近3年";
-                      break;
-                    case "week":
-                      obj.paiming[t][3] = "近1周";
-                      break;
-                    case "year":
-                      obj.paiming[t][3] = "近1年";
-                      break;
-                  }
+                  return {
+                    name: t.name != "净资产" ? t.name.slice(0, 2) + "" : "规模",
+                    num:
+                      t.name == "净资产"
+                        ? t.data[0]
+                          ? t.data[0].toFixed(2)
+                          : ""
+                        : t.data[0]
+                        ? t.data[0].toFixed(2)
+                        : "",
+                  };
                 });
               }
-              // 累计收益率走势
-              if (res[4] && res[5]) {
-                obj["shouyi"] = {
-                  [xiangxi.name]: [],
-                  同类平均: [],
-                  沪深300: [],
-                  中证500: [],
-                  上证指数: [],
-                };
-                let pingjun = [],
-                  nameD = [],
-                  names = Object.keys(res[5]).reverse();
+            });
 
-                for (let i = names.length; i--; ) {
-                  let time = names[i].replace(/-/g, "/"),
-                    jishu = +res[5][names[0]],
-                    num = Math.abs(
-                      ((parseFloat(res[5][names[i]]) - jishu) / jishu) * 100
-                    ).toFixed(2);
-                  pingjun.unshift([time, num]);
+            // 收益排名
+            if (res[3]) {
+              obj["paiming"] = {};
+              let kk = res[3].nowCommonTypeRank;
+              Object.keys(kk).forEach((t) => {
+                obj.paiming[t] = [kk[t][0], kk[t][1]];
+                let num = +kk[t][2];
+                if (num > 75) {
+                  obj.paiming[t][2] = 4;
                 }
-
-                // 接口 4 的基金的增长数据
-                let zengzhang = eval(
-                  "(" + res[4].split("=")[1].slice(0, -1) + ")"
-                ).split("|");
-                for (let i = zengzhang.length; i--; ) {
-                  let sp = zengzhang[i].split("_");
-                  nameD.unshift([sp[0], sp[1]]);
+                if (num <= 75 && num > 50) {
+                  obj.paiming[t][2] = 3;
                 }
-                let arr1 = pingjun.map((t) => t[0]),
-                  arr2 = nameD.map((t) => t[0]),
-                  arr3 = arr1.filter((x) => arr2.includes(x)); // 取交集
-
-                obj["shouyi"][xiangxi.name] = nameD.filter((t) =>
-                  arr3.includes(t[0])
-                );
-                obj["shouyi"]["同类平均"] = pingjun.filter((t) =>
-                  arr3.includes(t[0])
-                );
-                // 整理沪深的展示数据
-                for (let i = arr3.length; i--; ) {
-                  let tar = this.zhengli.hushen.find((t) => t[0] == arr3[i]),
-                    tar0 = this.zhengli.hushen.find((t) => t[0] == arr3[0]),
-                    jishu = +tar0[1],
-                    num = Math.abs(
-                      ((parseFloat(tar[1]) - jishu) / jishu) * 100
-                    ).toFixed(2);
-                  obj["shouyi"]["沪深300"].unshift([tar[0], num]);
+                if (num <= 50 && num > 25) {
+                  obj.paiming[t][2] = 2;
                 }
-
-                // 整理中证500的展示数据
-                for (let i = arr3.length; i--; ) {
-                  let tar = this.zhengli.zhong.find((t) => t[0] == arr3[i]),
-                    tar0 = this.zhengli.zhong.find((t) => t[0] == arr3[0]),
-                    jishu = +tar0[1],
-                    num = Math.abs(
-                      ((parseFloat(tar[1]) - jishu) / jishu) * 100
-                    ).toFixed(2);
-                  obj["shouyi"]["中证500"].unshift([tar[0], num]);
+                if (num <= 25) {
+                  obj.paiming[t][2] = 1;
                 }
+                switch (t) {
+                  case "fyear":
+                    obj.paiming[t][3] = "近5年";
+                    break;
+                  case "hyear":
+                    obj.paiming[t][3] = "近6月";
+                    break;
+                  case "month":
+                    obj.paiming[t][3] = "近1月";
+                    break;
+                  case "nowyear":
+                    obj.paiming[t][3] = "今年来";
+                    break;
+                  case "tmonth":
+                    obj.paiming[t][3] = "近3月";
+                    break;
+                  case "twoyear":
+                    obj.paiming[t][3] = "近2年";
+                    break;
+                  case "tyear":
+                    obj.paiming[t][3] = "近3年";
+                    break;
+                  case "week":
+                    obj.paiming[t][3] = "近1周";
+                    break;
+                  case "year":
+                    obj.paiming[t][3] = "近1年";
+                    break;
+                }
+              });
+            }
 
-                // 整理上证指数的展示数据
-                for (let i = arr3.length; i--; ) {
-                  let tar = this.zhengli.shang.find((t) => t[0] == arr3[i]),
-                    tar0 = this.zhengli.shang.find((t) => t[0] == arr3[0]),
-                    jishu = +tar0[1],
-                    num = Math.abs(
-                      ((parseFloat(tar[1]) - jishu) / jishu) * 100
-                    ).toFixed(2);
-                  obj["shouyi"]["上证指数"].unshift([tar[0], num]);
+            let shouyiqushi = [], // 基金自己的 echarts 展示数据
+              tonglei = [], // 同类平均的 echarts 展示数据
+              shang = [], // 用来保存根据基金与上证的交集筛选出的市场数据
+              zhong = [], // 用来保存根据基金与中证500的交集筛选出的市场数据
+              hushen = [], // 用来保存根据基金与沪深300的交集筛选出的市场数据
+              chuang = [], // 用来保存根据基金与创业板的交集筛选出的市场数据
+              jiaoji = null, // 以基金的整张为基础获取交集
+              minTime = []; // 取最小交集;
+
+            // res[4] 累计收益率走势
+            if (res[4]) {
+              let k = eval("(" + res[4].split("=")[1].slice(0, -1) + ")").split(
+                "|"
+              );
+              for (let i = k.length; i--; ) {
+                let sp = k[i].split("_");
+                if (sp.length == 4) {
+                  shouyiqushi.unshift([sp[0], sp[1] ? sp[1] : "0.00"]);
                 }
               }
+            }
+            // res[5] 同类
+            if (res[5]) {
+              let names = Object.keys(res[5]).reverse();
+              for (let i = names.length; i--; ) {
+                let time = names[i].replace(/-/g, "/"),
+                  jishu = +res[5][names[0]],
+                  num = Math.abs(
+                    ((parseFloat(res[5][names[i]]) - jishu) / jishu) * 100
+                  ).toFixed(2);
+                tonglei.unshift([time, num]);
+              }
+            }
 
-              // 基金详细数据
-              obj.code = xiangxi.code; // 基金号
-              obj.name = xiangxi.name; // 基金名称
-              obj.theme =
-                xiangxi.themeList && xiangxi.themeList.length
-                  ? xiangxi.themeList.map((t) => t.field_name)
-                  : []; // 概念
-              obj.yue_1 = xiangxi.month; // 近1月
-              obj.yue_3 = xiangxi.tmonth; // 近3月
-              obj.yue_6 = xiangxi.hyear; // 近6月
-              obj.nian = xiangxi.year; // 近1年
-              obj.nowyear = xiangxi.nowyear; // 今年
-              obj.tyear = xiangxi.tyear; // 成立以来
-              obj.jingzhi = xiangxi.net; // 单位净值
-              obj.jingTime = xiangxi.enddate; // 净值计算时间
-              obj.zhangfu = xiangxi.rate; // 昨日涨幅
-              obj.chengli = xiangxi.clrq; // 成立时间
-              obj.feilv = xiangxi.sgfl; // 购买费率
-              obj.fengxian = xiangxi.levelOfRisk; // 风险等级
-              obj.leixing = xiangxi.fundtype; // 基金类型
-              obj.jingli = xiangxi.manager; // 基金经理
-              this.zhengli.fenxi.push(obj);
-            });
-          }
+            let shouyiqushiTime = shouyiqushi.map((t) => t[0]), // 收益趋势的时间集合
+              tongleiTime = tonglei.map((t) => t[0]); // 同类平均的时间集合
+            // 取交集
+            jiaoji = shouyiqushiTime.filter((x) => tongleiTime.includes(x));
+            // 筛选市场数据
+            shang = this.shichang.shang
+              .map((t) => t[0])
+              .filter((x) => jiaoji.includes(x));
+            zhong = this.shichang.zhong
+              .map((t) => t[0])
+              .filter((x) => jiaoji.includes(x));
+            hushen = this.shichang.hushen
+              .map((t) => t[0])
+              .filter((x) => jiaoji.includes(x));
+            chuang = this.shichang.chuang
+              .map((t) => t[0])
+              .filter((x) => jiaoji.includes(x));
+
+            // 寻找最小交集
+            if (shouyiqushiTime.length) {
+              minTime = [
+                shouyiqushiTime,
+                jiaoji,
+                shang,
+                zhong,
+                hushen,
+                chuang,
+              ].reduce((all, now) => {
+                if (all.length < now.length) {
+                  return all;
+                } else {
+                  return now;
+                }
+              });
+              obj["shouyi"] = {
+                [xiangxi.name]: shouyiqushi.filter((t) =>
+                  minTime.includes(t[0])
+                ),
+                同类平均: tonglei.filter((t) => minTime.includes(t[0])),
+                沪深300: [],
+                中证500: [],
+                上证指数: [],
+                创业板指数: [],
+              };
+              // 整理沪深的展示数据
+              for (let i = minTime.length; i--; ) {
+                let tar = this.shichang.hushen.find((t) => t[0] == minTime[i]),
+                  tar0 = this.shichang.hushen.find((t) => t[0] == minTime[0]),
+                  jishu = +tar0[1],
+                  num = Math.abs(
+                    ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                  ).toFixed(2);
+                obj["shouyi"]["沪深300"].unshift([tar[0], num]);
+              }
+              // 整理中证500的展示数据
+              for (let i = minTime.length; i--; ) {
+                let tar = this.shichang.zhong.find((t) => t[0] == minTime[i]),
+                  tar0 = this.shichang.zhong.find((t) => t[0] == minTime[0]),
+                  jishu = +tar0[1],
+                  num = Math.abs(
+                    ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                  ).toFixed(2);
+                obj["shouyi"]["中证500"].unshift([tar[0], num]);
+              }
+              // 整理上证指数的展示数据
+              for (let i = minTime.length; i--; ) {
+                let tar = this.shichang.shang.find((t) => t[0] == minTime[i]),
+                  tar0 = this.shichang.shang.find((t) => t[0] == minTime[0]),
+                  jishu = +tar0[1],
+                  num = Math.abs(
+                    ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                  ).toFixed(2);
+                obj["shouyi"]["上证指数"].unshift([tar[0], num]);
+              }
+              // 整理创业板指数的展示数据
+              for (let i = minTime.length; i--; ) {
+                let tar = this.shichang.chuang.find((t) => t[0] == minTime[i]),
+                  tar0 = this.shichang.chuang.find((t) => t[0] == minTime[0]),
+                  jishu = +tar0[1],
+                  num = Math.abs(
+                    ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                  ).toFixed(2);
+                obj["shouyi"]["创业板指数"].unshift([tar[0], num]);
+              }
+            } else {
+              obj["shouyi"] = null;
+            }
+
+            // 基金详细数据
+            obj.code = xiangxi.code; // 基金号
+            obj.name = xiangxi.name; // 基金名称
+            obj.theme =
+              xiangxi.themeList && xiangxi.themeList.length
+                ? xiangxi.themeList.map((t) => t.field_name)
+                : []; // 概念
+            obj.yue_1 = xiangxi.month; // 近1月
+            obj.yue_3 = xiangxi.tmonth; // 近3月
+            obj.yue_6 = xiangxi.hyear; // 近6月
+            obj.nian = xiangxi.year; // 近1年
+            obj.nowyear = xiangxi.nowyear; // 今年
+            obj.tyear = xiangxi.tyear; // 成立以来
+            obj.jingzhi = xiangxi.net; // 单位净值
+            obj.jingTime = xiangxi.enddate; // 净值计算时间
+            obj.zhangfu = xiangxi.rate; // 昨日涨幅
+            obj.chengli = xiangxi.clrq; // 成立时间
+            obj.feilv = xiangxi.sgfl; // 购买费率
+            obj.fengxian = xiangxi.levelOfRisk; // 风险等级
+            obj.leixing = xiangxi.fundtype; // 基金类型
+            obj.jingli = xiangxi.manager; // 基金经理
+            this.zhengli.fenxi.push(obj);
+          });
         }
-        setTimeout(this.makeTongJi);
-      } else {
-        this.makeTongJi();
       }
+      this.zhengli.fenxi = this.zhengli.fenxi.sort(
+        (a, b) => a.shouyi - b.shouyi
+      );
+      setTimeout(() => {
+        console.log(this.zhengli);
+        this.makeTongJi();
+      });
     },
     // 将多维数组，拉成一维数组，并去除空数组
     makeTongJi() {
@@ -817,15 +928,16 @@ export default {
           (t) => t.code == this.zhengli.canUse[i].code
         );
       }
-      let arrs = [];
-      this.zhengli.canUse.forEach((t) => {
-        if (t.gupiao.length) {
-          let gupiao = t.gupiao.map((k) => k.zcCode); // 选出当前基金所持股票的代码
-          for (let i = this.zhengli.canUse.length; i--; ) {
-            let jj = this.zhengli.canUse[i];
+      let arrs = [],
+        t = this.zhengli.canUse;
+      for (let h = t.length; h--; ) {
+        if (t[h].gupiao.length) {
+          let gupiao = t[h].gupiao.map((k) => k.zcCode); // 选出当前基金所持股票的代码
+          for (let i = t.length; i--; ) {
+            let jj = t[h];
             if (
               // 排除自己且其他基金有股票数据
-              jj.code != t.code &&
+              jj.code != t[h].code &&
               jj.gupiao.length
             ) {
               let d = jj.gupiao.map((k) => k.zcCode),
@@ -836,15 +948,15 @@ export default {
                 }
               });
               if (num > this.chongheNum) {
-                let a = new Set(t.gupiao.map((d) => d.zcCode)),
+                let a = new Set(t[h].gupiao.map((d) => d.zcCode)),
                   b = new Set(jj.gupiao.map((d) => d.zcCode)),
                   kk = [...new Set([...a].filter((x) => b.has(x)))],
                   linshi = t.gupiao
                     .filter((t) => kk.includes(t.zcCode))
                     .map((t) => t.zcName),
                   obj = {
-                    one: t,
-                    oneOther: t.gupiao
+                    one: t[h],
+                    oneOther: t[h].gupiao
                       .map((d) => d.zcName)
                       .filter((f) => !linshi.includes(f)),
                     two: jj,
@@ -859,7 +971,8 @@ export default {
             }
           }
         }
-      });
+      }
+
       for (let j = arrs.length; j--; ) {
         let one = arrs[j].one.code,
           two = arrs[j].two.code,
@@ -1004,6 +1117,7 @@ export default {
             "#070100",
             "#e78325",
             "#070100",
+            "#7a77be",
           ],
           title: {
             itemGap: 0,
@@ -1017,7 +1131,7 @@ export default {
             },
             padding: 0,
             left: 0,
-            top: 40,
+            top: 23,
           },
           tooltip: {
             trigger: "axis",
@@ -1059,8 +1173,8 @@ export default {
             },
           },
           legend: {
-            left: 90,
-            top: 44,
+            right: 10,
+            top: 45,
             padding: 0,
             itemGap: 13,
             itemWidth: 10,
@@ -1079,14 +1193,46 @@ export default {
           },
           xAxis: {
             type: "category",
-            boundaryGap: false,
+            axisLine: {
+              // x轴线设置
+              // show: false,
+              lineStyle: {
+                color: "#b9b8c0",
+                width: 1,
+              },
+            },
+            axisLabel: {
+              // x轴刻度文字设置
+              color: "#000",
+              fontSize: 9,
+              fontWeight: "bold",
+              margin: 7,
+              align: "center",
+              padding: [3, 0, 0, 0],
+            },
+            axisTick: {
+              // 坐标刻度标尺点设置
+              length: 3,
+            },
+            splitLine: {
+              show: false,
+            },
             data: times.map((t) => t.slice(5)),
           },
           yAxis: {
+            minInterval: 2,
+            axisLine: {
+              lineStyle: {
+                color: "#b9b8c0",
+              },
+            },
+            axisTick: {
+              // 坐标刻度标尺点设置
+              length: 3,
+            },
             axisLabel: {
               color: "#165cff",
               fontSize: 10,
-              lineHeight: 880,
               formatter: "{value}%",
             },
           },
@@ -1094,10 +1240,11 @@ export default {
             return {
               type: "line",
               symbol: "pin",
-              symbolSize: 3,
+              symbolSize: 4,
+              showSymbol: false,
               name: names[index],
               lineStyle: {
-                width: 0.5,
+                width: 0.6,
               },
               data: w.map((t) => t[1]),
             };
@@ -1214,8 +1361,8 @@ export default {
       this.colorObj = {}; // 存储不同概念的颜色
       this.caches = null; // 判断是否有缓存
       this.showAll = false;
+      location.reload();
       setTimeout(() => {
-        location.reload();
         this.autoRead();
       }, 50);
     },
@@ -1261,6 +1408,9 @@ ul {
   flex-wrap: wrap;
   justify-content: center;
   padding-bottom: 0;
+  margin:0;
+  width:100%;
+
 }
 td {
   padding: 2px;
@@ -1301,6 +1451,7 @@ td {
 .excelChongFu,
 .typeTongJi,
 .typeJiJin {
+  box-sizing: border-box;
   td {
     font-size: 12px;
     border: 1px solid rgb(188, 181, 181);
@@ -1322,7 +1473,21 @@ td {
   flex-shrink: 0;
 }
 .typeTongJi > tbody,
-.excelChongFu > tbody,
+.excelChongFu > tbody {
+  display: flex;
+  flex-wrap: wrap;
+  tr {
+    display: flex;
+    width: 33.2%;
+    td:nth-of-type(1) {
+      width: 70px !important;
+      flex-shrink: 0;
+    }
+  }
+  .changeWidth {
+    width: 100%;
+  }
+}
 .noChiCang > tbody {
   display: flex;
   flex-wrap: wrap;
@@ -1338,6 +1503,7 @@ td {
     width: 100%;
   }
 }
+
 .shuju {
   height: 800px;
   overflow-y: scroll;
@@ -1421,7 +1587,7 @@ td {
 
 .zoushi {
   width: 100%;
-  height: 240px;
+  height: 320px;
   flex-shrink: 0;
   position: relative;
   z-index: 5;
@@ -1430,7 +1596,7 @@ td {
     left: 0;
     right: 0;
     bottom: 2px;
-    height: 276px;
+    height: 340px;
   }
 }
 .bili {
@@ -1547,6 +1713,9 @@ td {
 }
 .gainians {
   display: flex;
+  div{
+    width:100%;
+  }
 }
 .toChong {
   position: fixed;
@@ -1672,7 +1841,13 @@ td {
     border: none;
     background: #c3e8ff;
     border-bottom: 1px solid #c3e8ff;
-    // color:#bb5100;
+
+    // color: #ff025b;
+    // color: #9500ff;
+    // color: #0290af;
+    // color: #070100;
+    // color: #e78325;
+    color: #000000;
   }
 }
 </style>

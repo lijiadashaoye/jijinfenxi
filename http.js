@@ -1,14 +1,17 @@
-let http = require('http');
+let http = require('http'),
+    fs = require('fs'),
+    qs = require('qs');
 http.createServer((req, res) => {
     if (req.url != '/favicon.ico') {
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Max-Age', '100000');
-        res.setHeader('Cache-Control', 'max-age=200');
+        res.setHeader('Cache-Control', 'max-age=2000');
         res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
         res.setHeader('Referer-Policy', 'strict-origin-when-cross-origin');
 
         let k = req.url.slice(1).split('/'),
             url = '';
+
 
         if (k[0] === 'wenjian') {
             res.setHeader('Content-Type', 'application/octet-stream') // 二进制流数据（如常见的文件下载）
@@ -26,14 +29,12 @@ http.createServer((req, res) => {
             res.setHeader('Content-Type', 'application/javascript;charset=utf-8')
             getData();
         }
-
         // 获取基金收益走势
         if (k[0] === 'shouyiqushi') {
             url = `http://fund.eastmoney.com/data/FundPicData.aspx?bzdm=${k[1]}&n=0&dt=all&vname=ljsylSVG_PicData&r=0.0.7943138073284852`
             res.setHeader('Content-Type', 'text/html; charset=utf-8')
             getData();
         }
-
         // 获取基金详情
         if (k[0] === 'xiangqing') {
             url = `http://fund.10jqka.com.cn/data/client/myfund/${k[1]}`
@@ -70,14 +71,51 @@ http.createServer((req, res) => {
             res.setHeader('Content-Type', 'text/javascript')
             getData();
         }
+        // 获取创业板
+        if (k[0] === 'chuangyeban') {
+            url = `http://fund.10jqka.com.cn/399006.js`
+            res.setHeader('Content-Type', 'text/javascript')
+            getData();
+        }
+        // 获取市场文件数据
+        if (k[0] === 'shichang') {
+            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            getJson();
+        }
+        // 更新市场文件数据
+        if (k[0] === 'upShiChang') {
+            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            saveJson(req, res)
+        }
 
-        // 读取文件
+        // 读取基金excel文件
         function getFile() {
-            var fs = require('fs');
             fs.readFile('./定投.xlsx', (err, data) => {
                 if (err) throw err;
                 res.end(data)
             });
+        }
+
+        // 读取市场文件
+        function getJson() {
+            fs.readFile('./shichang.json', (err, data) => {
+                if (err) throw err;
+                res.end(data)
+            });
+        }
+        // 存储市场数据到文件
+        function saveJson(req, res) {
+            let data = '';
+            req.on('data', function (mock) {
+                    data += mock
+                })
+                .on('end', function () {
+                    fs.unlink('./shichang.json', err => {
+                        fs.writeFile('./shichang.json', data, e => {
+                            res.end('true')
+                        })
+                    });
+                })
         }
 
         // 获取数据

@@ -539,7 +539,7 @@ export default {
       if (type) {
         if (arrs.length) {
           // 控制请求间隔时间
-          let time = 100,
+          let time = 3000,
             inter = null,
             num = 0; // 用来清除定时
           inter = setInterval(() => {

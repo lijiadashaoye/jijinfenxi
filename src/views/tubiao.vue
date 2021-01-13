@@ -517,7 +517,6 @@ export default {
       let codes = this.zhengli.canUse.map((t) => t.code),
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
         httptype = true;
-
       // 获取缓存的基金数据
       if (this.caches) {
         // // 读取缓存的数据
@@ -539,7 +538,7 @@ export default {
       if (type) {
         if (arrs.length) {
           // 控制请求间隔时间
-          let time = 3000,
+          let time = 20000,
             inter = null,
             num = 0; // 用来清除定时
           inter = setInterval(() => {

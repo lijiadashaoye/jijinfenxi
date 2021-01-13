@@ -6,10 +6,11 @@
       &#8607;
     </button>
     <button class="clear" @click="clearCache">清除缓存，重新拉取数据</button>
+
     <div class="wap" v-show="showAll">
       <div class="gainians">
         <!-- 根据概念区分 -->
-        <table class="gainian" collpase>
+        <table class="gainians1" collpase>
           <thead>
             <tr>
               <th colspan="2">概念类型统计</th>
@@ -22,7 +23,7 @@
             </tr>
           </tbody>
         </table>
-        <div>
+        <div class="gainians2">
           <!-- 基金类型统计 -->
           <table class="typeJiJin" collpase>
             <thead>
@@ -86,7 +87,7 @@
             :key="ind"
           >
             <td
-              title="点击查看基金"
+              title="点击查看基金经理数据"
               class="showManager"
               @click="showJiJin2(t.name)"
             >
@@ -133,10 +134,15 @@
           <tr>
             <th colspan="4">数据统计</th>
           </tr>
-          <tr>
-            <th colspan="4">
+
+          <tr class="lists">
+            <th>股票名称</th>
+            <th title="点击排序" @click="toSort(true)">被持仓次数</th>
+            <th title="点击排序" @click="toSort(false)">日涨幅 %</th>
+            <th>
               共{{ zhengli.canUse.length }}个基金，
-              {{ zhengli.kong.length }}个看不到持仓
+              {{ zhengli.kong.length }}个看不到持仓，
+              <span>{{ single }} 个股票被持有一次</span>
             </th>
           </tr>
           <div class="stickyd">
@@ -150,16 +156,6 @@
           </div>
         </thead>
         <tbody>
-          <tr>
-            <th>股票名称</th>
-            <th title="点击排序" @click="toSort(true)">被持仓次数</th>
-            <th title="点击排序" @click="toSort(false)">日涨幅 %</th>
-            <th>
-              持仓该股票的基金，&nbsp;&nbsp;
-              <span>{{ single }} 个股票被持有一次</span>
-            </th>
-          </tr>
-
           <tr v-for="(t, ind) in gupiao" :key="ind" :ref="t.code">
             <td
               :id="t.id"
@@ -377,7 +373,7 @@ export default {
   created() {
     this.range = "A1:B900";
     // this.range = "C1:D900";
-    // this.range = "E1:F900";
+    // this.range = "F1:G900";
 
     this.caches = localStorage.getItem("zhengli");
     if (this.caches) {
@@ -480,10 +476,6 @@ export default {
         },
         data: this.shichang,
       });
-      // .then((res) => {
-      //   if (res) {
-      //   }
-      // });
     },
     // 自动读取本地excel文件
     async autoRead() {
@@ -500,7 +492,6 @@ export default {
         let worksheet = workbook.Sheets[sheetNames[0]], // 这里我们只读取第一张sheet1
           csv = XLSX.utils.sheet_to_json(worksheet, { range: this.range }),
           excelCode = [];
-
         csv.forEach((t) => {
           // 选出excel里的基金
           if (!excelCode.includes(t["代码"])) {
@@ -526,6 +517,7 @@ export default {
       let codes = this.zhengli.canUse.map((t) => t.code),
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
         httptype = true;
+
       // 获取缓存的基金数据
       if (this.caches) {
         // // 读取缓存的数据
@@ -546,8 +538,9 @@ export default {
     httpType(type, arrs) {
       if (type) {
         if (arrs.length) {
-          let inter = null,
-            time = 10000, // 控制请求间隔时间
+          // 控制请求间隔时间
+          let time = 100,
+            inter = null,
             num = 0; // 用来清除定时
           inter = setInterval(() => {
             if (num == arrs.length) {
@@ -852,7 +845,6 @@ export default {
         (a, b) => a.shouyi - b.shouyi
       );
       setTimeout(() => {
-        console.log(this.zhengli);
         this.makeTongJi();
       });
     },
@@ -896,10 +888,11 @@ export default {
       this.leiXingTongJi();
       this.chongHeFenXi();
       this.zhengli["time"] = new Date().getTime();
-      localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
       this.showAll = true;
       this.makeXiangQingChart();
       this.makeShouYiChart();
+
+      localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
     },
     // 基金类型统计
     leiXingTongJi() {
@@ -928,19 +921,19 @@ export default {
           (t) => t.code == this.zhengli.canUse[i].code
         );
       }
+
       let arrs = [],
         t = this.zhengli.canUse;
       for (let h = t.length; h--; ) {
         if (t[h].gupiao.length) {
           let gupiao = t[h].gupiao.map((k) => k.zcCode); // 选出当前基金所持股票的代码
           for (let i = t.length; i--; ) {
-            let jj = t[h];
             if (
               // 排除自己且其他基金有股票数据
-              jj.code != t[h].code &&
-              jj.gupiao.length
+              t[i].code != t[h].code &&
+              t[i].gupiao.length
             ) {
-              let d = jj.gupiao.map((k) => k.zcCode),
+              let d = t[i].gupiao.map((k) => k.zcCode),
                 num = 0;
               gupiao.forEach((j) => {
                 if (d.includes(j)) {
@@ -949,9 +942,9 @@ export default {
               });
               if (num > this.chongheNum) {
                 let a = new Set(t[h].gupiao.map((d) => d.zcCode)),
-                  b = new Set(jj.gupiao.map((d) => d.zcCode)),
-                  kk = [...new Set([...a].filter((x) => b.has(x)))],
-                  linshi = t.gupiao
+                  b = new Set(t[i].gupiao.map((d) => d.zcCode)),
+                  kk = [...new Set([...a].filter((x) => b.has(x)))], // 取交集
+                  linshi = t[h].gupiao
                     .filter((t) => kk.includes(t.zcCode))
                     .map((t) => t.zcName),
                   obj = {
@@ -959,8 +952,8 @@ export default {
                     oneOther: t[h].gupiao
                       .map((d) => d.zcName)
                       .filter((f) => !linshi.includes(f)),
-                    two: jj,
-                    twoOther: jj.gupiao
+                    two: t[i],
+                    twoOther: t[i].gupiao
                       .map((d) => d.zcName)
                       .filter((f) => !linshi.includes(f)),
                     num: num,
@@ -1351,6 +1344,14 @@ export default {
         fenxi: [],
         time: "",
       };
+      this.shichang = {
+        // 证券市场数据
+        hushen: [], // 沪深300
+        zhong: [], // 中证500
+        shang: [], // 上证指数
+        chuang: [], // 上证指数
+        time: "",
+      };
       this.single = 0; // 记录只被持有一次的个数
       this.gupiao = []; // 记录根据股票进行分析的基金
       this.jingliList = []; // 根据基金经理区分基金
@@ -1398,7 +1399,6 @@ export default {
 <style lang="scss" scoped>
 table {
   border-collapse: collapse;
-  margin: 10px;
 }
 ul {
   list-style-type: none;
@@ -1411,21 +1411,128 @@ ul {
   margin: 0;
   width: 100%;
 }
-td {
-  padding: 2px;
-  font-size: 12px;
-}
-.chonghe {
-  tr {
-    width: 100%;
+.gainians {
+  thead {
+    tr {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin: 10px 0;
+    }
   }
+  display: flex;
+  .gainians1 {
+    width: 40%;
+    box-sizing: border-box;
+  }
+  .gainians2 {
+    width: calc(60% - 10px);
+    box-sizing: border-box;
+    margin-left: 10px;
+  }
+
+  .gainians1 {
+    tr {
+      width: 100%;
+      display: flex;
+    }
+    td {
+      font-size: 12px;
+      border: 1px solid rgb(188, 181, 181);
+      border-collapse: collapse;
+      box-sizing: border-box;
+      padding: 2px;
+    }
+    tr > td:nth-of-type(1) {
+      width: 90px;
+      flex-shrink: 0;
+      text-align: center;
+      color: rgb(50, 32, 214);
+    }
+    tr > td:nth-of-type(2) {
+      width: 100%;
+    }
+  }
+}
+.typeJiJin,
+.noChiCang,
+.excelChongFu {
+  width: 100%;
+  tbody {
+    display: flex;
+    flex-wrap: wrap;
+    tr {
+      width: 50%;
+      display: flex;
+    }
+    td {
+      font-size: 12px;
+      border: 1px solid rgb(188, 181, 181);
+      border-collapse: collapse;
+      box-sizing: border-box;
+      padding: 2px;
+    }
+    tr > td:nth-of-type(1) {
+      width: 90px;
+      flex-shrink: 0;
+      text-align: center;
+      color: rgb(50, 32, 214);
+    }
+    tr > td:nth-of-type(2) {
+      width: 100%;
+    }
+  }
+}
+.typeTongJi {
+  width: 90%;
+
+  thead {
+    tr {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin: 10px 0;
+    }
+  }
+  tbody {
+    display: grid;
+    grid-template-columns: 33% 33% 33%;
+    tr {
+      width: 100%;
+      display: flex;
+    }
+    td {
+      font-size: 12px;
+      border: 1px solid rgb(188, 181, 181);
+      border-collapse: collapse;
+      box-sizing: border-box;
+      padding: 2px;
+    }
+    tr > td:nth-of-type(1) {
+      width: 80px;
+      flex-shrink: 0;
+      text-align: center;
+      color: rgb(50, 32, 214);
+    }
+    tr > td:nth-of-type(2) {
+      width: 100%;
+    }
+  }
+}
+
+.chonghe {
+  max-width: 100%;
   th {
-    width: 100%;
     font-size: 20px;
   }
   td {
+    font-size: 12px;
+    box-sizing: border-box;
     border: 1px solid rgb(188, 181, 181);
-    padding: 0 4px;
+    padding: 2px 4px;
+  }
+  td:nth-of-type(1) {
+    width: 200px;
   }
   td:nth-of-type(1),
   td:nth-of-type(4) {
@@ -1441,134 +1548,131 @@ td {
   .chongheTitle {
     text-align: center;
     td {
-      font-size: 14px;
+      font-size: 16px;
+      border: 1px solid rgb(188, 181, 181);
     }
-  }
-}
-.gainian,
-.noChiCang,
-.excelChongFu,
-.typeTongJi,
-.typeJiJin {
-  box-sizing: border-box;
-  td {
-    font-size: 12px;
-    border: 1px solid rgb(188, 181, 181);
-    border-collapse: collapse;
-  }
-  tr > td:nth-of-type(1) {
-    width: 90px;
-    flex-shrink: 0;
-    text-align: center;
-    color: rgb(50, 32, 214);
-  }
-  tr > td:nth-of-type(2) {
-    width: calc(100% - 100px);
-    flex-shrink: 0;
-  }
-}
-.gainian {
-  width: 40%;
-  flex-shrink: 0;
-}
-.typeTongJi > tbody,
-.excelChongFu > tbody {
-  display: flex;
-  flex-wrap: wrap;
-  tr {
-    display: flex;
-    width: 33.2%;
-    td:nth-of-type(1) {
-      width: 70px !important;
-      flex-shrink: 0;
-    }
-  }
-  .changeWidth {
-    width: 100%;
-  }
-}
-.noChiCang > tbody {
-  display: flex;
-  flex-wrap: wrap;
-  tr {
-    display: flex;
-    width: 33.2%;
-    td:nth-of-type(1) {
-      width: 70px !important;
-      flex-shrink: 0;
-    }
-  }
-  .changeWidth {
-    width: 100%;
   }
 }
 
 .shuju {
-  height: 800px;
-  overflow-y: scroll;
-  td {
-    font-size: 12px;
-    border: 1px solid rgb(188, 181, 181);
-  }
-  th {
-    font-size: 20px;
-    border: 1px solid rgb(188, 181, 181);
-  }
-
-  tbody {
+  width: 100%;
+  margin-top: 10px;
+  box-sizing: border-box;
+  thead {
     tr {
+      width: 100%;
+    }
+    .lists {
+      display: flex;
+      width: 100%;
       th {
-        padding: 3px;
         font-size: 16px;
+        padding: 3px;
+        border: 1px solid rgb(188, 181, 181);
       }
       th:nth-of-type(1) {
-        width: 90px;
+        width: 100px;
         flex-shrink: 0;
+        font-size: 14px;
       }
-      th:nth-of-type(2) {
-        width: 90px;
-        flex-shrink: 0;
-      }
+      th:nth-of-type(2),
       th:nth-of-type(3) {
         width: 70px;
+        flex-shrink: 0;
+        font-size: 14px;
       }
       th:nth-of-type(2):hover,
       th:nth-of-type(3):hover {
         cursor: pointer;
         color: red;
       }
+      th:nth-of-type(4) {
+        width: 100%;
+      }
+    }
+
+    tr:nth-of-type(3) {
+      display: flex;
+      width: 100%;
+      th {
+        padding: 3px;
+        border: 1px solid rgb(188, 181, 181);
+      }
+      th:nth-of-type(1) {
+        width: 100px;
+        flex-shrink: 0;
+        font-size: 14px;
+      }
+      th:nth-of-type(2),
+      th:nth-of-type(3) {
+        width: 70px;
+        flex-shrink: 0;
+        font-size: 14px;
+      }
+      th:nth-of-type(4) {
+        width: 100%;
+      }
+    }
+  }
+  tbody {
+    tr {
+      display: flex;
+      width: 100%;
+      td {
+        padding: 3px;
+        border: 1px solid rgb(188, 181, 181);
+        vertical-align: middle;
+      }
+      td:nth-of-type(1) {
+        width: 100px;
+        flex-shrink: 0;
+        color: rgb(189, 8, 196);
+      }
+      td:nth-of-type(1):hover {
+        cursor: pointer;
+        background: rgb(192, 255, 220);
+      }
+      td:nth-of-type(2),
+      td:nth-of-type(3) {
+        width: 70px;
+        flex-shrink: 0;
+      }
+
       td:nth-of-type(1),
       td:nth-of-type(2),
       td:nth-of-type(3) {
         font-size: 14px;
         text-align: center;
       }
-      td:nth-of-type(1) {
-        color: rgb(189, 8, 196);
+
+      td:nth-of-type(4) {
+        font-size: 12px;
+        width: 100%;
       }
     }
   }
   .bg {
     background: rgba(230, 186, 156, 0.3);
   }
-}
-.stickyd {
-  opacity: 0.3;
-  display: inline-block;
-  padding: 2px 4px 4px 4px;
-  background: rgb(15, 188, 190);
-  position: fixed;
-  right: 20px;
-  top: 20px;
-  text-align: right;
-  input {
-    padding: 4px;
-    margin-right: 5px;
+  .stickyd {
+    opacity: 0.3;
+    display: inline-block;
+    padding: 2px 4px 4px 4px;
+    background: rgb(15, 188, 190);
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    text-align: right;
+    input {
+      padding: 4px;
+      margin-right: 5px;
+    }
+    &:hover {
+      opacity: 1;
+    }
   }
-  &:hover {
-    opacity: 1;
-  }
 }
+
 .fenxi {
   width: 100%;
   tbody tr {
@@ -1580,7 +1684,7 @@ td {
     box-sizing: border-box;
     margin: 5px;
     width: 600px;
-    border: 1px solid rgb(188, 181, 181);
+    border: 1px solid rgb(235, 235, 235);
   }
 }
 
@@ -1642,8 +1746,8 @@ td {
   display: flex;
   p:nth-of-type(1) ~ p {
     padding: 2px 4px;
-    margin-right: 15px;
-    border: 1px solid rgb(235, 235, 235);
+    margin-right: 20px;
+    font-size: 12px;
   }
   p:nth-of-type(1) {
     font-size: 14px;
@@ -1710,12 +1814,7 @@ td {
     margin-right: 10px;
   }
 }
-.gainians {
-  display: flex;
-  div {
-    width: 100%;
-  }
-}
+
 .toChong {
   position: fixed;
   right: 10px;
@@ -1761,6 +1860,7 @@ td {
   margin: 0 !important;
   background: rgb(241, 243, 235);
   width: 100% !important;
+  font-size: 12px;
   tr {
     padding: 0 !important;
     margin: 0 !important;

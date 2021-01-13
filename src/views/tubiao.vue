@@ -546,10 +546,11 @@ export default {
             if (num == arrs.length) {
               clearInterval(inter);
               inter = null;
+            } else {
+              // 获取新增的基金数据
+              this.useHttp(arrs.length ? [arrs[num]] : []);
+              num++;
             }
-            // 获取新增的基金数据
-            this.useHttp(arrs.length ? [arrs[num]] : []);
-            num++;
           }, time);
         } else {
           this.makeTongJi();
@@ -563,8 +564,7 @@ export default {
       }
     },
     // 需要发送http获取数据
-    async useHttp(codeArray) {
-      let codes = codeArray.slice(0);
+    async useHttp(codes) {
       for (let i = codes.length; i--; ) {
         if (codes[i]) {
           let all = [];
@@ -837,16 +837,19 @@ export default {
             obj.fengxian = xiangxi.levelOfRisk; // 风险等级
             obj.leixing = xiangxi.fundtype; // 基金类型
             obj.jingli = xiangxi.manager; // 基金经理
-            this.zhengli.fenxi.push(obj);
+            if (obj["shouyi"]) {
+              this.zhengli.fenxi.push(obj);
+            } else {
+              this.zhengli.fenxi.unshift(obj);
+            }
           });
+        } else {
+          console.log(codes[i]);
         }
       }
-      this.zhengli.fenxi = this.zhengli.fenxi.sort(
-        (a, b) => a.shouyi - b.shouyi
-      );
       setTimeout(() => {
         this.makeTongJi();
-      });
+      }, 50);
     },
     // 将多维数组，拉成一维数组，并去除空数组
     makeTongJi() {

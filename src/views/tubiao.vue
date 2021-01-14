@@ -538,7 +538,7 @@ export default {
       if (type) {
         if (arrs.length) {
           // 控制请求间隔时间
-          let time = 20000,
+          let time = 100,
             inter = null,
             num = 0; // 用来清除定时
           inter = setInterval(() => {
@@ -846,9 +846,9 @@ export default {
           console.log(codes[i]);
         }
       }
-      setTimeout(() => {
-        this.makeTongJi();
-      }, 50);
+      // setTimeout(() => {
+      this.makeTongJi();
+      // }, 50);
     },
     // 将多维数组，拉成一维数组，并去除空数组
     makeTongJi() {
@@ -1858,7 +1858,7 @@ ul {
 .clear {
   outline: none;
   font-size: 14px;
-  margin: 20px 0 0 20px;
+  margin: 20px 0 0 10px;
 }
 .paiming {
   margin: 0 !important;

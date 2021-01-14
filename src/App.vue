@@ -1,5 +1,5 @@
 <template>
-  <router-view style="height:100%;" />
+  <router-view style="height: 100%" />
 </template>
 <style>
 body,
@@ -13,5 +13,6 @@ p {
 body,
 html {
   height: 100%;
+  padding: 0 5px;
 }
 </style>

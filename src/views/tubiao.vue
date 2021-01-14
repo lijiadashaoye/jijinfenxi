@@ -187,7 +187,7 @@
                     title="点击查看基金"
                     class="showManager"
                     @click="showJiJin(t.code)"
-                    @contextmenu="oncontextmenu(t.code)"
+                    @contextmenu="oncontextmenu($event, t.code)"
                   >
                     <span>{{ t.code }}</span>
                   </p>
@@ -195,7 +195,7 @@
                     title="点击查看基金经理管理的基金"
                     class="showManager"
                     @click="showManager(t.code)"
-                    @contextmenu="oncontextmenu(t.name)"
+                    @contextmenu="oncontextmenu($event, t.name)"
                   >
                     {{ t.jingli }}
                   </p>
@@ -547,7 +547,7 @@ export default {
               inter = null;
             } else {
               // 获取新增的基金数据
-              this.useHttp(arrs.length ? [arrs[num]] : []);
+              this.useHttp([arrs[num]]);
               num++;
             }
           }, time);
@@ -564,6 +564,7 @@ export default {
     },
     // 需要发送http获取数据
     async useHttp(codes) {
+      console.log(codes);
       for (let i = codes.length; i--; ) {
         if (codes[i]) {
           let all = [];
@@ -1392,9 +1393,9 @@ export default {
           return "优秀";
       }
     },
-    oncontextmenu(t) {
+    oncontextmenu(e, t) {
+      e.preventDefault();
       console.log(t);
-      return false;
     },
   },
 };

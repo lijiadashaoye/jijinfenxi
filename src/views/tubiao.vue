@@ -1379,14 +1379,16 @@ export default {
     },
     // 清除已经获取的基金数据，重新拉取
     clearJiJin() {
-      this.$axios({
-        method: "get",
-        url: `clearJiJin`,
-      }).then((res) => {
-        if (res) {
-          this.reGetData();
-        }
-      });
+      if (confirm("确定要重新获取所有数据吗？")) {
+        this.$axios({
+          method: "get",
+          url: `clearJiJin`,
+        }).then((res) => {
+          if (res) {
+            this.reGetData();
+          }
+        });
+      }
     },
     // 清除缓存，重新拉取数据
     reGetData() {

@@ -531,7 +531,6 @@ export default {
       let codes = this.zhengli.canUse.map((t) => t.code),
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
         httptype = true;
-      console.log(codes);
       // 获取缓存的基金数据
       if (this.caches) {
         // // 读取缓存的数据

@@ -835,7 +835,7 @@ export default {
             }
             // 基金详细数据
             obj.code = xiangxi.code; // 基金号
-            obj.name = xiangxi.name; // 基金名称
+            obj.name = this.zhengli.canUse.find(t=>t.code==xiangxi.code); // 基金名称
             obj.theme =
               xiangxi.themeList && xiangxi.themeList.length
                 ? xiangxi.themeList.map((t) => t.field_name)

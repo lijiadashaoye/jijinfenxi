@@ -1341,9 +1341,6 @@ export default {
     clearCache() {
       localStorage.removeItem("zhengli");
       this.jijins = ""; // 搜索基金用
-      this.shaixuan = 4; // 用来筛选被持有量
-      this.chongheNum = 3; // 用来定义重合数量
-      this.GetTime = 2000;
       // 将读取的excel文件进行数据整理
       this.zhengli = {
         chongfu: [], // excel里重复添加的基金
@@ -1371,8 +1368,9 @@ export default {
       this.colorObj = {}; // 存储不同概念的颜色
       this.caches = null; // 判断是否有缓存
       this.showAll = false;
-      location.reload();
+
       setTimeout(() => {
+        location.reload();
         this.autoRead();
       }, 50);
     },

@@ -1,4 +1,4 @@
-let http = require('http'),
+var http = require('http'),
     fs = require('fs');
 http.createServer((req, res) => {
     if (req.url != '/favicon.ico') {
@@ -8,7 +8,7 @@ http.createServer((req, res) => {
         res.setHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
         res.setHeader('Referer-Policy', 'strict-origin-when-cross-origin');
 
-        let k = req.url.slice(1).split('/'),
+        var k = req.url.slice(1).split('/'),
             url = '';
         if (k[0] === 'wenjian') {
             res.setHeader('Content-Type', 'application/octet-stream') // 二进制流数据（如常见的文件下载）
@@ -82,8 +82,14 @@ http.createServer((req, res) => {
         // 更新市场文件数据
         if (k[0] === 'upShiChang') {
             res.setHeader('Content-Type', 'application/json;charset=utf-8')
-            saveJson(req, res)
+            saveJson()
         }
+        // 删除市场数据文件
+        if (k[0] === 'clearShiChang') {
+            res.setHeader('Content-Type', '*/*')
+            clearShiChang()
+        }
+
         // 获取页面使用的数据到文件
         if (k[0] === 'getPageData') {
             res.setHeader('Content-Type', 'application/json;charset=utf-8');
@@ -92,73 +98,101 @@ http.createServer((req, res) => {
         // 存储页面使用的数据到文件
         if (k[0] === 'savePageData') {
             res.setHeader('Content-Type', 'application/json;charset=utf-8')
-            savePageData(req, res)
+            savePageData()
+        }
+        // 删除基金数据文件
+        if (k[0] === 'clearJiJin') {
+            res.setHeader('Content-Type', '*/*')
+            clearJiJin()
         }
 
         // 读取基金excel文件
         function getFile() {
             fs.readFile('./定投.xlsx', (err, data) => {
-                if (err) throw err;
-                res.end(data)
+                var k = err ? 'false' : data;
+                res.end(k)
             });
+        }
+        // 获取数据
+        function getData() {
+            http.get(url,
+                (req) => {
+                    var datas = '';
+                    req.on('data', (data) => {
+                        datas += data;
+                    });
+                    req.on('end', () => {
+                        res.end(datas)
+                    });
+                })
         }
 
         // 读取市场文件
         function getShiChang() {
             if (fs.existsSync('./shichang.json')) {
                 fs.readFile('./shichang.json', (err, data) => {
-                    if (err) {
-                        res.end('false')
-                    } else {
-                        res.end(data)
-                    }
+                    var k = err ? 'false' : data;
+                    res.end(k)
                 });
             } else {
                 res.end('false')
             }
         }
         // 存储市场数据到文件
-        function saveJson(req, res) {
-            let data = '';
+        function saveJson() {
+            var data = '';
             req.on('data', function (mock) {
                     data += mock
                 })
                 .on('end', function () {
                     fs.unlink('./shichang.json', err => {
                         fs.writeFile('./shichang.json', data, e => {
-                            res.end('true')
+                            var k = e ? 'false' : 'true';
+                            res.end(k)
                         })
                     });
                 })
+        }
+        // 删除市场数据文件
+        function clearShiChang() {
+            fs.unlink('./shichang.json', err => {
+                var k = err ? 'false' : 'true';
+                res.end(k)
+            });
         }
 
         // 读取页面使用的数据到文件
         function getPageData() {
             if (fs.existsSync('./pageData.json')) {
                 fs.readFile('./pageData.json', (err, data) => {
-                    if (err) {
-                        res.end('false')
-                    } else {
-                        res.end(data)
-                    }
+                    var k = err ? 'false' : data;
+                    res.end(k)
                 });
             } else {
                 res.end('false')
             }
         }
         // 存储页面使用的数据到文件
-        function savePageData(req, res) {
-            let data = '';
+        function savePageData() {
+            var data = '';
             req.on('data', function (mock) {
                     data += mock
                 })
                 .on('end', function () {
                     fs.unlink('./pageData.json', err => {
                         fs.writeFile('./pageData.json', data, e => {
-                            res.end('true')
+                            var k = e ? 'false' : 'true';
+                            res.end(k)
                         })
                     });
                 })
+        }
+        // 删除基金数据文件
+        function clearJiJin() {
+            fs.unlink('./pageData.json', err => {
+                var k = err ? 'false' : 'true';
+                res.end(k)
+            });
         }
 
 

@@ -5,7 +5,7 @@
       <!--js 特殊字符表 http://www.360doc.com/content/19/0316/09/281812_821845466.shtml -->
       &#8607;
     </button>
-    <button class="clear" @click="clearCache">清除缓存，重新拉取数据</button>
+    <button class="clear" @click="clearJiJin">清除缓存，重新拉取数据</button>
 
     <div class="wap" v-show="showAll">
       <div class="gainians">
@@ -377,9 +377,9 @@ export default {
   },
   components: { jiazai },
   created() {
-    this.range = "A1:B900";
+    // this.range = "A1:B900";
     // this.range = "C1:D900";
-    // this.range = "F1:G900";
+    this.range = "F1:G900";
 
     // 如果基金太多，localStorage 会存不下
     let arr = [
@@ -401,7 +401,7 @@ export default {
             now = new Date().getTime();
           // 超过三天未操作，就重新拉取数据
           if (now - time > 1000 * 60 * 60 * 24 * 3) {
-            localStorage.removeItem("zhengli");
+            this.clearShiChang();
           }
         }
         if (!res[1]) {
@@ -1364,9 +1364,31 @@ export default {
         inline: "nearest",
       });
     },
+
+    // 清除已经获取的市场数据，重新拉取
+    clearShiChang() {
+      this.$axios({
+        method: "get",
+        url: `clearShiChang`,
+      }).then((res) => {
+        if (res) {
+          console.log(res);
+        }
+      });
+    },
+    // 清除已经获取的基金数据，重新拉取
+    clearJiJin() {
+      this.$axios({
+        method: "get",
+        url: `clearJiJin`,
+      }).then((res) => {
+        if (res) {
+          this.reGetData();
+        }
+      });
+    },
     // 清除缓存，重新拉取数据
-    clearCache() {
-      localStorage.removeItem("zhengli");
+    reGetData() {
       this.jijins = ""; // 搜索基金用
       // 将读取的excel文件进行数据整理
       this.zhengli = {
@@ -1395,11 +1417,8 @@ export default {
       this.colorObj = {}; // 存储不同概念的颜色
       this.caches = null; // 判断是否有缓存
       this.showAll = false;
-
-      setTimeout(() => {
-        location.reload();
-        this.autoRead();
-      }, 50);
+      window.location.reload();
+      this.autoRead();
     },
     // 转换收益走势的时间
     makeTime(t) {

@@ -18,7 +18,9 @@
           </thead>
           <tbody>
             <tr v-for="(t, ind) in Object.keys(gaiNian)" :key="ind">
-              <td>{{ t }}</td>
+              <td>
+                <span>{{ t }}</span>
+              </td>
               <td>{{ gaiNian[t].join("  ") }}</td>
             </tr>
           </tbody>
@@ -340,6 +342,7 @@ export default {
       setWidth: 1300,
       setHeight: 800,
       // 将读取的excel文件进行数据整理
+      httpEnd: "", // 如果http请求出错，就不保存这次刷新读取excel的数据
       zhengli: {
         chongfu: [], // excel里重复添加的基金
         canUse: [], // 用来操作的读取excel后的原始数据
@@ -537,18 +540,19 @@ export default {
     httpType(type, arrs) {
       if (type) {
         if (arrs.length) {
+          this.httpEnd = arrs.length;
           // 控制请求间隔时间
-          let time = 100,
+          let time = 2000,
             inter = null,
-            num = 0; // 用来清除定时
+            num = arrs.length; // 用来清除定时
           inter = setInterval(() => {
-            if (num == arrs.length) {
+            if (num < 0) {
               clearInterval(inter);
               inter = null;
             } else {
               // 获取新增的基金数据
               this.useHttp([arrs[num]]);
-              num++;
+              num--;
             }
           }, time);
         } else {
@@ -814,7 +818,6 @@ export default {
             } else {
               obj["shouyi"] = null;
             }
-
             // 基金详细数据
             obj.code = xiangxi.code; // 基金号
             obj.name = xiangxi.name; // 基金名称
@@ -842,13 +845,9 @@ export default {
               this.zhengli.fenxi.unshift(obj);
             }
           });
-        } else {
-          console.log(codes[i]);
         }
       }
-      // setTimeout(() => {
       this.makeTongJi();
-      // }, 50);
     },
     // 将多维数组，拉成一维数组，并去除空数组
     makeTongJi() {
@@ -892,10 +891,13 @@ export default {
       this.showAll = true;
       this.makeXiangQingChart();
       this.makeShouYiChart();
-
+      this.httpEnd--;
       setTimeout(() => {
-        this.zhengli["time"] = new Date().getTime();
-        localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
+        if (this.httpEnd < 0) {
+          // 只有请求全部成功且结束后，才缓存本次的请求数据
+          this.zhengli["time"] = new Date().getTime();
+          localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
+        }
       });
     },
     // 基金类型统计
@@ -1448,10 +1450,15 @@ ul {
       padding: 2px;
     }
     tr > td:nth-of-type(1) {
-      width: 90px;
+      width: 95px;
       flex-shrink: 0;
       text-align: center;
       color: rgb(50, 32, 214);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: middle;
+      font-size: 12px;
     }
     tr > td:nth-of-type(2) {
       width: 100%;
@@ -1481,6 +1488,11 @@ ul {
       flex-shrink: 0;
       text-align: center;
       color: rgb(50, 32, 214);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: middle;
+      font-size: 14px;
     }
     tr > td:nth-of-type(2) {
       width: 100%;
@@ -1624,13 +1636,18 @@ ul {
       width: 100%;
       td {
         padding: 3px;
-        border: 1px solid rgb(188, 181, 181);
+        border: 1px solid rgb(211, 202, 202);
         vertical-align: middle;
       }
       td:nth-of-type(1) {
         width: 100px;
         flex-shrink: 0;
         color: rgb(189, 8, 196);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: middle;
+        font-size: 14px;
       }
       td:nth-of-type(1):hover {
         cursor: pointer;
@@ -1688,7 +1705,7 @@ ul {
     box-sizing: border-box;
     margin: 5px;
     width: 600px;
-    border: 1px solid rgb(235, 235, 235);
+    border: 1px solid rgb(9, 5, 252);
   }
 }
 

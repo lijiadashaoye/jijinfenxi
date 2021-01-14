@@ -254,6 +254,7 @@
                   </ul>
                 </div>
               </div>
+
               <div class="xiangqing">
                 <div class="zhang">
                   <p>
@@ -339,6 +340,8 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
+      GetTime: 2000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+
       setWidth: 1300,
       setHeight: 800,
       // 将读取的excel文件进行数据整理
@@ -348,7 +351,7 @@ export default {
         canUse: [], // 用来操作的读取excel后的原始数据
         see: [], // 可以看到持仓的基金
         kong: [], // 看不到持仓数据的基金
-        fenxi: [],
+        fenxi: [], // 底下 echarts分析用到
         time: "",
       },
       shichang: {
@@ -357,7 +360,7 @@ export default {
         zhong: [], // 中证500
         shang: [], // 上证指数
         chuang: [], // 上证指数
-        time: "",
+        time: "", // 用来验证数据是否为最新的，同一天内是不会再取http拉取
       },
       single: 0, // 记录只被持有一次的个数
       range: "",
@@ -369,7 +372,7 @@ export default {
       chartList: [], //用来显示echarts分析
       colorObj: {}, // 存储不同概念的颜色
       caches: null, // 判断是否有缓存
-      showAll: false,
+      showAll: false, // 用来控制显示页面DOM表示加载完
     };
   },
   components: { jiazai },
@@ -542,8 +545,7 @@ export default {
         if (arrs.length) {
           this.httpEnd = arrs.length;
           // 控制请求间隔时间
-          let time = 2000,
-            inter = null,
+          let inter = null,
             num = arrs.length; // 用来清除定时
           inter = setInterval(() => {
             if (num < 0) {
@@ -554,7 +556,7 @@ export default {
               this.useHttp([arrs[num]]);
               num--;
             }
-          }, time);
+          }, this.GetTime);
         } else {
           this.makeTongJi();
         }
@@ -1341,6 +1343,7 @@ export default {
       this.jijins = ""; // 搜索基金用
       this.shaixuan = 4; // 用来筛选被持有量
       this.chongheNum = 3; // 用来定义重合数量
+      this.GetTime = 2000;
       // 将读取的excel文件进行数据整理
       this.zhengli = {
         chongfu: [], // excel里重复添加的基金
@@ -1394,6 +1397,7 @@ export default {
           return "优秀";
       }
     },
+    // 阻止鼠标右键事件
     oncontextmenu(e, t) {
       e.preventDefault();
       console.log(t);
@@ -1875,7 +1879,7 @@ ul {
 .clear {
   outline: none;
   font-size: 14px;
-  margin: 20px 0 0 10px;
+  margin-top: 10px;
 }
 .paiming {
   margin: 0 !important;

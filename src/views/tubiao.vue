@@ -534,14 +534,19 @@ export default {
       // 获取缓存的基金数据
       if (this.caches) {
         // // 读取缓存的数据
-        let kk = JSON.parse(this.caches),
-          // 读取之前缓存的基金号
-          sessionCode = kk.canUse.map((t) => t.code),
+        let // 读取之前缓存的基金号
+          sessionCode = this.caches.canUse.map((t) => t.code),
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
           needHttp = codes.filter((t) => !sessionCode.includes(t));
-        this.zhengli.see = kk.see.filter((t) => codes.includes(t.code)); // 可以看到持仓的基金
-        this.zhengli.kong = kk.kong.filter((t) => codes.includes(t.code)); // 看不到持仓数据的基金
-        this.zhengli.fenxi = kk.fenxi.filter((t) => codes.includes(t.code)); // 用到echart分析列表
+        this.zhengli.see = this.caches.see.filter((t) =>
+          codes.includes(t.code)
+        ); // 可以看到持仓的基金
+        this.zhengli.kong = this.caches.kong.filter((t) =>
+          codes.includes(t.code)
+        ); // 看不到持仓数据的基金
+        this.zhengli.fenxi = this.caches.fenxi.filter((t) =>
+          codes.includes(t.code)
+        ); // 用到echart分析列表
         this.httpType(httptype, needHttp);
       } else {
         this.httpType(httptype, codes);
@@ -915,7 +920,11 @@ export default {
             data: this.zhengli,
           }).then((res) => {
             // 只有获取数据的请求全部成功且结束后，存储本次的请求数据
-            console.log(res);
+            if (res) {
+              console.log("数据已经存储完毕！");
+            } else {
+              console.log("数据无法存储！");
+            }
           });
         }
       });

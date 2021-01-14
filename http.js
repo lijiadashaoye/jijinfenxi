@@ -1,6 +1,5 @@
 let http = require('http'),
-    fs = require('fs'),
-    qs = require('qs');
+    fs = require('fs');
 http.createServer((req, res) => {
     if (req.url != '/favicon.ico') {
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,8 +10,6 @@ http.createServer((req, res) => {
 
         let k = req.url.slice(1).split('/'),
             url = '';
-
-
         if (k[0] === 'wenjian') {
             res.setHeader('Content-Type', 'application/octet-stream') // 二进制流数据（如常见的文件下载）
             getFile();

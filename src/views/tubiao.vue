@@ -377,9 +377,9 @@ export default {
   },
   components: { jiazai },
   created() {
-    // this.range = "A1:B900";
+    this.range = "A1:B900";
     // this.range = "C1:D900";
-    this.range = "F1:G900";
+    // this.range = "F1:G900";
 
     // 如果基金太多，localStorage 会存不下
     let arr = [

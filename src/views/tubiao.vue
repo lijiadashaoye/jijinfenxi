@@ -1564,7 +1564,7 @@ ul {
   .chongheTitle {
     text-align: center;
     td {
-      font-size: 16px;
+      font-size: 14px;
       border: 1px solid rgb(188, 181, 181);
     }
   }

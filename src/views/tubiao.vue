@@ -381,36 +381,44 @@ export default {
     // this.range = "C1:D900";
     // this.range = "F1:G900";
 
-    this.caches = localStorage.getItem("zhengli");
-    if (this.caches) {
-      let time = JSON.parse(this.caches).time,
-        now = new Date().getTime();
-      // 超过三天未操作，就重新拉取数据
-      if (now - time > 1000 * 60 * 60 * 24 * 3) {
-        localStorage.removeItem("zhengli");
-      }
-    }
-
-    this.$axios({
-      method: "get",
-      url: `shichang`,
-    }).then((res) => {
-      if (!res) {
-        // 如果没有添加过市场数据，则需要初始化
-        this.getShiChang();
-      } else {
-        // 获取当天时间
-        let day = new Date().getDate();
-        if (res.time < day) {
+    // 如果基金太多，localStorage 会存不下
+    let arr = [
+      // 获取已经存储的数据
+      this.$axios({
+        method: "get",
+        url: `getPageData`,
+      }),
+      this.$axios({
+        method: "get",
+        url: `shichang`,
+      }),
+    ];
+    Promise.all(arr)
+      .then((res) => {
+        this.caches = res[0];
+        if (this.caches) {
+          let time = this.caches.time,
+            now = new Date().getTime();
+          // 超过三天未操作，就重新拉取数据
+          if (now - time > 1000 * 60 * 60 * 24 * 3) {
+            localStorage.removeItem("zhengli");
+          }
+        }
+        if (!res[1]) {
+          // 如果没有添加过市场数据，则需要初始化
           this.getShiChang();
         } else {
-          this.shichang = res;
-          this.shichang.time = day;
+          // 获取当天时间
+          let day = new Date().getDate();
+          if (res[1].time < day) {
+            this.getShiChang();
+          } else {
+            this.shichang = res[1];
+            this.shichang.time = day;
+          }
         }
-      }
-    });
-    // 获取金的数据
-    this.autoRead();
+      })
+      .then(this.autoRead); // 获取基金的数据
   },
   methods: {
     // 获取市场数据
@@ -896,9 +904,19 @@ export default {
       this.httpEnd--;
       setTimeout(() => {
         if (this.httpEnd < 0) {
-          // 只有请求全部成功且结束后，才缓存本次的请求数据
           this.zhengli["time"] = new Date().getTime();
-          localStorage.setItem("zhengli", JSON.stringify(this.zhengli));
+          // 存储本页面使用的数据
+          this.$axios({
+            method: "post",
+            url: `savePageData`,
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8",
+            },
+            data: this.zhengli,
+          }).then((res) => {
+            // 只有获取数据的请求全部成功且结束后，存储本次的请求数据
+            console.log(res);
+          });
         }
       });
     },

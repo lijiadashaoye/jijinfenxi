@@ -77,12 +77,22 @@ http.createServer((req, res) => {
         // 获取市场文件数据
         if (k[0] === 'shichang') {
             res.setHeader('Content-Type', 'application/json;charset=utf-8')
-            getJson();
+            getShiChang();
         }
         // 更新市场文件数据
         if (k[0] === 'upShiChang') {
             res.setHeader('Content-Type', 'application/json;charset=utf-8')
             saveJson(req, res)
+        }
+        // 获取页面使用的数据到文件
+        if (k[0] === 'getPageData') {
+            res.setHeader('Content-Type', 'application/json;charset=utf-8');
+            getPageData();
+        }
+        // 存储页面使用的数据到文件
+        if (k[0] === 'savePageData') {
+            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            savePageData(req, res)
         }
 
         // 读取基金excel文件
@@ -94,11 +104,18 @@ http.createServer((req, res) => {
         }
 
         // 读取市场文件
-        function getJson() {
-            fs.readFile('./shichang.json', (err, data) => {
-                if (err) throw err;
-                res.end(data)
-            });
+        function getShiChang() {
+            if (fs.existsSync('./shichang.json')) {
+                fs.readFile('./shichang.json', (err, data) => {
+                    if (err) {
+                        res.end('false')
+                    } else {
+                        res.end(data)
+                    }
+                });
+            } else {
+                res.end('false')
+            }
         }
         // 存储市场数据到文件
         function saveJson(req, res) {
@@ -115,19 +132,36 @@ http.createServer((req, res) => {
                 })
         }
 
-        // 获取数据
-        function getData() {
-            http.get(url,
-                (req) => {
-                    var datas = '';
-                    req.on('data', (data) => {
-                        datas += data;
-                    });
-                    req.on('end', () => {
-                        res.end(datas)
+        // 读取页面使用的数据到文件
+        function getPageData() {
+            if (fs.existsSync('./pageData.json')) {
+                fs.readFile('./pageData.json', (err, data) => {
+                    if (err) {
+                        res.end('false')
+                    } else {
+                        res.end(data)
+                    }
+                });
+            } else {
+                res.end('false')
+            }
+        }
+        // 存储页面使用的数据到文件
+        function savePageData(req, res) {
+            let data = '';
+            req.on('data', function (mock) {
+                    data += mock
+                })
+                .on('end', function () {
+                    fs.unlink('./pageData.json', err => {
+                        fs.writeFile('./pageData.json', data, e => {
+                            res.end('true')
+                        })
                     });
                 })
         }
+
+
     } else {
         res.end('')
     }

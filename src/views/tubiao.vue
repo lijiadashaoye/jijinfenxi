@@ -564,7 +564,6 @@ export default {
     },
     // 需要发送http获取数据
     async useHttp(codes) {
-      console.log(codes);
       for (let i = codes.length; i--; ) {
         if (codes[i]) {
           let all = [];

@@ -340,7 +340,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime: 4000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime:100, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
 
       setWidth: 1300,
       setHeight: 800,
@@ -748,34 +748,27 @@ export default {
               });
             }
             // res[4] 基金自己的累计收益率走势
-            if (res[4]) {
-              let k = eval("(" + res[4].split("=")[1].slice(0, -1) + ")").split(
-                "|"
-              );
-              for (let i = k.length; i--; ) {
-                let sp = k[i].split("_");
-                if (sp.length == 4) {
-                  obj.shouyi[xiangxi.name].unshift([
-                    sp[0],
-                    sp[1] ? sp[1] : "0.00",
-                  ]);
-                }
-              }
-            }
-            // res[5] 同类平均收益
-            if (res[5]) {
-              let names = Object.keys(res[5]).reverse();
-              for (let i = names.length; i--; ) {
-                let time = names[i].replace(/-/g, "/"),
-                  jishu = +res[5][names[0]],
-                  num = Math.abs(
-                    ((parseFloat(res[5][names[i]]) - jishu) / jishu) * 100
-                  ).toFixed(2);
-                obj["shouyi"]["同类平均"].unshift([time, num]);
+            let k = eval("(" + res[4].split("=")[1].slice(0, -1) + ")").split(
+              "|"
+            );
+            for (let i = k.length; i--; ) {
+              let sp = k[i].split("_");
+              if (sp.length == 4) {
+                obj.shouyi[xiangxi.name].unshift([
+                  sp[0],
+                  sp[1] ? sp[1] : "0.00",
+                ]);
               }
             }
 
+console.log(obj.shouyi)
+console.log(xiangxi)
+console.log(obj.shouyi[xiangxi.name])
+
             let jishuTime = obj.shouyi[xiangxi.name][0][0],
+              tonglei = Object.keys(res[5]).filter(
+                (t) => new Date(t) >= new Date(jishuTime)
+              ),
               hushen = this.shichang.hushen.filter(
                 (t) => new Date(t[0]) >= new Date(jishuTime)
               ),
@@ -788,7 +781,15 @@ export default {
               chuang = this.shichang.chuang.filter(
                 (t) => new Date(t[0]) >= new Date(jishuTime)
               );
-
+            // 同类平均收益趋势
+            for (let i = tonglei.length; i--; ) {
+              let time = tonglei[i].replace(/-/g, "/"),
+                jishu = +res[5][tonglei[0]],
+                num = Math.abs(
+                  ((parseFloat(res[5][tonglei[i]]) - jishu) / jishu) * 100
+                ).toFixed(2);
+              obj["shouyi"]["同类平均"].push([time, num]);
+            }
             // 整理沪深的展示数据
             for (let i = hushen.length; i--; ) {
               let tar = hushen[i],

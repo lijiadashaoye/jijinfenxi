@@ -340,7 +340,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime: 2000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 4000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
 
       setWidth: 1300,
       setHeight: 800,
@@ -387,10 +387,16 @@ export default {
       this.$axios({
         method: "get",
         url: `getPageData`,
+        headers: {
+          "Content-Type": "tapplication/json;charset=utf-8",
+        },
       }),
       this.$axios({
         method: "get",
         url: `shichang`,
+        headers: {
+          "Content-Type": "tapplication/json;charset=utf-8",
+        },
       }),
     ];
     Promise.all(arr)
@@ -511,14 +517,14 @@ export default {
           if (!excelCode.includes(t["代码"])) {
             this.zhengli.canUse.push({
               code: "" + t["代码"],
-              name: t["名字"],
+              name: "" + t["名字"],
             });
             excelCode.push("" + t["代码"]);
           } else {
             // 选出excel里重复的
             this.zhengli.chongfu.push({
               code: "" + t["代码"],
-              name: t["名字"],
+              name: "" + t["名字"],
             });
           }
         });
@@ -590,26 +596,44 @@ export default {
             this.$axios({
               method: "get",
               url: `chicang/${codes[i]}`,
+              headers: {
+                "Content-Type": "text/html;charset=utf-8",
+              },
             }),
             this.$axios({
               method: "get",
               url: `bili/${codes[i]}`,
+              headers: {
+                "Content-Type": "application/javascript;charset=utf-8",
+              },
             }),
             this.$axios({
               method: "get",
               url: `xiangqing/${codes[i]}`,
+              headers: {
+                "Content-Type": "text/html;charset=utf-8",
+              },
             }),
             this.$axios({
               method: "get",
               url: `paiming/${codes[i]}`,
+              headers: {
+                "Content-Type": "application/json;charset=utf-8",
+              },
             }),
             this.$axios({
               method: "get",
               url: `shouyiqushi/${codes[i]}`,
+              headers: {
+                "Content-Type": "text/html; charset=utf-8",
+              },
             }),
             this.$axios({
               method: "get",
               url: `tonglei/${codes[i]}`,
+              headers: {
+                "Content-Type": "application/json;charset=utf-8",
+              },
             })
           );
           await Promise.all(all).then((res) => {
@@ -619,7 +643,6 @@ export default {
               xiangxi = res[2].data[0],
               bili = [],
               obj = {};
-
             if (chicang.length) {
               this.zhengli.see.push(...chicang);
             } else {
@@ -835,7 +858,9 @@ export default {
             }
             // 基金详细数据
             obj.code = xiangxi.code; // 基金号
-            obj.name = this.zhengli.canUse.find(t=>t.code==xiangxi.code); // 基金名称
+            obj.name = this.zhengli.canUse.find(
+              (t) => t.code == xiangxi.code
+            ).name; // 基金名称
             obj.theme =
               xiangxi.themeList && xiangxi.themeList.length
                 ? xiangxi.themeList.map((t) => t.field_name)
@@ -1292,7 +1317,7 @@ export default {
           }
         });
       this.zhengli.fenxi.forEach((t) => {
-        let names = this.jingliList.map((t) => t.name),
+        let names = this.jingliList.map((g) => g.name),
           obj = {};
         if (!names.length || !names.includes(t.jingli)) {
           obj["name"] = t.jingli; // 基金经理
@@ -1370,9 +1395,12 @@ export default {
       this.$axios({
         method: "get",
         url: `clearShiChang`,
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
       }).then((res) => {
         if (res) {
-          console.log(res);
+          this.getShiChang();
         }
       });
     },
@@ -1382,6 +1410,9 @@ export default {
         this.$axios({
           method: "get",
           url: `clearJiJin`,
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8",
+          },
         }).then((res) => {
           if (res) {
             this.reGetData();
@@ -1478,11 +1509,11 @@ ul {
   }
   display: flex;
   .gainians1 {
-    width: 40%;
+    width: 60%;
     box-sizing: border-box;
   }
   .gainians2 {
-    width: calc(60% - 10px);
+    width: calc(40% - 10px);
     box-sizing: border-box;
     margin-left: 10px;
   }
@@ -1534,7 +1565,7 @@ ul {
       padding: 2px;
     }
     tr > td:nth-of-type(1) {
-      width: 90px;
+      width: 80px;
       flex-shrink: 0;
       text-align: center;
       color: rgb(50, 32, 214);
@@ -1542,16 +1573,18 @@ ul {
       flex-direction: column;
       justify-content: center;
       align-items: middle;
-      font-size: 14px;
+      font-size: 12px;
     }
     tr > td:nth-of-type(2) {
       width: 100%;
     }
   }
 }
+.typeJiJin > tbody > tr {
+  width: 100%;
+}
 .typeTongJi {
   width: 90%;
-
   thead {
     tr {
       width: 100%;

@@ -82,11 +82,10 @@ http.createServer((req, res) => {
         // 更新市场文件数据
         if (k[0] === 'upShiChang') {
             res.setHeader('Content-Type', 'application/json;charset=utf-8')
-            saveJson()
+            saveShiChang()
         }
         // 删除市场数据文件
         if (k[0] === 'clearShiChang') {
-            res.setHeader('Content-Type', '*/*')
             clearShiChang()
         }
 
@@ -102,7 +101,6 @@ http.createServer((req, res) => {
         }
         // 删除基金数据文件
         if (k[0] === 'clearJiJin') {
-            res.setHeader('Content-Type', '*/*')
             clearJiJin()
         }
 
@@ -139,7 +137,7 @@ http.createServer((req, res) => {
             }
         }
         // 存储市场数据到文件
-        function saveJson() {
+        function saveShiChang() {
             var data = '';
             req.on('data', function (mock) {
                     data += mock

@@ -789,14 +789,10 @@ export default {
 
             // 寻找最小交集
             if (shouyiqushiTime.length) {
-              minTime = [
-                shouyiqushiTime,
-                jiaoji,
-                shang,
-                zhong,
-                hushen,
-                chuang,
-              ].reduce((all, now) => {
+              minTime = [shouyiqushiTime, jiaoji, shang, zhong, hushen, chuang];
+              console.log(minTime);
+
+              minTime.reduce((all, now) => {
                 if (all.length < now.length) {
                   return all;
                 } else {
@@ -815,9 +811,13 @@ export default {
               };
               // 整理沪深的展示数据
               for (let i = minTime.length; i--; ) {
-                let tar = this.shichang.hushen.find((t) => t[0] == minTime[i]),
-                  tar0 = this.shichang.hushen.find((t) => t[0] == minTime[0]),
-                  jishu = +tar0[1],
+                let tar = this.shichang.hushen.find(
+                    (t) => t[0] == minTime[i][0]
+                  ),
+                  tar0 = this.shichang.hushen.find(
+                    (t) => t[0] == minTime[i][0]
+                  );
+                let jishu = +tar0[1],
                   num = Math.abs(
                     ((parseFloat(tar[1]) - jishu) / jishu) * 100
                   ).toFixed(2);
@@ -825,8 +825,10 @@ export default {
               }
               // 整理中证500的展示数据
               for (let i = minTime.length; i--; ) {
-                let tar = this.shichang.zhong.find((t) => t[0] == minTime[i]),
-                  tar0 = this.shichang.zhong.find((t) => t[0] == minTime[0]),
+                let tar = this.shichang.zhong.find(
+                    (t) => t[0] == minTime[i][0]
+                  ),
+                  tar0 = this.shichang.zhong.find((t) => t[0] == minTime[i][0]),
                   jishu = +tar0[1],
                   num = Math.abs(
                     ((parseFloat(tar[1]) - jishu) / jishu) * 100
@@ -835,8 +837,11 @@ export default {
               }
               // 整理上证指数的展示数据
               for (let i = minTime.length; i--; ) {
-                let tar = this.shichang.shang.find((t) => t[0] == minTime[i]),
-                  tar0 = this.shichang.shang.find((t) => t[0] == minTime[0]),
+                console.log(minTime[i][0]);
+                let tar = this.shichang.shang.find(
+                    (t) => t[0] == minTime[i][0]
+                  ),
+                  tar0 = this.shichang.shang.find((t) => t[0] == minTime[i][0]),
                   jishu = +tar0[1],
                   num = Math.abs(
                     ((parseFloat(tar[1]) - jishu) / jishu) * 100
@@ -845,9 +850,13 @@ export default {
               }
               // 整理创业板指数的展示数据
               for (let i = minTime.length; i--; ) {
-                let tar = this.shichang.chuang.find((t) => t[0] == minTime[i]),
-                  tar0 = this.shichang.chuang.find((t) => t[0] == minTime[0]),
-                  jishu = +tar0[1],
+                let tar = this.shichang.chuang.find(
+                    (t) => t[0] == minTime[i][0]
+                  ),
+                  tar0 = this.shichang.chuang.find(
+                    (t) => t[0] == minTime[i][0]
+                  );
+                let jishu = +tar0[1],
                   num = Math.abs(
                     ((parseFloat(tar[1]) - jishu) / jishu) * 100
                   ).toFixed(2);

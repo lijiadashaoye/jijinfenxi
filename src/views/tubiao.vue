@@ -789,10 +789,14 @@ export default {
 
             // 寻找最小交集
             if (shouyiqushiTime.length) {
-              minTime = [shouyiqushiTime, jiaoji, shang, zhong, hushen, chuang];
-              console.log(minTime);
-
-              minTime.reduce((all, now) => {
+              minTime = [
+                shouyiqushiTime,
+                jiaoji,
+                shang,
+                zhong,
+                hushen,
+                chuang,
+              ].reduce((all, now) => {
                 if (all.length < now.length) {
                   return all;
                 } else {
@@ -837,7 +841,6 @@ export default {
               }
               // 整理上证指数的展示数据
               for (let i = minTime.length; i--; ) {
-                console.log(minTime[i][0]);
                 let tar = this.shichang.shang.find(
                     (t) => t[0] == minTime[i][0]
                   ),

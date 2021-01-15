@@ -761,9 +761,9 @@ export default {
               }
             }
 
-console.log(obj.shouyi)
-console.log(xiangxi)
-console.log(obj.shouyi[xiangxi.name])
+// console.log(obj.shouyi)
+// console.log(xiangxi)
+// console.log(obj.shouyi[xiangxi.name])
 
             let jishuTime = obj.shouyi[xiangxi.name][0][0],
               tonglei = Object.keys(res[5]).filter(

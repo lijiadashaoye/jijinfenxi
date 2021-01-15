@@ -393,7 +393,7 @@ export default {
       }),
       this.$axios({
         method: "get",
-        url: `shichang`,
+        url: `shiChang`,
         headers: {
           "Content-Type": "tapplication/json;charset=utf-8",
         },
@@ -539,9 +539,8 @@ export default {
         httptype = true;
       // 获取缓存的基金数据
       if (this.caches) {
-        // // 读取缓存的数据
-        let // 读取之前缓存的基金号
-          sessionCode = this.caches.canUse.map((t) => t.code),
+        // 读取之前缓存的基金号
+        let sessionCode = this.caches.canUse.map((t) => t.code),
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
           needHttp = codes.filter((t) => !sessionCode.includes(t));
         this.zhengli.see = this.caches.see.filter((t) =>
@@ -640,9 +639,24 @@ export default {
             // 基金持仓
             let chicang = res[0].data.stock,
               reg = /\/\*.+?\*\//gi,
-              xiangxi = res[2].data[0],
+              xiangxi = {
+                ...res[2].data[0],
+                name: this.zhengli.canUse.find(
+                  (t) => t.code == res[2].data[0].code
+                ).name,
+              },
               bili = [],
-              obj = {};
+              obj = {
+                shouyi: {
+                  [xiangxi.name]: [],
+                  同类平均: [],
+                  沪深300: [],
+                  中证500: [],
+                  上证指数: [],
+                  创业板指数: [],
+                },
+              };
+
             if (chicang.length) {
               this.zhengli.see.push(...chicang);
             } else {
@@ -683,7 +697,6 @@ export default {
                 });
               }
             });
-
             // 收益排名
             if (res[3]) {
               obj["paiming"] = {};
@@ -734,17 +747,7 @@ export default {
                 }
               });
             }
-
-            let shouyiqushi = [], // 基金自己的 echarts 展示数据
-              tonglei = [], // 同类平均的 echarts 展示数据
-              shang = [], // 用来保存根据基金与上证的交集筛选出的市场数据
-              zhong = [], // 用来保存根据基金与中证500的交集筛选出的市场数据
-              hushen = [], // 用来保存根据基金与沪深300的交集筛选出的市场数据
-              chuang = [], // 用来保存根据基金与创业板的交集筛选出的市场数据
-              jiaoji = null, // 以基金的整张为基础获取交集
-              minTime = []; // 取最小交集;
-
-            // res[4] 累计收益率走势
+            // res[4] 基金自己的累计收益率走势
             if (res[4]) {
               let k = eval("(" + res[4].split("=")[1].slice(0, -1) + ")").split(
                 "|"
@@ -752,11 +755,14 @@ export default {
               for (let i = k.length; i--; ) {
                 let sp = k[i].split("_");
                 if (sp.length == 4) {
-                  shouyiqushi.unshift([sp[0], sp[1] ? sp[1] : "0.00"]);
+                  obj.shouyi[xiangxi.name].unshift([
+                    sp[0],
+                    sp[1] ? sp[1] : "0.00",
+                  ]);
                 }
               }
             }
-            // res[5] 同类
+            // res[5] 同类平均收益
             if (res[5]) {
               let names = Object.keys(res[5]).reverse();
               for (let i = names.length; i--; ) {
@@ -765,109 +771,61 @@ export default {
                   num = Math.abs(
                     ((parseFloat(res[5][names[i]]) - jishu) / jishu) * 100
                   ).toFixed(2);
-                tonglei.unshift([time, num]);
+                obj["shouyi"]["同类平均"].unshift([time, num]);
               }
             }
 
-            let shouyiqushiTime = shouyiqushi.map((t) => t[0]), // 收益趋势的时间集合
-              tongleiTime = tonglei.map((t) => t[0]); // 同类平均的时间集合
-            // 取交集
-            jiaoji = shouyiqushiTime.filter((x) => tongleiTime.includes(x));
-            // 筛选市场数据
-            shang = this.shichang.shang
-              .map((t) => t[0])
-              .filter((x) => jiaoji.includes(x));
-            zhong = this.shichang.zhong
-              .map((t) => t[0])
-              .filter((x) => jiaoji.includes(x));
-            hushen = this.shichang.hushen
-              .map((t) => t[0])
-              .filter((x) => jiaoji.includes(x));
-            chuang = this.shichang.chuang
-              .map((t) => t[0])
-              .filter((x) => jiaoji.includes(x));
+            let jishuTime = obj.shouyi[xiangxi.name][0][0],
+              hushen = this.shichang.hushen.filter(
+                (t) => new Date(t[0]) >= new Date(jishuTime)
+              ),
+              zhong = this.shichang.zhong.filter(
+                (t) => new Date(t[0]) >= new Date(jishuTime)
+              ),
+              shang = this.shichang.shang.filter(
+                (t) => new Date(t[0]) >= new Date(jishuTime)
+              ),
+              chuang = this.shichang.chuang.filter(
+                (t) => new Date(t[0]) >= new Date(jishuTime)
+              );
 
-            // 寻找最小交集
-            if (shouyiqushiTime.length) {
-              minTime = [
-                shouyiqushiTime,
-                jiaoji,
-                shang,
-                zhong,
-                hushen,
-                chuang,
-              ].reduce((all, now) => {
-                if (all.length < now.length) {
-                  return all;
-                } else {
-                  return now;
-                }
-              });
-              obj["shouyi"] = {
-                [xiangxi.name]: shouyiqushi.filter((t) =>
-                  minTime.includes(t[0])
-                ),
-                同类平均: tonglei.filter((t) => minTime.includes(t[0])),
-                沪深300: [],
-                中证500: [],
-                上证指数: [],
-                创业板指数: [],
-              };
-              // 整理沪深的展示数据
-              for (let i = minTime.length; i--; ) {
-                let tar = this.shichang.hushen.find(
-                    (t) => t[0] == minTime[i][0]
-                  ),
-                  tar0 = this.shichang.hushen.find(
-                    (t) => t[0] == minTime[i][0]
-                  );
-                let jishu = +tar0[1],
-                  num = Math.abs(
-                    ((parseFloat(tar[1]) - jishu) / jishu) * 100
-                  ).toFixed(2);
-                obj["shouyi"]["沪深300"].unshift([tar[0], num]);
-              }
-              // 整理中证500的展示数据
-              for (let i = minTime.length; i--; ) {
-                let tar = this.shichang.zhong.find(
-                    (t) => t[0] == minTime[i][0]
-                  ),
-                  tar0 = this.shichang.zhong.find((t) => t[0] == minTime[i][0]),
-                  jishu = +tar0[1],
-                  num = Math.abs(
-                    ((parseFloat(tar[1]) - jishu) / jishu) * 100
-                  ).toFixed(2);
-                obj["shouyi"]["中证500"].unshift([tar[0], num]);
-              }
-              // 整理上证指数的展示数据
-              for (let i = minTime.length; i--; ) {
-                let tar = this.shichang.shang.find(
-                    (t) => t[0] == minTime[i][0]
-                  ),
-                  tar0 = this.shichang.shang.find((t) => t[0] == minTime[i][0]),
-                  jishu = +tar0[1],
-                  num = Math.abs(
-                    ((parseFloat(tar[1]) - jishu) / jishu) * 100
-                  ).toFixed(2);
-                obj["shouyi"]["上证指数"].unshift([tar[0], num]);
-              }
-              // 整理创业板指数的展示数据
-              for (let i = minTime.length; i--; ) {
-                let tar = this.shichang.chuang.find(
-                    (t) => t[0] == minTime[i][0]
-                  ),
-                  tar0 = this.shichang.chuang.find(
-                    (t) => t[0] == minTime[i][0]
-                  );
-                let jishu = +tar0[1],
-                  num = Math.abs(
-                    ((parseFloat(tar[1]) - jishu) / jishu) * 100
-                  ).toFixed(2);
-                obj["shouyi"]["创业板指数"].unshift([tar[0], num]);
-              }
-            } else {
-              obj["shouyi"] = null;
+            // 整理沪深的展示数据
+            for (let i = hushen.length; i--; ) {
+              let tar = hushen[i],
+                jishu = +hushen[0][1],
+                num = Math.abs(
+                  ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                ).toFixed(2);
+              obj["shouyi"]["沪深300"].unshift([tar[0], num]);
             }
+            // 整理中证500的展示数据
+            for (let i = zhong.length; i--; ) {
+              let tar = zhong[i],
+                jishu = +zhong[0][1],
+                num = Math.abs(
+                  ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                ).toFixed(2);
+              obj["shouyi"]["中证500"].unshift([tar[0], num]);
+            }
+            // 整理上证指数的展示数据
+            for (let i = shang.length; i--; ) {
+              let tar = shang[i],
+                jishu = +shang[0][1],
+                num = Math.abs(
+                  ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                ).toFixed(2);
+              obj["shouyi"]["上证指数"].unshift([tar[0], num]);
+            }
+            // 整理创业板指数的展示数据
+            for (let i = chuang.length; i--; ) {
+              let tar = chuang[i],
+                jishu = +chuang[0][1],
+                num = Math.abs(
+                  ((parseFloat(tar[1]) - jishu) / jishu) * 100
+                ).toFixed(2);
+              obj["shouyi"]["创业板指数"].unshift([tar[0], num]);
+            }
+
             // 基金详细数据
             obj.code = xiangxi.code; // 基金号
             obj.name = this.zhengli.canUse.find(
@@ -891,11 +849,7 @@ export default {
             obj.fengxian = xiangxi.levelOfRisk; // 风险等级
             obj.leixing = xiangxi.fundtype; // 基金类型
             obj.jingli = xiangxi.manager; // 基金经理
-            if (obj["shouyi"]) {
-              this.zhengli.fenxi.push(obj);
-            } else {
-              this.zhengli.fenxi.unshift(obj);
-            }
+            this.zhengli.fenxi.push(obj);
           });
         }
       }
@@ -959,6 +913,7 @@ export default {
             // 只有获取数据的请求全部成功且结束后，存储本次的请求数据
             if (res) {
               console.log("数据已经存储完毕！");
+              // console.log(this.zhengli);
             } else {
               console.log("数据无法存储！");
             }
@@ -1163,17 +1118,14 @@ export default {
             if (tar) {
               clearInterval(kk);
               if (t.shouyi) {
-                let legends = Object.keys(t.shouyi).map((aa) => t.shouyi[aa]),
-                  names = Object.keys(t.shouyi);
-                qushi(tar[0].children[0], legends, names, res);
+                qushi(tar[0].children[0], t, res);
               }
             }
           }, 50);
         });
       });
       // 执行画图
-      function qushi(tar, legends, names, res) {
-        let times = legends[0].map((t) => t[0]);
+      function qushi(tar, datas, res) {
         let option = {
           color: [
             "#ff025b",
@@ -1198,6 +1150,25 @@ export default {
             left: 0,
             top: 23,
           },
+          legend: {
+            right: 10,
+            top: 45,
+            padding: 0,
+            itemGap: 13,
+            itemWidth: 10,
+            itemHeight: 8,
+            data: Object.keys(datas.shouyi),
+            borderWidth: 0,
+            textStyle: {
+              fontSize: 12,
+            },
+          },
+          grid: {
+            left: 0,
+            right: 10,
+            bottom: 0,
+            containLabel: true,
+          },
           tooltip: {
             trigger: "axis",
             backgroundColor: "rgba(50,50,50,0.8)",
@@ -1211,7 +1182,7 @@ export default {
                   if (t.axisDimension == "x") {
                     return `${t.value}`;
                   } else {
-                    return `${t.value.toFixed(2)}%`;
+                    return `${t.value.toFixed(2)} %`;
                   }
                 },
               },
@@ -1223,38 +1194,20 @@ export default {
             hideDelay: 10,
             formatter: (e) => {
               let str = "";
-              e.forEach((d, ind) => {
+              e.forEach((d) => {
+                let kk = datas.shouyi[datas.name].find(
+                  (t) => t[0].slice(5) == d.axisValue
+                )[0];
                 if (!str) {
-                  str += `<p style="font-size:14px;color:#ffaa16;padding-right:20px;">${
-                    times[d.dataIndex]
-                  }</p>`;
+                  str += `<p style="font-size:14px;color:#ffaa16;padding-right:20px;">${kk}</p>`;
                 }
                 str += `<div style="display:flex;justify-content:space-between;">
-                          <p style="width:calc(100% - 52px);text-align:right;">${names[ind]} :&nbsp;</p>
-                          <p style="width:50px;text-align:left;color:#ffaa16;flex-shrink:0;">${d.data}%</p>
+                          <p style="width:calc(100% - 52px);text-align:right;">${d.seriesName} :&nbsp;</p>
+                          <p style="width:50px;text-align:left;color:#ffaa16;flex-shrink:0;">${d.value}%</p>
                         </div>`;
               });
               return str;
             },
-          },
-          legend: {
-            right: 10,
-            top: 45,
-            padding: 0,
-            itemGap: 13,
-            itemWidth: 10,
-            itemHeight: 8,
-            data: names,
-            borderWidth: 0,
-            textStyle: {
-              fontSize: 12,
-            },
-          },
-          grid: {
-            left: 0,
-            right: 10,
-            bottom: 0,
-            containLabel: true,
           },
           xAxis: {
             type: "category",
@@ -1263,7 +1216,7 @@ export default {
               // show: false,
               lineStyle: {
                 color: "#b9b8c0",
-                width: 1,
+                width: 0.5,
               },
             },
             axisLabel: {
@@ -1282,7 +1235,7 @@ export default {
             splitLine: {
               show: false,
             },
-            data: times.map((t) => t.slice(5)),
+            data: datas.shouyi[datas.name].map((t) => t[0].slice(5)),
           },
           yAxis: {
             minInterval: 2,
@@ -1301,17 +1254,17 @@ export default {
               formatter: "{value}%",
             },
           },
-          series: legends.map((w, index) => {
+          series: Object.keys(datas.shouyi).map((n) => {
             return {
               type: "line",
               symbol: "pin",
               symbolSize: 4,
               showSymbol: false,
-              name: names[index],
+              name: n,
               lineStyle: {
                 width: 0.6,
               },
-              data: w.map((t) => t[1]),
+              data: datas.shouyi[n].map((t) => t[1]),
             };
           }),
         };

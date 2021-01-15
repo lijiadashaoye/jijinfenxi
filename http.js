@@ -75,7 +75,7 @@ http.createServer((req, res) => {
             getData();
         }
         // 获取市场文件数据
-        if (k[0] === 'shichang') {
+        if (k[0] === 'shiChang') {
             res.setHeader('Content-Type', 'application/json;charset=utf-8')
             getShiChang();
         }
@@ -127,8 +127,8 @@ http.createServer((req, res) => {
 
         // 读取市场文件
         function getShiChang() {
-            if (fs.existsSync('./shichang.json')) {
-                fs.readFile('./shichang.json', (err, data) => {
+            if (fs.existsSync('./shiChang.json')) {
+                fs.readFile('./shiChang.json', (err, data) => {
                     var k = err ? 'false' : data;
                     res.end(k)
                 });
@@ -143,8 +143,8 @@ http.createServer((req, res) => {
                     data += mock
                 })
                 .on('end', function () {
-                    fs.unlink('./shichang.json', err => {
-                        fs.writeFile('./shichang.json', data, e => {
+                    fs.unlink('./shiChang.json', err => {
+                        fs.writeFile('./shiChang.json', data, e => {
                             var k = e ? 'false' : 'true';
                             res.end(k)
                         })
@@ -153,7 +153,7 @@ http.createServer((req, res) => {
         }
         // 删除市场数据文件
         function clearShiChang() {
-            fs.unlink('./shichang.json', err => {
+            fs.unlink('./shiChang.json', err => {
                 var k = err ? 'false' : 'true';
                 res.end(k)
             });

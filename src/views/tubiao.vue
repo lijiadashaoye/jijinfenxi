@@ -442,6 +442,9 @@ export default {
         this.$axios({
           method: "get",
           url: `hushen`,
+          headers: {
+            "Content-Type": "text/javascript;charset=utf-8",
+          },
         }).then((res) => {
           let k = eval("(" + res.split("=")[1] + ")");
           return k;
@@ -450,6 +453,9 @@ export default {
         this.$axios({
           method: "get",
           url: `zhongzheng`,
+          headers: {
+            "Content-Type": "text/javascript;charset=utf-8",
+          },
         }).then((res) => {
           let k = eval("(" + res.split("=")[1] + ")");
           return k;
@@ -458,6 +464,9 @@ export default {
         this.$axios({
           method: "get",
           url: `shangzheng`,
+          headers: {
+            "Content-Type": "text/javascript;charset=utf-8",
+          },
         }).then((res) => {
           let k = eval("(" + res.split("=")[1] + ")");
           return k;
@@ -466,6 +475,9 @@ export default {
         this.$axios({
           method: "get",
           url: `chuangyeban`,
+          headers: {
+            "Content-Type": "text/javascript;charset=utf-8",
+          },
         }).then((res) => {
           let k = eval("(" + res.split("=")[1] + ")");
           return k;
@@ -1255,13 +1267,13 @@ export default {
       function qushi(tar, datas, jiJinName, res) {
         let option = {
           color: [
+            "#7a77be",
             "#ff025b",
             "#9500ff",
             "#0290af",
             "#070100",
             "#e78325",
             "#070100",
-            "#7a77be",
           ],
           title: {
             itemGap: 0,
@@ -1562,6 +1574,7 @@ export default {
     oncontextmenu(e, t) {
       e.preventDefault();
       console.log(t);
+      alert(`基金号 ${t} 已经被 console.log`);
     },
   },
 };

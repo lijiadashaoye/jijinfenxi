@@ -340,7 +340,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime:100, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 100, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
 
       setWidth: 1300,
       setHeight: 800,
@@ -434,35 +434,47 @@ export default {
         this.$axios({
           method: "get",
           url: `hushen`,
+        }).then((res) => {
+          let k = eval("(" + res.split("=")[1] + ")");
+          return k;
         }),
         // 获取中证500
         this.$axios({
           method: "get",
           url: `zhongzheng`,
+        }).then((res) => {
+          let k = eval("(" + res.split("=")[1] + ")");
+          return k;
         }),
         // 获取上证
         this.$axios({
           method: "get",
           url: `shangzheng`,
+        }).then((res) => {
+          let k = eval("(" + res.split("=")[1] + ")");
+          return k;
         }),
         // 获取创业板
         this.$axios({
           method: "get",
           url: `chuangyeban`,
+        }).then((res) => {
+          let k = eval("(" + res.split("=")[1] + ")");
+          return k;
         }),
       ];
       Promise.all(shichangs).then((res) => {
         // 获取沪深300
-        let hs = eval("(" + res[0].split("=")[1] + ")"),
+        let hs = res[0],
           hsNames = Object.keys(hs),
           // 获取中证500
-          zz = eval("(" + res[1].split("=")[1] + ")"),
+          zz = res[1],
           zzNames = Object.keys(zz),
           // 获取上证
-          sz = eval("(" + res[2].split("=")[1] + ")"),
+          sz = res[2],
           szNames = Object.keys(sz),
           // 获取创业板
-          cy = eval("(" + res[3].split("=")[1] + ")"),
+          cy = res[3],
           cyNames = Object.keys(cy);
 
         for (let i = hsNames.length; i--; ) {
@@ -513,7 +525,7 @@ export default {
           csv = XLSX.utils.sheet_to_json(worksheet, { range: this.range }),
           excelCode = [];
         csv.forEach((t) => {
-          // 选出excel里的基金
+          // 选出excel里的基金，包括没有持仓数据的基金
           if (!excelCode.includes(t["代码"])) {
             this.zhengli.canUse.push({
               code: "" + t["代码"],
@@ -596,84 +608,120 @@ export default {
               method: "get",
               url: `chicang/${codes[i]}`,
               headers: {
-                "Content-Type": "text/html;charset=utf-8",
+                "Content-Type": "text/html;charset=gbk",
               },
+            }).then((res) => {
+              let chicang = res.data.stock;
+              return chicang;
             }),
+
             this.$axios({
               method: "get",
               url: `bili/${codes[i]}`,
               headers: {
                 "Content-Type": "application/javascript;charset=utf-8",
               },
+            }).then((res) => {
+              let reg = /\/\*.+?\*\//gi,
+                bili = [];
+              res
+                .replace(reg, "")
+                .split("var")
+                .filter((t) => {
+                  if (t.length) {
+                    bili.push(t.trim().slice(0, -1));
+                  }
+                });
+              return bili;
             }),
+
             this.$axios({
               method: "get",
               url: `xiangqing/${codes[i]}`,
               headers: {
-                "Content-Type": "text/html;charset=utf-8",
+                "Content-Type": "application/json",
               },
+            }).then((res) => {
+              let xiangxi = {
+                ...res.data[0],
+                name: this.zhengli.canUse.find(
+                  (t) => t.code == res.data[0].code
+                ).name,
+              };
+              return xiangxi;
             }),
+
             this.$axios({
               method: "get",
               url: `paiming/${codes[i]}`,
               headers: {
-                "Content-Type": "application/json;charset=utf-8",
+                "Content-Type": "application/json",
               },
             }),
+            // 用天天基金拉数据
+            // this.$axios({
+            //   method: "get",
+            //   url: `shouyiqushi/${codes[i]}`,
+            //   headers: {
+            //     "Content-Type": "application/json",
+            //   },
+            // }).then((res) => {
+            //   let k = eval("(" + res.split("=")[1].slice(0, -1) + ")").split(
+            //     "|"
+            //   );
+            //   return k;
+            // }),
+            // 用同花顺拉数据
             this.$axios({
               method: "get",
               url: `shouyiqushi/${codes[i]}`,
               headers: {
-                "Content-Type": "text/html; charset=utf-8",
+                "Content-Type": "application/json",
               },
+            }).then((res) => {
+              let k = eval("(" + res.split("=")[1] + ")"),
+                kk = k.map((t) => [
+                  `${t[0].slice(0, 4)}/${t[0].slice(4, 6)}/${t[0].slice(6)}`,
+                  t[1],
+                ]);
+              return kk;
             }),
+
             this.$axios({
               method: "get",
               url: `tonglei/${codes[i]}`,
               headers: {
-                "Content-Type": "application/json;charset=utf-8",
+                "Content-Type": "application/json",
               },
+            }).then((res) => {
+              let k = Object.keys(res)
+                .reverse()
+                .map((t) => [t.replace(/-/g, "/"), res[t]]);
+              return k;
             })
           );
           await Promise.all(all).then((res) => {
             // 基金持仓
-            let chicang = res[0].data.stock,
-              reg = /\/\*.+?\*\//gi,
-              xiangxi = {
-                ...res[2].data[0],
-                name: this.zhengli.canUse.find(
-                  (t) => t.code == res[2].data[0].code
-                ).name,
+            let obj = {
+              shouyi: {
+                [res[2].name]: [],
+                同类平均: [],
+                沪深300: [],
+                中证500: [],
+                上证指数: [],
+                创业板指数: [],
               },
-              bili = [],
-              obj = {
-                shouyi: {
-                  [xiangxi.name]: [],
-                  同类平均: [],
-                  沪深300: [],
-                  中证500: [],
-                  上证指数: [],
-                  创业板指数: [],
-                },
-              };
+            };
 
-            if (chicang.length) {
-              this.zhengli.see.push(...chicang);
+            if (res[0].length) {
+              this.zhengli.see.push(...res[0]);
             } else {
               this.zhengli.kong.push(
                 this.zhengli.canUse.find((k) => k.code == codes[i])
               );
             }
             // 基金持仓比例整理
-            res[1]
-              .replace(reg, "")
-              .split("var")
-              .filter((t) => {
-                if (t.length) {
-                  bili.push(t.trim().slice(0, -1));
-                }
-              });
-            bili.forEach((t) => {
+            res[1].forEach((t) => {
               let arr = t.split("=").map((t) => t.trim());
               // 资产配置
               if (arr[0] == "Data_assetAllocation") {
@@ -747,48 +795,59 @@ export default {
                 }
               });
             }
-            // res[4] 基金自己的累计收益率走势
-            let k = eval("(" + res[4].split("=")[1].slice(0, -1) + ")").split(
-              "|"
-            );
-            for (let i = k.length; i--; ) {
-              let sp = k[i].split("_");
-              if (sp.length == 4) {
-                obj.shouyi[xiangxi.name].unshift([
-                  sp[0],
-                  sp[1] ? sp[1] : "0.00",
-                ]);
-              }
+            // 用天天基金拉数据
+            // for (let i = res[4].length; i--; ) {
+            //   let sp = res[4][i].split("_");
+            //   if (sp.length == 4) {
+            //     obj.shouyi[res[2].name].unshift([
+            //       sp[0],
+            //       sp[1] ? sp[1] : "0.00",
+            //     ]);
+            //   }
+            // }
+
+            // 自己的收益趋势，用同花顺拉数据
+            for (let i = res[4].length; i--; ) {
+              let time = res[4][i][0],
+                jishu = parseFloat(res[4][0][1]),
+                num = Math.abs(
+                  ((parseFloat(res[4][i][1]) - jishu) / jishu) * 100
+                ).toFixed(2);
+              obj.shouyi[res[2].name].unshift([time, num]);
             }
 
-// console.log(obj.shouyi)
-// console.log(xiangxi)
-// console.log(obj.shouyi[xiangxi.name])
+            let jishuTime, tonglei, hushen, zhong, shang, chuang;
+            try {
+              jishuTime = obj.shouyi[res[2].name][0][0];
+              tonglei = res[5].filter(
+                (t) => new Date(t[0]) >= new Date(jishuTime)
+              );
 
-            let jishuTime = obj.shouyi[xiangxi.name][0][0],
-              tonglei = Object.keys(res[5]).filter(
-                (t) => new Date(t) >= new Date(jishuTime)
-              ),
               hushen = this.shichang.hushen.filter(
                 (t) => new Date(t[0]) >= new Date(jishuTime)
-              ),
+              );
               zhong = this.shichang.zhong.filter(
                 (t) => new Date(t[0]) >= new Date(jishuTime)
-              ),
+              );
               shang = this.shichang.shang.filter(
                 (t) => new Date(t[0]) >= new Date(jishuTime)
-              ),
+              );
               chuang = this.shichang.chuang.filter(
                 (t) => new Date(t[0]) >= new Date(jishuTime)
               );
+            } catch {
+              console.log(obj.shouyi);
+              console.log(res[2]);
+              console.log(res[5]);
+            }
             // 同类平均收益趋势
             for (let i = tonglei.length; i--; ) {
-              let time = tonglei[i].replace(/-/g, "/"),
-                jishu = +res[5][tonglei[0]],
+              let time = tonglei[i][0],
+                jishu = parseFloat(tonglei[0][1]),
                 num = Math.abs(
-                  ((parseFloat(res[5][tonglei[i]]) - jishu) / jishu) * 100
+                  ((parseFloat(tonglei[i][1]) - jishu) / jishu) * 100
                 ).toFixed(2);
-              obj["shouyi"]["同类平均"].push([time, num]);
+              obj.shouyi["同类平均"].unshift([time, num]);
             }
             // 整理沪深的展示数据
             for (let i = hushen.length; i--; ) {
@@ -826,30 +885,29 @@ export default {
                 ).toFixed(2);
               obj["shouyi"]["创业板指数"].unshift([tar[0], num]);
             }
-
             // 基金详细数据
-            obj.code = xiangxi.code; // 基金号
+            obj.code = res[2].code; // 基金号
             obj.name = this.zhengli.canUse.find(
-              (t) => t.code == xiangxi.code
+              (t) => t.code == res[2].code
             ).name; // 基金名称
             obj.theme =
-              xiangxi.themeList && xiangxi.themeList.length
-                ? xiangxi.themeList.map((t) => t.field_name)
+              res[2].themeList && res[2].themeList.length
+                ? res[2].themeList.map((t) => t.field_name)
                 : []; // 概念
-            obj.yue_1 = xiangxi.month; // 近1月
-            obj.yue_3 = xiangxi.tmonth; // 近3月
-            obj.yue_6 = xiangxi.hyear; // 近6月
-            obj.nian = xiangxi.year; // 近1年
-            obj.nowyear = xiangxi.nowyear; // 今年
-            obj.tyear = xiangxi.tyear; // 成立以来
-            obj.jingzhi = xiangxi.net; // 单位净值
-            obj.jingTime = xiangxi.enddate; // 净值计算时间
-            obj.zhangfu = xiangxi.rate; // 昨日涨幅
-            obj.chengli = xiangxi.clrq; // 成立时间
-            obj.feilv = xiangxi.sgfl; // 购买费率
-            obj.fengxian = xiangxi.levelOfRisk; // 风险等级
-            obj.leixing = xiangxi.fundtype; // 基金类型
-            obj.jingli = xiangxi.manager; // 基金经理
+            obj.yue_1 = res[2].month; // 近1月
+            obj.yue_3 = res[2].tmonth; // 近3月
+            obj.yue_6 = res[2].hyear; // 近6月
+            obj.nian = res[2].year; // 近1年
+            obj.nowyear = res[2].nowyear; // 今年
+            obj.tyear = res[2].tyear; // 成立以来
+            obj.jingzhi = res[2].net; // 单位净值
+            obj.jingTime = res[2].enddate; // 净值计算时间
+            obj.zhangfu = res[2].rate; // 昨日涨幅
+            obj.chengli = res[2].clrq; // 成立时间
+            obj.feilv = res[2].sgfl; // 购买费率
+            obj.fengxian = res[2].levelOfRisk; // 风险等级
+            obj.leixing = res[2].fundtype; // 基金类型
+            obj.jingli = res[2].manager; // 基金经理
             this.zhengli.fenxi.push(obj);
           });
         }
@@ -1127,6 +1185,11 @@ export default {
       });
       // 执行画图
       function qushi(tar, datas, res) {
+        if (!datas.shouyi[datas.name]) {
+          console.log(datas);
+          console.log(datas.shouyi);
+          console.log(datas.name);
+        }
         let option = {
           color: [
             "#ff025b",
@@ -1425,7 +1488,7 @@ export default {
       let one1 = da.getFullYear(); //  取得年
       let one2 = da.getMonth() + 1; //  取得月
       let one3 = da.getDate(); //  取得日
-      return `${one1}-${one2}-${one3}`;
+      return `${one1}/${one2}/${one3}`;
     },
     // 设置排名显示的文字
     setName(t) {

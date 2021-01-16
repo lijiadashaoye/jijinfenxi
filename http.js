@@ -10,6 +10,7 @@ http.createServer((req, res) => {
 
         var k = req.url.slice(1).split('/'),
             url = '';
+        // 读取excel文件
         if (k[0] === 'wenjian') {
             res.setHeader('Content-Type', 'application/octet-stream') // 二进制流数据（如常见的文件下载）
             getFile();
@@ -22,32 +23,39 @@ http.createServer((req, res) => {
         }
         // 获取基金持仓比例
         if (k[0] === 'bili') {
-            url = `http://fund.eastmoney.com/pingzhongdata/${k[1]}.js?v=2000011113260`
-            res.setHeader('Content-Type', 'application/javascript;charset=utf-8')
+            url = `http://fund.eastmoney.com/pingzhongdata/${k[1]}.js`;
+            res.setHeader('Content-Type', 'application/javascript')
             getData();
         }
-        // 获取基金收益走势
+        // // 获取基金收益走势，用天天基金拉数据
+        // if (k[0] === 'shouyiqushi') {
+        //     url = `http://fund.eastmoney.com/data/FundPicData.aspx?bzdm=${k[1]}&n=0&dt=all&vname=ljsylSVG_PicData&r=0.7943138073284852`
+        //     res.setHeader('Content-Type', 'text/html; charset=utf-8')
+        //     getData();
+        // }
+
+        // 获取基金排名，用同花顺
         if (k[0] === 'shouyiqushi') {
-            url = `http://fund.eastmoney.com/data/FundPicData.aspx?bzdm=${k[1]}&n=0&dt=all&vname=ljsylSVG_PicData&r=0.0.7943138073284852`
-            res.setHeader('Content-Type', 'text/html; charset=utf-8')
+            url = `http://fund.10jqka.com.cn/${k[1]}/json/jsonljjz.json`;
+            res.setHeader('Content-Type', 'application/json')
             getData();
         }
         // 获取基金详情
         if (k[0] === 'xiangqing') {
-            url = `http://fund.10jqka.com.cn/data/client/myfund/${k[1]}`
+            url = `http://fund.10jqka.com.cn/data/client/myfund/${k[1]}`;
             res.setHeader('Content-Type', 'text/html;charset=gbk')
             getData();
         }
         // 获取基金排名
         if (k[0] === 'paiming') {
             url = `http://fund.10jqka.com.cn/ifindRank/quarter_year_${k[1]}.json`
-            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            res.setHeader('Content-Type', 'application/json')
             getData();
         }
         // 获取同类
         if (k[0] === 'tonglei') {
             url = `http://fund.10jqka.com.cn/ifindRank/commonTypeAvgFqNet/${k[1]}.json`
-            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            res.setHeader('Content-Type', 'application/json')
             getData();
         }
         // 获取沪深300
@@ -81,7 +89,7 @@ http.createServer((req, res) => {
         }
         // 更新市场文件数据
         if (k[0] === 'upShiChang') {
-            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            res.setHeader('Content-Type', 'text/plain;charset=utf-8')
             saveShiChang()
         }
         // 删除市场数据文件

@@ -340,8 +340,8 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime: 100, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
-
+      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
       // 将读取的excel文件进行数据整理
@@ -546,9 +546,7 @@ export default {
     // 获取所有基金的持股
     getData() {
       // 获取所有基金的code
-      let codes = this.zhengli.canUse.map((t) => t.code),
-        // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
-        httptype = false;
+      let codes = this.zhengli.canUse.map((t) => t.code);
       // 获取缓存的基金数据
       if (this.caches) {
         // 读取之前缓存的基金号
@@ -564,9 +562,9 @@ export default {
         this.zhengli.fenxi = this.caches.fenxi.filter((t) =>
           codes.includes(t.code)
         ); // 用到echart分析列表
-        this.httpType(httptype, needHttp);
+        this.httpType(this.httptype, needHttp);
       } else {
-        this.httpType(httptype, codes);
+        this.httpType(this.httptype, codes);
       }
     },
     // 切换发送获取数据的方式

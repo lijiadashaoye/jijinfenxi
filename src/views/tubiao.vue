@@ -317,8 +317,16 @@
                   </tr>
                 </tbody>
               </table>
+
               <!-- 收益走势 -->
               <div :class="{ zoushi: t.shouyi }" :ref="`${t.code}_qushi`">
+                <select @change="changeTime($event.target.value, t.code)">
+                  <option value="1">最近1年</option>
+                  <option value="3">最近3年</option>
+                  <option value="5">最近5年</option>
+                  <option value="50">成立以来</option>
+                </select>
+
                 <div></div>
               </div>
             </td>
@@ -360,7 +368,7 @@ export default {
         zhong: [], // 中证500
         shang: [], // 上证指数
         chuang: [], // 上证指数
-        time: "", // 用来验证数据是否为最新的，同一天内是不会再取http拉取
+        time: "", // 用来验证数据是否为最新的，同一天内是不会再http拉取
       },
       single: 0, // 记录只被持有一次的个数
       range: "",
@@ -954,7 +962,7 @@ export default {
       this.chongHeFenXi();
       this.showAll = true;
       this.makeXiangQingChart();
-      this.makeShouYiChart();
+      this.changeTime(1, "");
       this.httpEnd--;
       setTimeout(() => {
         if (this.httpEnd < 0) {
@@ -1167,28 +1175,72 @@ export default {
         res(echarts.init(tar).setOption(option));
       }
     },
+    // 转换时间
+    makeTime(e) {
+      let da = new Date();
+      let one1 = da.getFullYear() - e; //  取得年
+      let one2 =
+        da.getMonth() + 1 < 10 ? `0${da.getMonth() + 1}` : da.getMonth() + 1; //  取得月
+      let one3 = da.getDate() < 10 ? `0${da.getDate()}` : da.getDate(); //  取得日
+      return `${one1}/${one2}/${one3}`;
+    },
+    // 修改收益走势时间段
+    changeTime(e, target) {
+      new Promise((res) => {
+        let time = this.makeTime(e);
+        if (!target) {
+          let data = this.zhengli.fenxi.map((t) => {
+            let shouyi = t.shouyi,
+              obj = {
+                code: t.code,
+                name: t.name,
+              };
+            Object.keys(shouyi).forEach((name) => {
+              obj[name] = shouyi[name].filter(
+                (d) => new Date(d[0]) > new Date(time)
+              );
+            });
+            return obj;
+          });
+          res(data);
+        } else {
+          let tar = this.zhengli.fenxi.filter((t) => t.code == target)[0],
+            obj = {
+              code: target,
+              name: tar.name,
+            };
+          Object.keys(tar.shouyi).forEach((name) => {
+            obj[name] = tar.shouyi[name].filter(
+              (d) => new Date(d[0]) > new Date(time)
+            );
+          });
+          res([obj]);
+        }
+      }).then((d) => {
+        this.makeShouYiChart(d);
+      });
+    },
     // 绘制每个基金的收益走势图
-    makeShouYiChart() {
-      this.zhengli.fenxi.forEach(async (t) => {
+    makeShouYiChart(showData) {
+      showData.forEach((t) => {
         new Promise((res) => {
           let kk = setInterval(() => {
             let tar = this.$refs[`${t.code}_qushi`];
             if (tar) {
               clearInterval(kk);
-              if (t.shouyi) {
-                qushi(tar[0].children[0], t, res);
-              }
+              let endData = {};
+              Object.keys(t).forEach((s) => {
+                if (s != "code" && s != "name") {
+                  endData[s] = t[s];
+                }
+              });
+              qushi(tar[0].children[1], endData, t.name, res);
             }
           }, 50);
         });
       });
       // 执行画图
-      function qushi(tar, datas, res) {
-        if (!datas.shouyi[datas.name]) {
-          console.log(datas);
-          console.log(datas.shouyi);
-          console.log(datas.name);
-        }
+      function qushi(tar, datas, jiJinName, res) {
         let option = {
           color: [
             "#ff025b",
@@ -1220,7 +1272,7 @@ export default {
             itemGap: 13,
             itemWidth: 10,
             itemHeight: 8,
-            data: Object.keys(datas.shouyi),
+            data: Object.keys(datas),
             borderWidth: 0,
             textStyle: {
               fontSize: 12,
@@ -1258,7 +1310,7 @@ export default {
             formatter: (e) => {
               let str = "";
               e.forEach((d) => {
-                let kk = datas.shouyi[datas.name].find(
+                let kk = datas[jiJinName].find(
                   (t) => t[0].slice(5) == d.axisValue
                 )[0];
                 if (!str) {
@@ -1298,7 +1350,7 @@ export default {
             splitLine: {
               show: false,
             },
-            data: datas.shouyi[datas.name].map((t) => t[0].slice(5)),
+            data: datas[jiJinName].map((t) => t[0].slice(5)),
           },
           yAxis: {
             minInterval: 2,
@@ -1317,7 +1369,7 @@ export default {
               formatter: "{value}%",
             },
           },
-          series: Object.keys(datas.shouyi).map((n) => {
+          series: Object.keys(datas).map((n) => {
             return {
               type: "line",
               symbol: "pin",
@@ -1327,7 +1379,7 @@ export default {
               lineStyle: {
                 width: 0.6,
               },
-              data: datas.shouyi[n].map((t) => t[1]),
+              data: datas[n].map((t) => t[1]),
             };
           }),
         };
@@ -1480,14 +1532,6 @@ export default {
       this.showAll = false;
       window.location.reload();
       this.autoRead();
-    },
-    // 转换收益走势的时间
-    makeTime(t) {
-      let da = new Date(t);
-      let one1 = da.getFullYear(); //  取得年
-      let one2 = da.getMonth() + 1; //  取得月
-      let one3 = da.getDate(); //  取得日
-      return `${one1}/${one2}/${one3}`;
     },
     // 设置排名显示的文字
     setName(t) {
@@ -1826,12 +1870,23 @@ ul {
   flex-shrink: 0;
   position: relative;
   z-index: 5;
-  div {
+  div:nth-child(2) {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 2px;
     height: 340px;
+  }
+  select {
+    position: absolute;
+    right: 8px;
+    top: -8px;
+    z-index: 124342;
+    padding: 2px 4px;
+    outline: cadetblue;
+    option {
+      padding: 4px;
+    }
   }
 }
 .bili {

@@ -93,7 +93,7 @@
               class="showManager"
               @click="showJiJin2(t.name)"
             >
-              {{ t.name }}
+              <span> {{ t.name }}</span>
             </td>
             <td>{{ t.jijin.join("  ") }}</td>
           </tr>
@@ -409,8 +409,8 @@ export default {
     ];
     Promise.all(arr)
       .then((res) => {
-        this.caches = res[0];
-        if (this.caches) {
+        if (res[0]) {
+          this.caches = res[0];
           let time = this.caches.time,
             now = new Date().getTime();
           // 超过三天未操作，就重新拉取数据
@@ -506,8 +506,7 @@ export default {
     },
     // 把市场数据存储为文件
     upShiChangData() {
-      let day = new Date().getDate(); // 获取时间
-      this.shichang.time = day;
+      this.shichang.time = new Date().getDate();
       this.$axios({
         method: "post",
         url: `upShiChang`,
@@ -530,24 +529,25 @@ export default {
           }),
           sheetNames = workbook.SheetNames; // 工作表名称集合
         let worksheet = workbook.Sheets[sheetNames[0]], // 这里我们只读取第一张sheet1
-          csv = XLSX.utils.sheet_to_json(worksheet, { range: this.range }),
           excelCode = [];
-        csv.forEach((t) => {
-          // 选出excel里的基金，包括没有持仓数据的基金
-          if (!excelCode.includes(t["代码"])) {
-            this.zhengli.canUse.push({
-              code: "" + t["代码"],
-              name: "" + t["名字"],
-            });
-            excelCode.push("" + t["代码"]);
-          } else {
-            // 选出excel里重复的
-            this.zhengli.chongfu.push({
-              code: "" + t["代码"],
-              name: "" + t["名字"],
-            });
-          }
-        });
+        XLSX.utils
+          .sheet_to_json(worksheet, { range: this.range })
+          .forEach((t) => {
+            // 选出excel里的基金，包括没有持仓数据的基金
+            if (!excelCode.includes(t["代码"])) {
+              this.zhengli.canUse.push({
+                code: "" + t["代码"],
+                name: "" + t["名字"],
+              });
+              excelCode.push("" + t["代码"]);
+            } else {
+              // 选出excel里重复的
+              this.zhengli.chongfu.push({
+                code: "" + t["代码"],
+                name: "" + t["名字"],
+              });
+            }
+          });
         this.getData();
       });
     },
@@ -608,7 +608,9 @@ export default {
     async useHttp(codes) {
       for (let i = codes.length; i--; ) {
         if (codes[i]) {
-          let all = [];
+          let all = [],
+            jijinname = this.zhengli.canUse.find((t) => t.code == codes[i])
+              .name;
           all.push(
             this.$axios({
               method: "get",
@@ -617,8 +619,7 @@ export default {
                 "Content-Type": "text/html;charset=gbk",
               },
             }).then((res) => {
-              let chicang = res.data.stock;
-              return chicang;
+              return res.data.stock;
             }),
 
             this.$axios({
@@ -628,10 +629,9 @@ export default {
                 "Content-Type": "application/javascript;charset=utf-8",
               },
             }).then((res) => {
-              let reg = /\/\*.+?\*\//gi,
-                bili = [];
+              let bili = [];
               res
-                .replace(reg, "")
+                .replace(/\/\*.+?\*\//gi, "")
                 .split("var")
                 .filter((t) => {
                   if (t.length) {
@@ -648,13 +648,8 @@ export default {
                 "Content-Type": "application/json",
               },
             }).then((res) => {
-              let xiangxi = {
-                ...res.data[0],
-                name: this.zhengli.canUse.find(
-                  (t) => t.code == res.data[0].code
-                ).name,
-              };
-              return xiangxi;
+              res.data[0].name = jijinname;
+              return res.data[0];
             }),
 
             this.$axios({
@@ -711,7 +706,7 @@ export default {
             // 基金持仓
             let obj = {
               shouyi: {
-                [res[2].name]: [],
+                [jijinname]: [],
                 同类平均: [],
                 沪深300: [],
                 中证500: [],
@@ -719,7 +714,6 @@ export default {
                 创业板指数: [],
               },
             };
-
             if (res[0].length) {
               this.zhengli.see.push(...res[0]);
             } else {
@@ -734,10 +728,10 @@ export default {
               if (arr[0] == "Data_assetAllocation") {
                 let k = eval("(" + arr[1] + ")");
                 obj["peizhi"] = k.series.map((t) => {
-                  // 转译特殊字符
-                  if (t.name.indexOf("�") > -1) {
-                    t.name = "股票";
-                  }
+                  // // 转译特殊字符
+                  // if (t.name.indexOf("�") > -1) {
+                  //   t.name = "股票";
+                  // }
                   return {
                     name: t.name != "净资产" ? t.name.slice(0, 2) + "" : "规模",
                     num:
@@ -754,53 +748,75 @@ export default {
             });
             // 收益排名
             if (res[3]) {
-              obj["paiming"] = {};
-              let kk = res[3].nowCommonTypeRank;
+              let kk = res[3].nowCommonTypeRank,
+                zz = {};
               Object.keys(kk).forEach((t) => {
-                obj.paiming[t] = [kk[t][0], kk[t][1]];
+                zz[t] = [kk[t][0], kk[t][1]];
                 let num = +kk[t][2];
                 if (num > 75) {
-                  obj.paiming[t][2] = 4;
+                  zz[t][2] = 4;
                 }
                 if (num <= 75 && num > 50) {
-                  obj.paiming[t][2] = 3;
+                  zz[t][2] = 3;
                 }
                 if (num <= 50 && num > 25) {
-                  obj.paiming[t][2] = 2;
+                  zz[t][2] = 2;
                 }
                 if (num <= 25) {
-                  obj.paiming[t][2] = 1;
+                  zz[t][2] = 1;
                 }
                 switch (t) {
-                  case "fyear":
-                    obj.paiming[t][3] = "近5年";
-                    break;
-                  case "hyear":
-                    obj.paiming[t][3] = "近6月";
+                  case "week":
+                    zz[t][3] = "近1周";
+                    zz[t][4] = 1;
                     break;
                   case "month":
-                    obj.paiming[t][3] = "近1月";
-                    break;
-                  case "nowyear":
-                    obj.paiming[t][3] = "今年来";
+                    zz[t][3] = "近1月";
+                    zz[t][4] = 2;
                     break;
                   case "tmonth":
-                    obj.paiming[t][3] = "近3月";
+                    zz[t][3] = "近3月";
+                    zz[t][4] = 3;
                     break;
-                  case "twoyear":
-                    obj.paiming[t][3] = "近2年";
-                    break;
-                  case "tyear":
-                    obj.paiming[t][3] = "近3年";
-                    break;
-                  case "week":
-                    obj.paiming[t][3] = "近1周";
+                  case "hyear":
+                    zz[t][3] = "近6月";
+                    zz[t][4] = 4;
                     break;
                   case "year":
-                    obj.paiming[t][3] = "近1年";
+                    zz[t][3] = "近1年";
+                    zz[t][4] = 5;
+                    break;
+                  case "twoyear":
+                    zz[t][3] = "近2年";
+                    zz[t][4] = 6;
+                    break;
+                  case "tyear":
+                    zz[t][3] = "近3年";
+                    zz[t][4] = 7;
+                    break;
+                  case "fyear":
+                    zz[t][3] = "近5年";
+                    zz[t][4] = 8;
+                    break;
+                  case "nowyear":
+                    zz[t][3] = "今年来";
+                    zz[t][4] = 9;
                     break;
                 }
               });
+
+              let sortSS = [];
+              Object.keys(zz).forEach((t) => {
+                sortSS.push({
+                  name: t,
+                  sort: zz[t][4],
+                });
+              });
+              sortSS = sortSS.sort((a, b) => a.sort - b.sort);
+              obj["paiming"] = {};
+              for (let i = 0; i < sortSS.length; i++) {
+                obj["paiming"][sortSS[i].name] = zz[sortSS[i].name];
+              }
             }
             // 用天天基金拉数据
             // for (let i = res[4].length; i--; ) {
@@ -820,16 +836,14 @@ export default {
                 num = Math.abs(
                   ((parseFloat(res[4][i][1]) - jishu) / jishu) * 100
                 ).toFixed(2);
-              obj.shouyi[res[2].name].unshift([time, num]);
+              obj.shouyi[jijinname].unshift([time, num]);
             }
-
             let jishuTime, tonglei, hushen, zhong, shang, chuang;
             try {
-              jishuTime = obj.shouyi[res[2].name][0][0];
+              jishuTime = obj.shouyi[jijinname][0][0];
               tonglei = res[5].filter(
                 (t) => new Date(t[0]) >= new Date(jishuTime)
               );
-
               hushen = this.shichang.hushen.filter(
                 (t) => new Date(t[0]) >= new Date(jishuTime)
               );
@@ -894,9 +908,7 @@ export default {
             }
             // 基金详细数据
             obj.code = res[2].code; // 基金号
-            obj.name = this.zhengli.canUse.find(
-              (t) => t.code == res[2].code
-            ).name; // 基金名称
+            obj.name = jijinname; // 基金名称
             obj.theme =
               res[2].themeList && res[2].themeList.length
                 ? res[2].themeList.map((t) => t.field_name)
@@ -927,19 +939,19 @@ export default {
       for (let i = this.zhengli.see.length; i--; ) {
         let codes = this.gupiao.map((t) => t.code), // 股票代码数组
           see = this.zhengli.see[i],
-          jijin = this.zhengli.canUse.find((t) => t.code == see.code);
+          jijinname = this.zhengli.canUse.find((t) => t.code == see.code).name;
         if (!codes.includes(see.zcCode)) {
           this.gupiao.push({
             id: i,
             zhangfu: see.rate, // 涨幅
             code: see.zcCode, //  股票代码
             name: see.zcName, // 股票名称
-            jijin: [jijin.name], // 持有该股票的基金名称
+            jijin: [jijinname], // 持有该股票的基金名称
           });
         } else {
           let gupiao = this.gupiao.find((t) => t.code == see.zcCode); // 找到股票数据
-          if (!gupiao.jijin.includes(jijin.name)) {
-            gupiao.jijin.push(jijin.name);
+          if (!gupiao.jijin.includes(jijinname)) {
+            gupiao.jijin.push(jijinname);
           }
         }
       }
@@ -952,7 +964,6 @@ export default {
           this.single++;
         }
       });
-      // 将分析数据分组显示
       this.chartList = [];
       for (let i = 0; i < this.zhengli.fenxi.length; i += 2) {
         this.chartList.push(this.zhengli.fenxi.slice(i, i + 2));
@@ -964,8 +975,8 @@ export default {
       this.makeXiangQingChart();
       this.changeTime(1, "");
       this.httpEnd--;
-      setTimeout(() => {
-        if (this.httpEnd < 0) {
+      if (this.httpEnd < 0) {
+        setTimeout(() => {
           this.zhengli["time"] = new Date().getTime();
           // 存储本页面使用的数据
           this.$axios({
@@ -984,12 +995,12 @@ export default {
               console.log("数据无法存储！");
             }
           });
-        }
-      });
+        });
+      }
     },
     // 基金类型统计
     leiXingTongJi() {
-      let j = require("./data.json"),
+      let j = require("../../data.json"),
         k = this.zhengli.fenxi;
       j.forEach((t) => {
         let leixing = Object.keys(this.jijinType);
@@ -1204,7 +1215,7 @@ export default {
           });
           res(data);
         } else {
-          let tar = this.zhengli.fenxi.filter((t) => t.code == target)[0],
+          let tar = this.zhengli.fenxi.find((t) => t.code == target),
             obj = {
               code: target,
               name: tar.name,
@@ -1228,12 +1239,13 @@ export default {
             let tar = this.$refs[`${t.code}_qushi`];
             if (tar) {
               clearInterval(kk);
-              let endData = {};
-              Object.keys(t).forEach((s) => {
-                if (s != "code" && s != "name") {
-                  endData[s] = t[s];
+              let endData = {},
+                names = Object.keys(t);
+              for (let i = names.length; i--; ) {
+                if (names[i] != "code" && names[i] != "name") {
+                  endData[names[i]] = t[names[i]];
                 }
-              });
+              }
               qushi(tar[0].children[1], endData, t.name, res);
             }
           }, 50);
@@ -1262,25 +1274,25 @@ export default {
               color: "#bb5100",
             },
             padding: 0,
-            left: 0,
-            top: 23,
+            left: 3,
+            top: 20,
           },
           legend: {
             right: 10,
-            top: 45,
+            top: 40,
             padding: 0,
             itemGap: 13,
             itemWidth: 10,
             itemHeight: 8,
-            data: Object.keys(datas),
+            data: Object.keys(datas).reverse(),
             borderWidth: 0,
             textStyle: {
               fontSize: 12,
             },
           },
           grid: {
-            left: 0,
-            right: 10,
+            left: 2,
+            right: 5,
             bottom: 0,
             containLabel: true,
           },
@@ -1367,6 +1379,7 @@ export default {
               color: "#165cff",
               fontSize: 10,
               formatter: "{value}%",
+              margin: 6,
             },
           },
           series: Object.keys(datas).map((n) => {
@@ -1526,7 +1539,6 @@ export default {
       this.gaiNian = {}; // 存储根据概念区分基金
       this.chonghe = []; // 用来存储有重合的基金
       this.jijinType = {}; // 基金类型统计
-      this.chartList = []; //用来显示echarts分析
       this.colorObj = {}; // 存储不同概念的颜色
       this.caches = null; // 判断是否有缓存
       this.showAll = false;
@@ -1610,7 +1622,7 @@ ul {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: middle;
+      align-items: center;
       font-size: 12px;
     }
     tr > td:nth-of-type(2) {
@@ -1644,7 +1656,7 @@ ul {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: middle;
+      align-items: center;
       font-size: 12px;
     }
     tr > td:nth-of-type(2) {
@@ -1682,7 +1694,10 @@ ul {
     tr > td:nth-of-type(1) {
       width: 80px;
       flex-shrink: 0;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       color: rgb(50, 32, 214);
     }
     tr > td:nth-of-type(2) {
@@ -1801,7 +1816,7 @@ ul {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: middle;
+        align-items: center;
         font-size: 14px;
       }
       td:nth-of-type(1):hover {
@@ -1815,7 +1830,7 @@ ul {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: middle;
+        align-items: center;
       }
 
       td:nth-of-type(1),
@@ -1864,13 +1879,13 @@ ul {
     box-sizing: border-box;
     margin: 5px;
     width: 600px;
-    border: 1px solid rgb(9, 5, 252);
+    border: 1px solid rgb(236, 101, 225);
   }
 }
 
 .zoushi {
   width: 100%;
-  height: 320px;
+  height: 325px;
   flex-shrink: 0;
   position: relative;
   z-index: 5;
@@ -1884,8 +1899,8 @@ ul {
   select {
     position: absolute;
     right: 8px;
-    top: -8px;
-    z-index: 124342;
+    top: -10px;
+    z-index: 44444;
     padding: 2px 4px;
     outline: cadetblue;
     option {
@@ -1971,10 +1986,6 @@ ul {
   position: relative;
   cursor: pointer;
   background: rgb(229, 208, 208);
-}
-.showManager > span:nth-of-type(1) {
-  width: 50%;
-  text-align: right;
 }
 .leixingName {
   display: inline-block;
@@ -2131,13 +2142,6 @@ ul {
     border: none;
     background: #c3e8ff;
     border-bottom: 1px solid #c3e8ff;
-
-    // color: #ff025b;
-    // color: #9500ff;
-    // color: #0290af;
-    // color: #070100;
-    // color: #e78325;
-    color: #000000;
   }
 }
 </style>

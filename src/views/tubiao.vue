@@ -548,7 +548,7 @@ export default {
       // 获取所有基金的code
       let codes = this.zhengli.canUse.map((t) => t.code),
         // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次
-        httptype = true;
+        httptype = false;
       // 获取缓存的基金数据
       if (this.caches) {
         // 读取之前缓存的基金号
@@ -671,6 +671,7 @@ export default {
             //   );
             //   return k;
             // }),
+
             // 用同花顺拉数据
             this.$axios({
               method: "get",

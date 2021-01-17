@@ -658,8 +658,8 @@ export default {
               method: "get",
               url: `xiangqing/${codes[i]}`,
               headers: {
-                "Content-Type": "text/html;charset=gbk",
-                // "Content-Type": "application/json;charset=utf-8",
+                // "Content-Type": "text/html;charset=gbk",
+                "Content-Type": "application/json;charset=utf-8",
               },
             }).then((res) => {
               res.data[0].name = jijinname;
@@ -670,7 +670,7 @@ export default {
               method: "get",
               url: `paiming/${codes[i]}`,
               headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json;charset=utf-8",
               },
             }),
             // 用天天基金拉数据
@@ -692,7 +692,7 @@ export default {
               method: "get",
               url: `shouyiqushi/${codes[i]}`,
               headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json;charset=utf-8",
               },
             }).then((res) => {
               let k = eval("(" + res.split("=")[1] + ")"),
@@ -707,7 +707,7 @@ export default {
               method: "get",
               url: `tonglei/${codes[i]}`,
               headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json;charset=utf-8",
               },
             }).then((res) => {
               let k = Object.keys(res)

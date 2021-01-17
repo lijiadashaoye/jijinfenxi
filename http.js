@@ -84,7 +84,7 @@ http.createServer((req, res) => {
         }
         // 获取市场文件数据
         if (k[0] === 'shiChang') {
-            // res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            res.setHeader('Content-Type', 'application/json;charset=utf-8')
             getShiChang();
         }
         // 更新市场文件数据
@@ -99,7 +99,7 @@ http.createServer((req, res) => {
 
         // 获取页面使用的数据到文件
         if (k[0] === 'getPageData') {
-            // res.setHeader('Content-Type', 'application/json;charset=utf-8');
+            res.setHeader('Content-Type', 'application/json;charset=utf-8');
             getPageData();
         }
         // 存储页面使用的数据到文件

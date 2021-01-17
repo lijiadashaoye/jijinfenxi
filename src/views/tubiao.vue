@@ -1268,6 +1268,7 @@ export default {
           datas[jiJinName].map((t) => t[0].slice(5)).length;
         } catch {
           console.log(jiJinName);
+          console.log(datas);
         }
 
         let option = {

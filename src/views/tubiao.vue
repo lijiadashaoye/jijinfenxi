@@ -348,7 +348,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime: 100, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -628,7 +628,7 @@ export default {
               method: "get",
               url: `chicang/${codes[i]}`,
               headers: {
-                "Content-Type": "text/html;charset=gbk",
+                "Content-Type": "text/html;charset=utf-8",
               },
             }).then((res) => {
               return res.data.stock;
@@ -1265,6 +1265,10 @@ export default {
       });
       // 执行画图
       function qushi(tar, datas, jiJinName, res) {
+
+        // console.log(jiJinName);
+        // console.log(datas[jiJinName].map((t) => t[0].slice(5)));
+
         let option = {
           color: [
             "#7a77be",

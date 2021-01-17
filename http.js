@@ -114,7 +114,7 @@ http.createServer((req, res) => {
 
         // 读取基金excel文件
         function getFile() {
-            fs.readFile('./定投.xlsx', (err, data) => {
+            fs.readFile('./JiJin.xlsx', (err, data) => {
                 var k = err ? 'false' : data;
                 res.end(k)
             });

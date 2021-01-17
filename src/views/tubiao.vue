@@ -172,6 +172,7 @@
           </tr>
         </tbody>
       </table>
+
       <!-- 每个基金的分析 -->
       <table class="fenxi" collpase>
         <thead>
@@ -197,7 +198,7 @@
                     title="点击查看基金经理管理的基金"
                     class="showManager"
                     @click="showManager(t.code)"
-                    @contextmenu="oncontextmenu($event, t.name)"
+                    @contextmenu="oncontextmenu($event, t.code)"
                   >
                     {{ t.jingli }}
                   </p>
@@ -321,10 +322,10 @@
               <!-- 收益走势 -->
               <div :class="{ zoushi: t.shouyi }" :ref="`${t.code}_qushi`">
                 <select @change="changeTime($event.target.value, t.code)">
+                  <option value="50">成立以来</option>
                   <option value="1">最近1年</option>
                   <option value="3">最近3年</option>
                   <option value="5">最近5年</option>
-                  <option value="50">成立以来</option>
                 </select>
 
                 <div></div>
@@ -348,7 +349,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 1000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -657,7 +658,8 @@ export default {
               method: "get",
               url: `xiangqing/${codes[i]}`,
               headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "text/html;charset=gbk",
+                // "Content-Type": "application/json;charset=utf-8",
               },
             }).then((res) => {
               res.data[0].name = jijinname;
@@ -984,30 +986,27 @@ export default {
       this.leiXingTongJi();
       this.chongHeFenXi();
       this.showAll = true;
-      this.makeXiangQingChart();
-      this.changeTime(1, "");
       this.httpEnd--;
       if (this.httpEnd < 0) {
-        setTimeout(() => {
-          this.zhengli["time"] = new Date().getTime();
-          // 存储本页面使用的数据
-          this.$axios({
-            method: "post",
-            url: `savePageData`,
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8",
-            },
-            data: this.zhengli,
-          }).then((res) => {
-            // 只有获取数据的请求全部成功且结束后，存储本次的请求数据
-            if (res) {
-              console.log("数据已经存储完毕！");
-              // console.log(this.zhengli);
-            } else {
-              console.log("数据无法存储！");
-            }
-          });
+        this.zhengli["time"] = new Date().getTime();
+        // 存储本页面使用的数据
+        this.$axios({
+          method: "post",
+          url: `savePageData`,
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8",
+          },
+          data: this.zhengli,
+        }).then((res) => {
+          // 只有获取数据的请求全部成功且结束后，存储本次的请求数据
+          if (res) {
+            console.log("数据已经存储完毕！");
+          } else {
+            console.log("数据无法存储！");
+          }
         });
+        this.makeXiangQingChart();
+        this.changeTime(50, "");
       }
     },
     // 基金类型统计
@@ -1260,14 +1259,16 @@ export default {
               }
               qushi(tar[0].children[1], endData, t.name, res);
             }
-          }, 50);
+          });
         });
       });
       // 执行画图
       function qushi(tar, datas, jiJinName, res) {
-
-        // console.log(jiJinName);
-        // console.log(datas[jiJinName].map((t) => t[0].slice(5)));
+        try {
+          datas[jiJinName].map((t) => t[0].slice(5)).length;
+        } catch {
+          console.log(jiJinName);
+        }
 
         let option = {
           color: [
@@ -1498,7 +1499,6 @@ export default {
         inline: "nearest",
       });
     },
-
     // 清除已经获取的市场数据，重新拉取
     clearShiChang() {
       this.$axios({
@@ -1578,7 +1578,9 @@ export default {
     oncontextmenu(e, t) {
       e.preventDefault();
       console.log(t);
-      alert(`基金号 ${t} 已经被 console.log`);
+      let jijin = this.zhengli.canUse.find((td) => td.code == t).name;
+      alert(`基金---  ${jijin}  ${t}  ---已经被console.log`);
+      console.log(this.zhengli);
     },
   },
 };
@@ -1896,7 +1898,7 @@ ul {
     box-sizing: border-box;
     margin: 5px;
     width: 600px;
-    border: 1px solid rgb(236, 101, 225);
+    border: 1px solid rgb(250, 167, 243);
   }
 }
 
@@ -1969,7 +1971,7 @@ ul {
   display: flex;
   p:nth-of-type(1) ~ p {
     padding: 2px 4px;
-    margin-right: 20px;
+    margin-right: 10px;
     font-size: 12px;
   }
   p:nth-of-type(1) {

@@ -19,7 +19,8 @@
           <tbody>
             <tr v-for="(t, ind) in Object.keys(gaiNian)" :key="ind">
               <td>
-                <span>{{ t }}</span>
+                <p>{{ t }}</p>
+                <p>{{ gaiNian[t].length }}</p>
               </td>
               <td>{{ gaiNian[t].join("  ") }}</td>
             </tr>
@@ -1722,6 +1723,9 @@ ul {
     }
     tr > td:nth-of-type(2) {
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
   }
 }

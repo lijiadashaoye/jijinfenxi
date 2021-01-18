@@ -386,56 +386,60 @@ export default {
   },
   components: { jiazai },
   created() {
-    this.range = "A1:B900";
+    // this.range = "A1:B900";
     // this.range = "C1:D900";
-    // this.range = "F1:G900";
+    this.range = "F1:G900";
 
-    // 如果基金太多，localStorage 会存不下
-    let arr = [
-      // 获取已经存储的数据
-      this.$axios({
-        method: "get",
-        url: `getPageData`,
-        headers: {
-          "Content-Type": "tapplication/json;charset=utf-8",
-        },
-      }),
-      this.$axios({
-        method: "get",
-        url: `shiChang`,
-        headers: {
-          "Content-Type": "tapplication/json;charset=utf-8",
-        },
-      }),
-    ];
-    Promise.all(arr)
-      .then((res) => {
-        if (res[0]) {
-          this.caches = res[0];
-          let time = this.caches.time,
-            now = new Date().getTime();
-          // 超过三天未操作，就重新拉取数据
-          if (now - time > 1000 * 60 * 60 * 24 * 3) {
-            this.clearShiChang();
-          }
-        }
-        if (!res[1]) {
-          // 如果没有添加过市场数据，则需要初始化
-          this.getShiChang();
-        } else {
-          // 获取当天时间
-          let day = new Date().getDate();
-          if (res[1].time < day) {
-            this.getShiChang();
-          } else {
-            this.shichang = res[1];
-            this.shichang.time = day;
-          }
-        }
-      })
-      .then(this.autoRead); // 获取基金的数据
+    this.testShiChang();
   },
   methods: {
+    // 读取市场稳健
+    testShiChang() {
+      // 如果基金太多，localStorage 会存不下
+      let arr = [
+        // 获取已经存储的数据
+        this.$axios({
+          method: "get",
+          url: `getPageData`,
+          headers: {
+            "Content-Type": "tapplication/json;charset=utf-8",
+          },
+        }),
+        this.$axios({
+          method: "get",
+          url: `shiChang`,
+          headers: {
+            "Content-Type": "tapplication/json;charset=utf-8",
+          },
+        }),
+      ];
+      Promise.all(arr)
+        .then((res) => {
+          if (res[0]) {
+            this.caches = res[0];
+            let time = this.caches.time,
+              now = new Date().getTime();
+            // 超过三天未操作，就重新拉取数据
+            if (now - time > 1000 * 60 * 60 * 24 * 3) {
+              this.clearShiChang();
+            }
+          }
+          if (!res[1]) {
+            // 如果没有添加过市场数据，则需要初始化
+            this.getShiChang();
+          } else {
+            // 获取当天时间
+            let day = new Date().getDate();
+            if (res[1].time < day) {
+              this.getShiChang();
+            } else {
+              this.shichang = res[1];
+              this.shichang.time = day;
+            }
+          }
+        })
+        .then(this.autoRead); // 获取基金的数据
+    },
     // 获取市场数据
     getShiChang() {
       let shichangs = [
@@ -447,7 +451,8 @@ export default {
             "Content-Type": "text/javascript;charset=utf-8",
           },
         }).then((res) => {
-          let k = eval("(" + res.split("=")[1] + ")");
+          // let k = eval("(" + res.split("=")[1] + ")");
+          let k = JSON.parse(res.split("=")[1]);
           return k;
         }),
         // 获取中证500
@@ -458,7 +463,8 @@ export default {
             "Content-Type": "text/javascript;charset=utf-8",
           },
         }).then((res) => {
-          let k = eval("(" + res.split("=")[1] + ")");
+          // let k = eval("(" + res.split("=")[1] + ")");
+          let k = JSON.parse(res.split("=")[1]);
           return k;
         }),
         // 获取上证
@@ -469,7 +475,8 @@ export default {
             "Content-Type": "text/javascript;charset=utf-8",
           },
         }).then((res) => {
-          let k = eval("(" + res.split("=")[1] + ")");
+          // let k = eval("(" + res.split("=")[1] + ")");
+          let k = JSON.parse(res.split("=")[1]);
           return k;
         }),
         // 获取创业板
@@ -480,7 +487,8 @@ export default {
             "Content-Type": "text/javascript;charset=utf-8",
           },
         }).then((res) => {
-          let k = eval("(" + res.split("=")[1] + ")");
+          // let k = eval("(" + res.split("=")[1] + ")");
+          let k = JSON.parse(res.split("=")[1]);
           return k;
         }),
       ];
@@ -624,6 +632,7 @@ export default {
           let all = [],
             jijinname = this.zhengli.canUse.find((t) => t.code == codes[i])
               .name;
+          // 获取持仓数据
           all.push(
             this.$axios({
               method: "get",
@@ -634,7 +643,7 @@ export default {
             }).then((res) => {
               return res.data.stock;
             }),
-
+            // 获取持仓比例数据
             this.$axios({
               method: "get",
               url: `bili/${codes[i]}`,
@@ -653,7 +662,7 @@ export default {
                 });
               return bili;
             }),
-
+            // 获取基金详情
             this.$axios({
               method: "get",
               url: `xiangqing/${codes[i]}`,
@@ -687,7 +696,7 @@ export default {
             //   return k;
             // }),
 
-            // 用同花顺拉数据
+            // 获取基金自己的收益趋势，用同花顺拉数据
             this.$axios({
               method: "get",
               url: `shouyiqushi/${codes[i]}`,
@@ -695,14 +704,16 @@ export default {
                 "Content-Type": "application/json;charset=utf-8",
               },
             }).then((res) => {
-              let k = eval("(" + res.split("=")[1] + ")"),
+              // console.log(res);
+              // let k = eval("(" + res.split("=")[1] + ")"),
+              let k = JSON.parse(res.split("=")[1]),
                 kk = k.map((t) => [
                   `${t[0].slice(0, 4)}/${t[0].slice(4, 6)}/${t[0].slice(6)}`,
                   t[1],
                 ]);
               return kk;
             }),
-
+            // 获取同类收益趋势
             this.$axios({
               method: "get",
               url: `tonglei/${codes[i]}`,
@@ -740,8 +751,9 @@ export default {
               let arr = t.split("=").map((t) => t.trim());
               // 资产配置
               if (arr[0] == "Data_assetAllocation") {
-                let k = eval("(" + arr[1] + ")");
-                obj["peizhi"] = k.series.map((t) => {
+                // let k = eval("(" + arr[1] + ")");
+                let k = JSON.parse(arr[1]).series;
+                obj["peizhi"] = k.map((t) => {
                   // // 转译特殊字符
                   // if (t.name.indexOf("�") > -1) {
                   //   t.name = "股票";

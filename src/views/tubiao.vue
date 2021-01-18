@@ -1649,7 +1649,7 @@ ul {
       padding: 2px;
     }
     tr > td:nth-of-type(1) {
-      width: 95px;
+      width: 100px;
       flex-shrink: 0;
       text-align: center;
       color: rgb(50, 32, 214);

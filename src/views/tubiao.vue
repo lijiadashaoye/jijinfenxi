@@ -385,8 +385,8 @@ export default {
       caches: null, // 判断是否有缓存
       showAll: false, // 用来控制显示页面DOM表示加载完
     };
-  }, 
-  components: { jiazai }, 
+  },
+  components: { jiazai },
   created() {
     this.range = "A1:B900";
     // this.range = "C1:D900";
@@ -1018,8 +1018,8 @@ export default {
             console.log("数据无法存储！");
           }
         });
-        // this.makeXiangQingChart();
-        // this.changeTime(50, "");
+        this.makeXiangQingChart();
+        this.changeTime(50, "");
       }
     },
     // 基金类型统计
@@ -1904,7 +1904,7 @@ ul {
     }
     button {
       font-size: 12px;
-      padding:2px 3px;
+      padding: 2px 3px;
     }
   }
 }

@@ -19,7 +19,9 @@
           <tbody>
             <tr v-for="(t, ind) in Object.keys(gaiNian)" :key="ind">
               <td>
-                <p>{{ t }}{{ " " + gaiNian[t].length + "个" }}</p>
+                <p class="gaiNum">
+                  {{ t }}{{ " " + gaiNian[t].length + "个" }}
+                </p>
               </td>
               <td>{{ gaiNian[t].join("  ") }}</td>
             </tr>
@@ -154,7 +156,7 @@
               v-model="jijins"
               @keyup.enter="search"
             />
-            <button @click="search">搜索股票</button>
+            <button @click="search">搜索股票(支持模糊搜索)</button>
           </div>
         </thead>
         <tbody>
@@ -349,7 +351,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime: 100, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 1000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -383,17 +385,17 @@ export default {
       caches: null, // 判断是否有缓存
       showAll: false, // 用来控制显示页面DOM表示加载完
     };
-  },
-  components: { jiazai },
+  }, 
+  components: { jiazai }, 
   created() {
-    // this.range = "A1:B900";
+    this.range = "A1:B900";
     // this.range = "C1:D900";
-    this.range = "F1:G900";
+    // this.range = "F1:G900";
 
     this.testShiChang();
   },
   methods: {
-    // 读取市场稳健
+    // 读取市场数据
     testShiChang() {
       // 如果基金太多，localStorage 会存不下
       let arr = [
@@ -704,7 +706,6 @@ export default {
                 "Content-Type": "application/json;charset=utf-8",
               },
             }).then((res) => {
-              // console.log(res);
               // let k = eval("(" + res.split("=")[1] + ")"),
               let k = JSON.parse(res.split("=")[1]),
                 kk = k.map((t) => [
@@ -1017,8 +1018,8 @@ export default {
             console.log("数据无法存储！");
           }
         });
-        this.makeXiangQingChart();
-        this.changeTime(50, "");
+        // this.makeXiangQingChart();
+        // this.changeTime(50, "");
       }
     },
     // 基金类型统计
@@ -1490,7 +1491,8 @@ export default {
     // 根据股票名称查询
     search() {
       if (this.jijins != "") {
-        let code = this.gupiao.filter((t) => t.name == this.jijins)[0].code;
+        let reg = new RegExp(this.jijins, "gi"),
+          code = this.gupiao.find((t) => reg.test(t.name)).code;
         let tar = this.$refs[code][0];
         tar.setAttribute("style", "background:red;");
         // 让元素顺滑的滚动到页面中间
@@ -1899,6 +1901,10 @@ ul {
     }
     &:hover {
       opacity: 1;
+    }
+    button {
+      font-size: 12px;
+      padding:2px 3px;
     }
   }
 }

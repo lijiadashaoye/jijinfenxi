@@ -19,8 +19,11 @@
           <tbody>
             <tr v-for="(t, ind) in Object.keys(gaiNian)" :key="ind">
               <td>
-                <p class="gaiNum">
-                  {{ t }}{{ " " + gaiNian[t].length + "个" }}
+                <p>
+                  {{ t }}
+                </p>
+                <p>
+                  {{ gaiNian[t].length + "个" }}
                 </p>
               </td>
               <td>{{ gaiNian[t].join("  ") }}</td>

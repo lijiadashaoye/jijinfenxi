@@ -84,40 +84,41 @@
               </tr>
             </tbody>
           </table>
-          <!-- 没有持仓数据的 -->
-          <table class="noChiCang" collpase v-if="zhengli.kong.length">
-            <thead>
-              <tr>
-                <th colspan="4">
-                  没有持仓数据的，{{ `${zhengli.kong.length}个` }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(t, ind) in zhengli.kong" :key="ind">
-                <td>{{ t.code }}</td>
-                <td>{{ t.name }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <!-- excel 里重复的 -->
-          <table class="excelChongFu" collpase v-if="zhengli.chongfu.length">
-            <thead>
-              <tr>
-                <th colspan="4">
-                  excel 里重复的{{ `${zhengli.chongfu.length}个` }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(t, ind) in zhengli.chongfu" :key="ind">
-                <td>{{ t.code }}</td>
-                <td>{{ t.name }}</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
+
+      <!-- 没有持仓数据的 -->
+      <table class="noChiCang" collpase v-if="zhengli.kong.length">
+        <thead>
+          <tr>
+            <th colspan="4">
+              没有持仓数据的，{{ `${zhengli.kong.length}个` }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(t, ind) in zhengli.kong" :key="ind">
+            <td>{{ t.code }}</td>
+            <td>{{ t.name }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- excel 里重复的 -->
+      <table class="excelChongFu" collpase v-if="zhengli.chongfu.length">
+        <thead>
+          <tr>
+            <th colspan="4">
+              excel 里重复的{{ `${zhengli.chongfu.length}个` }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(t, ind) in zhengli.chongfu" :key="ind">
+            <td>{{ t.code }}</td>
+            <td>{{ t.name }}</td>
+          </tr>
+        </tbody>
+      </table>
 
       <!-- 基金经理汇总 -->
       <table collpase class="typeTongJi" v-if="showJingLi">
@@ -1746,7 +1747,7 @@ ul {
 .noChiCang > tbody,
 .excelChongFu > tbody {
   display: grid;
-  grid-template-columns: 33.3% 33.3% 33.3%;
+  grid-template-columns: 29% 29% 29%;
 }
 .typeJiJin,
 .noChiCang,

@@ -7,8 +7,46 @@
     </button>
     <button class="clear" @click="clearJiJin">清除缓存，重新拉取数据</button>
 
-    <div class="wap" v-show="showAll">
-      <div class="gainians">
+    <div class="stickyd">
+      <div>
+        <input
+          type="text"
+          placeholder="输入股票名称"
+          v-model="jijins"
+          @keyup.enter="search"
+        />
+      </div>
+      <button @click="search">搜索股票(支持模糊搜索)</button>
+    </div>
+    <div class="showModel">
+      <label>
+        概念类型统计
+        <input type="checkbox" v-model="showGaiNian" />
+      </label>
+      <label>
+        基金类型统计
+        <input type="checkbox" v-model="showLeiXing" />
+      </label>
+      <label>
+        基金经理统计
+        <input type="checkbox" v-model="showJingLi" />
+      </label>
+      <label>
+        重合分析
+        <input type="checkbox" v-model="showChongHe" />
+      </label>
+      <label>
+        股票数据统计
+        <input type="checkbox" v-model="showTongJi" />
+      </label>
+      <label>
+        基金完整分析
+        <input type="checkbox" v-model="showFenXi" @change="makeChart" />
+      </label>
+    </div>
+
+    <div v-show="showAll">
+      <div class="gainians" v-if="showGaiNian">
         <!-- 根据概念区分 -->
         <table class="gainians1" collpase>
           <thead>
@@ -81,7 +119,7 @@
       </div>
 
       <!-- 基金经理汇总 -->
-      <table class="typeTongJi" collpase>
+      <table collpase class="typeTongJi" v-if="showJingLi">
         <thead>
           <tr>
             <th colspan="6">基金经理汇总</th>
@@ -106,7 +144,7 @@
       </table>
 
       <!-- 重合分析 -->
-      <table ref="chong" class="chonghe" collpase v-if="chonghe.length">
+      <table ref="chong" class="chonghe" collpase v-if="showChongHe">
         <thead>
           <tr>
             <th colspan="4">重合分析</th>
@@ -136,10 +174,10 @@
       </table>
 
       <!-- 数据统计 -->
-      <table class="shuju" collpase>
+      <table class="shuju" collpase v-if="showTongJi">
         <thead>
           <tr>
-            <th colspan="4">数据统计</th>
+            <th colspan="4">股票数据统计</th>
           </tr>
 
           <tr class="lists">
@@ -152,15 +190,6 @@
               <span>{{ single }} 个股票被持有一次</span>
             </th>
           </tr>
-          <div class="stickyd">
-            <input
-              type="text"
-              placeholder="输入股票名称"
-              v-model="jijins"
-              @keyup.enter="search"
-            />
-            <button @click="search">搜索股票(支持模糊搜索)</button>
-          </div>
         </thead>
         <tbody>
           <tr v-for="(t, ind) in gupiao" :key="ind" :ref="t.code">
@@ -179,7 +208,7 @@
       </table>
 
       <!-- 每个基金的分析 -->
-      <table class="fenxi" collpase>
+      <table class="fenxi" collpase v-if="showFenXi">
         <thead>
           <tr>
             <th colspan="3">基金详情，{{ `共 ${zhengli.fenxi.length} 个` }}</th>
@@ -387,6 +416,13 @@ export default {
       colorObj: {}, // 存储不同概念的颜色
       caches: null, // 判断是否有缓存
       showAll: false, // 用来控制显示页面DOM表示加载完
+
+      showGaiNian: false, // 显示概念分析
+      showLeiXing: false, // 显示基金类型分析
+      showJingLi: false, // 显示基金经理分析
+      showChongHe: true, // 显示重合分析
+      showTongJi: true, // 股票数据统计
+      showFenXi: false, // 显示走势分析
     };
   },
   components: { jiazai },
@@ -1021,6 +1057,14 @@ export default {
             console.log("数据无法存储！");
           }
         });
+        if (this.showFenXi) {
+          this.makeXiangQingChart();
+          this.changeTime(50, "");
+        }
+      }
+    },
+    makeChart() {
+      if (this.showFenXi) {
         this.makeXiangQingChart();
         this.changeTime(50, "");
       }
@@ -1611,15 +1655,9 @@ table {
 ul {
   list-style-type: none;
 }
-.wap {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding-bottom: 0;
-  margin: 0;
-  width: 100%;
-}
+
 .gainians {
+  padding-right: 150px;
   thead {
     tr {
       width: 100%;
@@ -1629,14 +1667,14 @@ ul {
     }
   }
   display: flex;
+  flex-wrap: wrap;
   .gainians1 {
-    width: 60%;
+    width: 100%;
     box-sizing: border-box;
   }
   .gainians2 {
-    width: calc(40% - 10px);
+    width: 100%;
     box-sizing: border-box;
-    margin-left: 10px;
   }
 
   .gainians1 {
@@ -1667,15 +1705,19 @@ ul {
     }
   }
 }
+
+.noChiCang > tbody,
+.excelChongFu > tbody {
+  display: grid;
+  grid-template-columns: 33.3% 33.3% 33.3%;
+}
 .typeJiJin,
 .noChiCang,
 .excelChongFu {
   width: 100%;
   tbody {
-    display: flex;
-    flex-wrap: wrap;
     tr {
-      width: 50%;
+      width: 100%;
       display: flex;
     }
     td {
@@ -1701,14 +1743,13 @@ ul {
     }
   }
 }
+
 .typeJiJin > tbody > tr {
   width: 100%;
 }
 .typeTongJi {
-  width: 90%;
   thead {
     tr {
-      width: 100%;
       display: flex;
       justify-content: center;
       margin: 10px 0;
@@ -1716,7 +1757,8 @@ ul {
   }
   tbody {
     display: grid;
-    grid-template-columns: 33% 33% 33%;
+    grid-template-columns: 29% 29% 29%;
+
     tr {
       width: 100%;
       display: flex;
@@ -1747,7 +1789,7 @@ ul {
 }
 
 .chonghe {
-  max-width: 100%;
+  width: calc(100% - 155px);
   th {
     font-size: 20px;
   }
@@ -1781,16 +1823,12 @@ ul {
 }
 
 .shuju {
-  width: 100%;
   margin-top: 10px;
   box-sizing: border-box;
+  margin-right: 150px;
   thead {
-    tr {
-      width: 100%;
-    }
     .lists {
       display: flex;
-      width: 100%;
       th {
         font-size: 16px;
         padding: 3px;
@@ -1819,7 +1857,6 @@ ul {
 
     tr:nth-of-type(3) {
       display: flex;
-      width: 100%;
       th {
         padding: 3px;
         border: 1px solid rgb(188, 181, 181);
@@ -1843,7 +1880,6 @@ ul {
   tbody {
     tr {
       display: flex;
-      width: 100%;
       td {
         padding: 3px;
         border: 1px solid rgb(211, 202, 202);
@@ -1888,27 +1924,6 @@ ul {
   }
   .bg {
     background: rgba(230, 186, 156, 0.3);
-  }
-  .stickyd {
-    opacity: 0.3;
-    display: inline-block;
-    padding: 2px 4px 4px 4px;
-    background: rgb(15, 188, 190);
-    position: fixed;
-    right: 20px;
-    top: 20px;
-    text-align: right;
-    input {
-      padding: 4px;
-      margin-right: 5px;
-    }
-    &:hover {
-      opacity: 1;
-    }
-    button {
-      font-size: 12px;
-      padding: 2px 3px;
-    }
   }
 }
 
@@ -2186,6 +2201,43 @@ ul {
     border: none;
     background: #c3e8ff;
     border-bottom: 1px solid #c3e8ff;
+  }
+}
+
+.stickyd {
+  opacity: 0.3;
+  display: inline-block;
+  padding: 2px 0;
+  background: rgb(15, 188, 190);
+  position: fixed;
+  right: 5px;
+  top: 20px;
+  text-align: right;
+  input {
+    padding: 2px;
+  }
+  &:hover {
+    opacity: 1;
+  }
+  button {
+    font-size: 12px;
+  }
+}
+.showModel {
+  position: fixed;
+  top: 90px;
+  right: 5px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: rgb(222, 212, 135);
+  label {
+    padding: 0 0 2px 10px;
+  }
+  label:hover {
+    background: blanchedalmond;
+    cursor: pointer;
   }
 }
 </style>

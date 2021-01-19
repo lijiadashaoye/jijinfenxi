@@ -13,6 +13,6 @@ p {
 body,
 html {
   height: 100%;
-  padding: 0 5px;
+  padding-left: 5px;
 }
 </style>

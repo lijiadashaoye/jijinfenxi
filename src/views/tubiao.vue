@@ -7,45 +7,46 @@
     </button>
     <button class="clear" @click="clearJiJin">清除缓存，重新拉取数据</button>
 
-    <div class="stickyd">
-      <div>
-        <input
-          type="text"
-          placeholder="输入股票名称"
-          v-model="jijins"
-          @keyup.enter="search"
-        />
-      </div>
-      <button @click="search">搜索股票(支持模糊搜索)</button>
-    </div>
-    <div class="showModel">
-      <label>
-        概念类型统计
-        <input type="checkbox" v-model="showGaiNian" />
-      </label>
-      <label>
-        基金类型统计
-        <input type="checkbox" v-model="showLeiXing" />
-      </label>
-      <label>
-        基金经理统计
-        <input type="checkbox" v-model="showJingLi" />
-      </label>
-      <label>
-        重合分析
-        <input type="checkbox" v-model="showChongHe" />
-      </label>
-      <label>
-        股票数据统计
-        <input type="checkbox" v-model="showTongJi" />
-      </label>
-      <label>
-        基金完整分析
-        <input type="checkbox" v-model="showFenXi" @change="makeChart" />
-      </label>
-    </div>
-
     <div v-show="showAll">
+      <div class="sticky">
+        <div class="searchGP">
+          <div>
+            <input
+              type="text"
+              placeholder="输入股票名称"
+              v-model="jijins"
+              @keyup.enter="search"
+            />
+          </div>
+          <button @click="search">搜索股票(支持模糊搜索)</button>
+        </div>
+        <div class="showModel">
+          <label>
+            概念类型统计
+            <input type="checkbox" v-model="showGaiNian" />
+          </label>
+          <label>
+            基金类型统计
+            <input type="checkbox" v-model="showLeiXing" />
+          </label>
+          <label>
+            基金经理统计
+            <input type="checkbox" v-model="showJingLi" />
+          </label>
+          <label>
+            重合分析
+            <input type="checkbox" v-model="showChongHe" />
+          </label>
+          <label>
+            股票数据统计
+            <input type="checkbox" v-model="showTongJi" />
+          </label>
+          <label>
+            基金完整分析
+            <input type="checkbox" v-model="showFenXi" @change="makeChart" />
+          </label>
+        </div>
+      </div>
       <div class="gainians" v-if="showGaiNian">
         <!-- 根据概念区分 -->
         <table class="gainians1" collpase>
@@ -206,169 +207,160 @@
           </tr>
         </tbody>
       </table>
-
-      <!-- 每个基金的分析 -->
-      <table class="fenxi" collpase v-if="showFenXi">
-        <thead>
-          <tr>
-            <th colspan="3">基金详情，{{ `共 ${zhengli.fenxi.length} 个` }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(d, ind) in chartList" :key="ind">
-            <td v-for="(t, ind) in d" :key="ind">
-              <div>
-                <div class="names">
-                  <p>{{ t.name }}</p>
-                  <p
-                    title="点击查看基金"
-                    class="showManager"
-                    @click="showJiJin(t.code)"
-                    @contextmenu="oncontextmenu($event, t.code)"
-                  >
-                    <span>{{ t.code }}</span>
-                  </p>
-                  <p
-                    title="点击查看基金经理管理的基金"
-                    class="showManager"
-                    @click="showManager(t.code)"
-                    @contextmenu="oncontextmenu($event, t.code)"
-                  >
-                    {{ t.jingli }}
-                  </p>
-                  <p>
-                    <span>概念:</span>
-                    <span
-                      v-for="(d, ind) of t.theme"
-                      :key="ind"
-                      :style="{ color: colorObj[d], fontWeight: 'bold' }"
-                    >
-                      {{ d }}
-                    </span>
-                  </p>
-                </div>
-                <div class="bili">
-                  <div :ref="`${t.code}_pie`"></div>
-                  <ul>
-                    <li>
-                      <span class="leixingName"> {{ `${t.leixing}：` }}</span>
-                      <span>{{ t.fengxian }}</span>
-                    </li>
-                    <li v-for="(d, ind) of t.peizhi" :key="ind">
-                      <span class="leixingName">{{ `${d.name}：` }}</span>
-                      <span v-if="d.name != '规模'">{{
-                        d.num ? d.num + " %" : "--"
-                      }}</span>
-                      <span v-else>{{ d.num ? d.num + " 亿" : "--" }}</span>
-                      <span v-if="d.name == '规模' && t.chengli"
-                        >{{ " (" + t.chengli.slice(5) + ")" }}
-                      </span>
-                    </li>
-                  </ul>
-                  <ul>
-                    <li>
-                      <span class="leixingName">成立日期：</span>
-                      <span>{{ t.chengli }}</span>
-                    </li>
-                    <li>
-                      <span class="leixingName">净值：</span>
-                      <span>{{ t.jingzhi }}</span>
-                    </li>
-                    <li>
-                      <span class="leixingName">统计日期：</span>
-                      <span>{{ `${t.jingTime}` }}</span>
-                    </li>
-                    <li>
-                      <span class="leixingName">日涨幅：</span>
-                      <span>{{ `${t.zhangfu}%` }}</span>
-                    </li>
-                    <li>
-                      <span class="leixingName">购买费率：</span>
-                      <span>{{ t.feilv ? t.feilv + "%" : "" }}</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div class="xiangqing">
-                <div class="zhang">
-                  <p>
-                    <span>近1月：</span>&nbsp;
-                    <span>{{ t.yue_1 + " %" }}</span>
-                  </p>
-                  <p>
-                    <span>近3月：</span>&nbsp;
-                    <span>{{ t.yue_3 + " %" }}</span>
-                  </p>
-                </div>
-                <div class="zhang">
-                  <p>
-                    <span>近6月：</span>&nbsp;
-                    <span>{{ t.yue_6 + " %" }}</span>
-                  </p>
-                  <p>
-                    <span>近1年：</span>&nbsp;
-                    <span>{{ t.nian + " %" }}</span>
-                  </p>
-                </div>
-                <div class="zhang">
-                  <p>
-                    <span>今年：</span>&nbsp;
-                    <span>{{ t.nowyear + " %" }}</span>
-                  </p>
-                  <p style="color: red">
-                    <span>成立以来：</span>&nbsp;
-                    <span>{{ t.tyear + " %" }}</span>
-                  </p>
-                </div>
-              </div>
-
-              <!-- 排名分析 -->
-              <table class="paiming" collpase>
-                <tbody>
-                  <tr>
-                    <td>同类排名</td>
-                    <td v-for="(l, ind) in Object.keys(t.paiming)" :key="ind">
-                      <p>{{ t.paiming[l][3] }}</p>
-                      <span>{{ t.paiming[l][0] }}</span>
-                      <hr />
-                      <span> {{ t.paiming[l][1] }}</span>
-                      <div class="jinjie">
-                        <p
-                          :class="{ hao3: t.paiming[l][2] > 3, hao: true }"
-                        ></p>
-                        <p
-                          :class="{ hao2: t.paiming[l][2] > 2, hao: true }"
-                        ></p>
-                        <p
-                          :class="{ hao1: t.paiming[l][2] > 1, hao: true }"
-                        ></p>
-                        <p
-                          :class="{ hao0: t.paiming[l][2] > 0, hao: true }"
-                        ></p>
-                        <p>{{ setName(t.paiming[l][2]) }}</p>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <!-- 收益走势 -->
-              <div :class="{ zoushi: t.shouyi }" :ref="`${t.code}_qushi`">
-                <select @change="changeTime($event.target.value, t.code)">
-                  <option value="50">成立以来</option>
-                  <option value="1">最近1年</option>
-                  <option value="3">最近3年</option>
-                  <option value="5">最近5年</option>
-                </select>
-
-                <div></div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
     </div>
+    <!-- 每个基金的分析 -->
+    <table class="fenxi" collpase v-if="showFenXi">
+      <thead>
+        <tr>
+          <th colspan="3">基金详情，{{ `共 ${zhengli.fenxi.length} 个` }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(d, ind) in chartList" :key="ind">
+          <td v-for="(t, ind) in d" :key="ind">
+            <div>
+              <div class="names">
+                <p>{{ t.name }}</p>
+                <p
+                  title="点击查看基金"
+                  class="showManager"
+                  @click="showJiJin(t.code)"
+                  @contextmenu="oncontextmenu($event, t.code)"
+                >
+                  <span>{{ t.code }}</span>
+                </p>
+                <p
+                  title="点击查看基金经理管理的基金"
+                  class="showManager"
+                  @click="showManager(t.code)"
+                  @contextmenu="oncontextmenu($event, t.code)"
+                >
+                  {{ t.jingli }}
+                </p>
+                <p>
+                  <span>概念:</span>
+                  <span
+                    v-for="(d, ind) of t.theme"
+                    :key="ind"
+                    :style="{ color: colorObj[d], fontWeight: 'bold' }"
+                  >
+                    {{ d }}
+                  </span>
+                </p>
+              </div>
+              <div class="bili">
+                <div :ref="`${t.code}_pie`"></div>
+                <ul>
+                  <li>
+                    <span class="leixingName"> {{ `${t.leixing}：` }}</span>
+                    <span>{{ t.fengxian }}</span>
+                  </li>
+                  <li v-for="(d, ind) of t.peizhi" :key="ind">
+                    <span class="leixingName">{{ `${d.name}：` }}</span>
+                    <span v-if="d.name != '规模'">{{
+                      d.num ? d.num + " %" : "--"
+                    }}</span>
+                    <span v-else>{{ d.num ? d.num + " 亿" : "--" }}</span>
+                    <span v-if="d.name == '规模' && t.chengli"
+                      >{{ " (" + t.chengli.slice(5) + ")" }}
+                    </span>
+                  </li>
+                </ul>
+                <ul>
+                  <li>
+                    <span class="leixingName">成立日期：</span>
+                    <span>{{ t.chengli }}</span>
+                  </li>
+                  <li>
+                    <span class="leixingName">净值：</span>
+                    <span>{{ t.jingzhi }}</span>
+                  </li>
+                  <li>
+                    <span class="leixingName">统计日期：</span>
+                    <span>{{ `${t.jingTime}` }}</span>
+                  </li>
+                  <li>
+                    <span class="leixingName">日涨幅：</span>
+                    <span>{{ `${t.zhangfu}%` }}</span>
+                  </li>
+                  <li>
+                    <span class="leixingName">购买费率：</span>
+                    <span>{{ t.feilv ? t.feilv + "%" : "" }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="xiangqing">
+              <div class="zhang">
+                <p>
+                  <span>近1月：</span>&nbsp;
+                  <span>{{ t.yue_1 + " %" }}</span>
+                </p>
+                <p>
+                  <span>近3月：</span>&nbsp;
+                  <span>{{ t.yue_3 + " %" }}</span>
+                </p>
+              </div>
+              <div class="zhang">
+                <p>
+                  <span>近6月：</span>&nbsp;
+                  <span>{{ t.yue_6 + " %" }}</span>
+                </p>
+                <p>
+                  <span>近1年：</span>&nbsp;
+                  <span>{{ t.nian + " %" }}</span>
+                </p>
+              </div>
+              <div class="zhang">
+                <p>
+                  <span>今年：</span>&nbsp;
+                  <span>{{ t.nowyear + " %" }}</span>
+                </p>
+                <p style="color: red">
+                  <span>成立以来：</span>&nbsp;
+                  <span>{{ t.tyear + " %" }}</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- 排名分析 -->
+            <table class="paiming" collpase>
+              <tbody>
+                <tr>
+                  <td>同类排名</td>
+                  <td v-for="(l, ind) in Object.keys(t.paiming)" :key="ind">
+                    <p>{{ t.paiming[l][3] }}</p>
+                    <span>{{ t.paiming[l][0] }}</span>
+                    <hr />
+                    <span> {{ t.paiming[l][1] }}</span>
+                    <div class="jinjie">
+                      <p :class="{ hao3: t.paiming[l][2] > 3, hao: true }"></p>
+                      <p :class="{ hao2: t.paiming[l][2] > 2, hao: true }"></p>
+                      <p :class="{ hao1: t.paiming[l][2] > 1, hao: true }"></p>
+                      <p :class="{ hao0: t.paiming[l][2] > 0, hao: true }"></p>
+                      <p>{{ setName(t.paiming[l][2]) }}</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- 收益走势 -->
+            <div :class="{ zoushi: t.shouyi }" :ref="`${t.code}_qushi`">
+              <select @change="changeTime($event.target.value, t.code)">
+                <option value="50">成立以来</option>
+                <option value="1">最近1年</option>
+                <option value="3">最近3年</option>
+                <option value="5">最近5年</option>
+              </select>
+
+              <div></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
@@ -421,7 +413,7 @@ export default {
       showLeiXing: false, // 显示基金类型分析
       showJingLi: false, // 显示基金经理分析
       showChongHe: true, // 显示重合分析
-      showTongJi: true, // 股票数据统计
+      showTongJi: false, // 股票数据统计
       showFenXi: false, // 显示走势分析
     };
   },
@@ -1657,7 +1649,7 @@ ul {
 }
 
 .gainians {
-  padding-right: 150px;
+
   thead {
     tr {
       width: 100%;
@@ -2204,14 +2196,11 @@ ul {
   }
 }
 
-.stickyd {
+.searchGP {
   opacity: 0.3;
   display: inline-block;
   padding: 2px 0;
   background: rgb(15, 188, 190);
-  position: fixed;
-  right: 5px;
-  top: 20px;
   text-align: right;
   input {
     padding: 2px;
@@ -2224,20 +2213,25 @@ ul {
   }
 }
 .showModel {
-  position: fixed;
-  top: 90px;
-  right: 5px;
   font-size: 12px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   background: rgb(222, 212, 135);
   label {
-    padding: 0 0 2px 10px;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    padding: 2px 0 2px 4px;
   }
   label:hover {
-    background: blanchedalmond;
+    background: rgb(230, 205, 255);
     cursor: pointer;
   }
+}
+.sticky {
+  position: sticky;
+  top: 15px;
+  float:right
 }
 </style>

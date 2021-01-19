@@ -96,7 +96,7 @@
       </div>
 
       <!-- 没有持仓数据的 -->
-      <table class="noChiCang" collpase v-if="zhengli.kong.length">
+      <table class="noChiCang" collpase v-if="showKong">
         <thead>
           <tr>
             <th colspan="4">
@@ -112,7 +112,7 @@
         </tbody>
       </table>
       <!-- excel 里重复的 -->
-      <table class="excelChongFu" collpase v-if="zhengli.chongfu.length">
+      <table class="excelChongFu" collpase v-if="showChongFu">
         <thead>
           <tr>
             <th colspan="4">

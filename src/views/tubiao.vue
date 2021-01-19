@@ -47,9 +47,9 @@
           </label>
         </div>
       </div>
-      <div class="gainians" v-if="showGaiNian">
+      <div class="gainians">
         <!-- 根据概念区分 -->
-        <table class="gainians1" collpase>
+        <table class="gainians1" collpase v-if="showGaiNian">
           <thead>
             <tr>
               <th colspan="2">概念类型统计</th>
@@ -69,7 +69,7 @@
             </tr>
           </tbody>
         </table>
-        <div class="gainians2">
+        <div class="gainians2" v-if="showLeiXing">
           <!-- 基金类型统计 -->
           <table class="typeJiJin" collpase>
             <thead>
@@ -160,12 +160,11 @@
           </tr>
           <tr v-for="(t, ind) in chonghe" :key="ind">
             <td>
-              <p>{{ t.one.name }}</p>
-              <p>{{ t.two.name }}</p>
+              <p @contextmenu="toChart($event, t.one.code)">{{ t.one.name }}</p>
+              <p @contextmenu="toChart($event, t.two.code)">{{ t.two.name }}</p>
             </td>
             <td style="font-size: 14px">{{ t.num }}</td>
             <td>{{ t.chong.join(" ") }}</td>
-
             <td>
               <p>{{ t.oneOther.join(" ") }}</p>
               <p>{{ t.twoOther.join(" ") }}</p>
@@ -217,7 +216,7 @@
       </thead>
       <tbody>
         <tr v-for="(d, ind) in chartList" :key="ind">
-          <td v-for="(t, ind) in d" :key="ind">
+          <td v-for="(t, ind) in d" :key="ind" :ref="`${t.code}_chart`">
             <div>
               <div class="names">
                 <p>{{ t.name }}</p>
@@ -417,6 +416,7 @@ export default {
       showFenXi: false, // 显示走势分析
     };
   },
+
   components: { jiazai },
   created() {
     this.range = "A1:B900";
@@ -662,9 +662,7 @@ export default {
     async useHttp(codes) {
       for (let i = codes.length; i--; ) {
         if (codes[i]) {
-          let all = [],
-            jijinname = this.zhengli.canUse.find((t) => t.code == codes[i])
-              .name;
+          let all = [];
           // 获取持仓数据
           all.push(
             this.$axios({
@@ -700,11 +698,9 @@ export default {
               method: "get",
               url: `xiangqing/${codes[i]}`,
               headers: {
-                // "Content-Type": "text/html;charset=gbk",
                 "Content-Type": "application/json;charset=utf-8",
               },
             }).then((res) => {
-              res.data[0].name = jijinname;
               return res.data[0];
             }),
 
@@ -763,12 +759,12 @@ export default {
             // 基金持仓
             let obj = {
               shouyi: {
-                [jijinname]: [],
-                同类平均: [],
-                沪深300: [],
-                中证500: [],
-                上证指数: [],
-                创业板指数: [],
+                one: [], // 基金自己
+                two: [], // 同类平均
+                three: [], // 沪深300
+                four: [], // 中证500
+                five: [], // 上证指数
+                six: [], // 创业板指数
               },
             };
             if (res[0].length) {
@@ -786,10 +782,6 @@ export default {
                 // let k = eval("(" + arr[1] + ")");
                 let k = JSON.parse(arr[1]).series;
                 obj["peizhi"] = k.map((t) => {
-                  // // 转译特殊字符
-                  // if (t.name.indexOf("�") > -1) {
-                  //   t.name = "股票";
-                  // }
                   return {
                     name: t.name != "净资产" ? t.name.slice(0, 2) + "" : "规模",
                     num:
@@ -894,11 +886,11 @@ export default {
                 num = Math.abs(
                   ((parseFloat(res[4][i][1]) - jishu) / jishu) * 100
                 ).toFixed(2);
-              obj.shouyi[jijinname].unshift([time, num]);
+              obj.shouyi.one.unshift([time, num]);
             }
             let jishuTime, tonglei, hushen, zhong, shang, chuang;
             try {
-              jishuTime = obj.shouyi[jijinname][0][0];
+              jishuTime = obj.shouyi.one[0][0];
               tonglei = res[5].filter(
                 (t) => new Date(t[0]) >= new Date(jishuTime)
               );
@@ -926,7 +918,7 @@ export default {
                 num = Math.abs(
                   ((parseFloat(tonglei[i][1]) - jishu) / jishu) * 100
                 ).toFixed(2);
-              obj.shouyi["同类平均"].unshift([time, num]);
+              obj.shouyi.two.unshift([time, num]);
             }
             // 整理沪深的展示数据
             for (let i = hushen.length; i--; ) {
@@ -935,7 +927,7 @@ export default {
                 num = Math.abs(
                   ((parseFloat(tar[1]) - jishu) / jishu) * 100
                 ).toFixed(2);
-              obj["shouyi"]["沪深300"].unshift([tar[0], num]);
+              obj["shouyi"].three.unshift([tar[0], num]);
             }
             // 整理中证500的展示数据
             for (let i = zhong.length; i--; ) {
@@ -944,7 +936,7 @@ export default {
                 num = Math.abs(
                   ((parseFloat(tar[1]) - jishu) / jishu) * 100
                 ).toFixed(2);
-              obj["shouyi"]["中证500"].unshift([tar[0], num]);
+              obj["shouyi"].four.unshift([tar[0], num]);
             }
             // 整理上证指数的展示数据
             for (let i = shang.length; i--; ) {
@@ -953,7 +945,7 @@ export default {
                 num = Math.abs(
                   ((parseFloat(tar[1]) - jishu) / jishu) * 100
                 ).toFixed(2);
-              obj["shouyi"]["上证指数"].unshift([tar[0], num]);
+              obj["shouyi"].five.unshift([tar[0], num]);
             }
             // 整理创业板指数的展示数据
             for (let i = chuang.length; i--; ) {
@@ -962,11 +954,11 @@ export default {
                 num = Math.abs(
                   ((parseFloat(tar[1]) - jishu) / jishu) * 100
                 ).toFixed(2);
-              obj["shouyi"]["创业板指数"].unshift([tar[0], num]);
+              obj["shouyi"].six.unshift([tar[0], num]);
             }
             // 基金详细数据
             obj.code = res[2].code; // 基金号
-            obj.name = jijinname; // 基金名称
+            obj.name = this.zhengli.canUse.find((t) => t.code == codes[i]).name; // 基金名称
             obj.theme =
               res[2].themeList && res[2].themeList.length
                 ? res[2].themeList.map((t) => t.field_name)
@@ -1306,7 +1298,26 @@ export default {
                 names = Object.keys(t);
               for (let i = names.length; i--; ) {
                 if (names[i] != "code" && names[i] != "name") {
-                  endData[names[i]] = t[names[i]];
+                  switch (names[i]) {
+                    case "one":
+                      endData[t.name] = t[names[i]];
+                      break;
+                    case "two":
+                      endData["同类平均"] = t[names[i]];
+                      break;
+                    case "three":
+                      endData["沪深300"] = t[names[i]];
+                      break;
+                    case "four":
+                      endData["中证500"] = t[names[i]];
+                      break;
+                    case "five":
+                      endData["上证指数"] = t[names[i]];
+                      break;
+                    case "six":
+                      endData["创业板指数"] = t[names[i]];
+                      break;
+                  }
                 }
               }
               qushi(tar[0].children[1], endData, t.name, res);
@@ -1316,13 +1327,6 @@ export default {
       });
       // 执行画图
       function qushi(tar, datas, jiJinName, res) {
-        try {
-          datas[jiJinName].map((t) => t[0].slice(5)).length;
-        } catch {
-          console.log(jiJinName);
-          console.log(datas);
-        }
-
         let option = {
           color: [
             "#7a77be",
@@ -1545,14 +1549,6 @@ export default {
         }, 5000);
       }
     },
-    // 跳转到查看重复表格头部
-    tochong() {
-      this.$refs.chong.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-        inline: "nearest",
-      });
-    },
     // 清除已经获取的市场数据，重新拉取
     clearShiChang() {
       this.$axios({
@@ -1628,6 +1624,14 @@ export default {
           return "优秀";
       }
     },
+    // 跳转到查看重复表格头部
+    tochong() {
+      this.$refs.chong.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
+      });
+    },
     // 阻止鼠标右键事件
     oncontextmenu(e, t) {
       e.preventDefault();
@@ -1635,6 +1639,49 @@ export default {
       let jijin = this.zhengli.canUse.find((td) => td.code == t).name;
       alert(`基金---  ${jijin}  ${t}  ---已经被console.log`);
       console.log(this.zhengli);
+    },
+    // 点击基金跳转到它的图表分析
+    toChart(e, code) {
+      e.preventDefault();
+      let target = e.target;
+      target.classList.add("toChartRightClick");
+      let x = e.offsetX,
+        y = e.offsetY, // 找到鼠标右键单击时的相对坐标
+        spans = document.createElement("span");
+      let str = `position: absolute;background: #96fdb4;
+        padding: 2px 6px;
+        width: 40px !important;
+        cursor: pointer;
+        border-radius: 3px;
+        text-align:center;
+        color: black;`;
+      if (target.offsetWidth - 50 > x) {
+        spans.style = `${str}left:${x}px;top:${y - 15}px;
+       `;
+      } else {
+        spans.style = `${str}left:${target.offsetWidth - 50}px;top:${
+          y - 15
+        }px;`;
+      }
+
+      spans.innerHTML = "点击查看图表";
+      spans.addEventListener("click", () => {
+        if (this.showFenXi && code) {
+          this.$refs[`${code}_chart`].scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest",
+          });
+          target.removeChild(spans);
+        } else {
+          alert("没有图表，请在右侧勾选！");
+        }
+      });
+      target.appendChild(spans);
+      setTimeout(() => {
+        target.classList.remove("toChartRightClick");
+        target.removeChild(spans);
+      }, 5000);
     },
   },
 };
@@ -1800,7 +1847,7 @@ ul {
     }
   }
   td:nth-of-type(2) {
-    min-width: 62px;
+    min-width: 65px;
     text-align: center;
   }
   .chongheTitle {
@@ -2232,5 +2279,8 @@ ul {
   position: sticky;
   top: 15px;
   float: right;
+}
+.toChartRightClick {
+  position: relative;
 }
 </style>

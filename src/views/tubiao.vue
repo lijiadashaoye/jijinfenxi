@@ -2080,6 +2080,7 @@ ul {
   opacity: 0.5;
   background: none;
   outline: none;
+  z-index: 8330;
 }
 .toChong:hover {
   cursor: pointer;
@@ -2095,7 +2096,7 @@ ul {
   font-size: 12px;
   background: rgb(25, 233, 236);
   padding: 2px 4px;
-  z-index: 80;
+
   border-radius: 5px;
 }
 .seegupiao:hover {
@@ -2230,6 +2231,6 @@ ul {
 .sticky {
   position: sticky;
   top: 15px;
-  float:right
+  float: right;
 }
 </style>

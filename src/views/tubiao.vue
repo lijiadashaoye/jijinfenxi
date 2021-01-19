@@ -413,7 +413,7 @@ export default {
       showLeiXing: false, // 显示基金类型分析
       showJingLi: false, // 显示基金经理分析
       showChongHe: true, // 显示重合分析
-      showTongJi: false, // 股票数据统计
+      showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
     };
   },

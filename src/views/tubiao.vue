@@ -383,7 +383,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 100, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -420,11 +420,11 @@ export default {
       showGaiNian: false, // 显示概念分析
       showLeiXing: false, // 显示基金类型分析
       showJingLi: false, // 显示基金经理分析
+      showKong: false, // 没有持仓数据的
+      showChongFu: false, // excel 里重复的
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
-      showKong: false, // 没有持仓数据的
-      showChongFu: false, // excel 里重复的
     };
   },
 
@@ -1870,7 +1870,7 @@ ul {
     padding: 2px 4px;
   }
   td:nth-of-type(1) {
-    width: 200px;
+    width: 190px;
   }
   td:nth-of-type(1),
   td:nth-of-type(4) {

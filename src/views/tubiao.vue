@@ -34,6 +34,14 @@
             <input type="checkbox" v-model="showJingLi" />
           </label>
           <label>
+            没有持仓数据
+            <input type="checkbox" v-model="showKong" />
+          </label>
+          <label>
+            excel里重复
+            <input type="checkbox" v-model="showChongFu" />
+          </label>
+          <label>
             重合分析
             <input type="checkbox" v-model="showChongHe" />
           </label>
@@ -415,6 +423,8 @@ export default {
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
+      showKong: false, // 没有持仓数据的
+      showChongFu: false, // excel 里重复的
     };
   },
 

@@ -1647,9 +1647,7 @@ table {
 ul {
   list-style-type: none;
 }
-
 .gainians {
-
   thead {
     tr {
       width: 100%;

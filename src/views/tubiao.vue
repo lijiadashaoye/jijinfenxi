@@ -383,7 +383,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime: 1000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -430,7 +430,8 @@ export default {
 
   components: { jiazai },
   created() {
-    this.range = "A1:B900";
+    // this.range = "A1:B900";
+    this.range = "A1:D900"; // 读取多列
     // this.range = "C1:D900";
     // this.range = "F1:G900";
 
@@ -595,9 +596,9 @@ export default {
           sheetNames = workbook.SheetNames; // 工作表名称集合
         let worksheet = workbook.Sheets[sheetNames[0]], // 这里我们只读取第一张sheet1
           excelCode = [];
-        XLSX.utils
-          .sheet_to_json(worksheet, { range: this.range })
-          .forEach((t) => {
+        let xlsxs = XLSX.utils.sheet_to_json(worksheet, { range: this.range });
+        xlsxs.forEach((t) => {
+          if (this.range != "A1:D900") {
             // 选出excel里的基金，包括没有持仓数据的基金
             if (!excelCode.includes(t["代码"])) {
               this.zhengli.canUse.push({
@@ -612,7 +613,28 @@ export default {
                 name: "" + t["名字"],
               });
             }
-          });
+          } else {
+            let reg = /代码(.*)/gi;
+            Object.keys(t).forEach((str) => {
+              if (reg.test(str)) {
+                // 选出excel里的基金，包括没有持仓数据的基金
+                if (!excelCode.includes(t[str])) {
+                  this.zhengli.canUse.push({
+                    code: "" + t[str],
+                    name: "" + t["名字" + str.slice(2)],
+                  });
+                  excelCode.push("" + t[str]);
+                } else {
+                  // 选出excel里重复的
+                  this.zhengli.chongfu.push({
+                    code: "" + t[str],
+                    name: "" + t["名字" + str.slice(2)],
+                  });
+                }
+              }
+            });
+          }
+        });
         this.getData();
       });
     },

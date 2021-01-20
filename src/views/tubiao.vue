@@ -2283,6 +2283,7 @@ ul {
   text-align: right;
   input {
     padding: 2px;
+    width:145px;
   }
   &:hover {
     opacity: 1;

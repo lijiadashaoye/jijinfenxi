@@ -383,7 +383,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 3, // 用来定义重合数量
-      GetTime:500, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -780,7 +780,6 @@ export default {
                 "Content-Type": "application/json;charset=utf-8",
               },
             }).then((res) => {
-              // let k = eval("(" + res.split("=")[1] + ")"),
               let k = JSON.parse(res.split("=")[1]),
                 kk = k.map((t) => [
                   `${t[0].slice(0, 4)}/${t[0].slice(4, 6)}/${t[0].slice(6)}`,
@@ -1884,7 +1883,8 @@ ul {
     padding: 2px 4px;
   }
   td:nth-of-type(1) {
-    width: 190px;
+    width: 250px;
+    text-align: right;
   }
   td:nth-of-type(1),
   td:nth-of-type(4) {

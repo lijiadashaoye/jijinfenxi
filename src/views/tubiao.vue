@@ -430,7 +430,7 @@ export default {
   components: { jiazai },
   created() {
     // this.range = "A1:B900";
-    this.range = "A1:D900"; // 读取多列
+    this.range = "A1:F900"; // 读取多列
     // this.range = "C1:D900";
     // this.range = "F1:G900";
 
@@ -597,7 +597,7 @@ export default {
           excelCode = [];
         let xlsxs = XLSX.utils.sheet_to_json(worksheet, { range: this.range });
         xlsxs.forEach((t) => {
-          if (this.range != "A1:D900") {
+          if (this.range != "A1:F900") {
             // 选出excel里的基金，包括没有持仓数据的基金
             if (!excelCode.includes(t["代码"])) {
               this.zhengli.canUse.push({

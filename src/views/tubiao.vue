@@ -123,7 +123,7 @@
         <tbody>
           <tr v-for="(t, ind) in zhengli.chongfu" :key="ind">
             <td>{{ t.code }}</td>
-            <td>{{ t.name }}</td>
+            <td>{{ t.name }}（{{ t.num }}次）</td>
           </tr>
         </tbody>
       </table>
@@ -382,8 +382,8 @@ export default {
     return {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
-      chongheNum: 4, // 用来定义重合数量
-      GetTime: 300, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      chongheNum: 3, // 用来定义重合数量
+      GetTime:500, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -424,7 +424,7 @@ export default {
       showChongFu: false, // excel 里重复的
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
-      showFenXi: true, // 显示走势分析
+      showFenXi: false, // 显示走势分析
     };
   },
   components: { jiazai },
@@ -606,11 +606,17 @@ export default {
               });
               excelCode.push("" + t["代码"]);
             } else {
-              // 选出excel里重复的
-              this.zhengli.chongfu.push({
-                code: "" + t["代码"],
-                name: "" + t["名字"],
-              });
+              let tar = this.zhengli.chongfu.find((r) => r.code == t["代码"]);
+              if (tar) {
+                tar["num"]++;
+              } else {
+                // 选出excel里重复的
+                this.zhengli.chongfu.push({
+                  code: "" + t["代码"],
+                  name: "" + t["名字"],
+                  num: 2,
+                });
+              }
             }
           } else {
             let reg = /代码(.*)/gi;
@@ -624,17 +630,26 @@ export default {
                   });
                   excelCode.push("" + t[str]);
                 } else {
-                  // 选出excel里重复的
-                  this.zhengli.chongfu.push({
-                    code: "" + t[str],
-                    name: "" + t["名字" + str.slice(2)],
-                  });
+                  let tar = this.zhengli.chongfu.find(
+                    (r) => r.code == t["代码"]
+                  );
+                  if (tar) {
+                    tar["num"]++;
+                  } else {
+                    // 选出excel里重复的
+                    this.zhengli.chongfu.push({
+                      code: "" + t[str],
+                      name: "" + t["名字" + str.slice(2)],
+                      num: 2,
+                    });
+                  }
                 }
               }
             });
           }
         });
         this.getData();
+        // this.showAll=true
       });
     },
     // 获取所有基金的持股
@@ -2282,7 +2297,7 @@ ul {
   text-align: right;
   input {
     padding: 2px;
-    width:145px;
+    width: 145px;
   }
   &:hover {
     opacity: 1;

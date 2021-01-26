@@ -667,12 +667,10 @@ export default {
         let sessionCode = this.caches.canUse.map((t) => t.code),
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
           needHttp = codes.filter((t) => !sessionCode.includes(t));
-
         // 可以看到持仓的基金
         this.zhengli.see = this.caches.see.filter((t) =>
           codes.includes(t.code)
         );
-
         this.zhengli.fenxi = this.caches.fenxi.filter((t) =>
           codes.includes(t.code)
         ); // 用到echart分析列表

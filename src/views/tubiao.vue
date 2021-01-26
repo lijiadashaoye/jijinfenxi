@@ -425,14 +425,15 @@ export default {
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
-      GetTime: 40000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 100, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
     };
   },
   components: { jiazai },
   created() {
     // this.range = "A1:B900";
-    this.range = "A1:F900"; // 读取多列
+    this.range = "A1:F900";
+    // this.range = "A1:F900"; // 读取多列
 
     this.readType = false;
     this.testShiChang();
@@ -496,7 +497,6 @@ export default {
             "Content-Type": "text/javascript;charset=utf-8",
           },
         }).then((res) => {
-          // let k = eval("(" + res.split("=")[1] + ")");
           let k = JSON.parse(res.split("=")[1]);
           return k;
         }),
@@ -508,7 +508,6 @@ export default {
             "Content-Type": "text/javascript;charset=utf-8",
           },
         }).then((res) => {
-          // let k = eval("(" + res.split("=")[1] + ")");
           let k = JSON.parse(res.split("=")[1]);
           return k;
         }),
@@ -520,7 +519,6 @@ export default {
             "Content-Type": "text/javascript;charset=utf-8",
           },
         }).then((res) => {
-          // let k = eval("(" + res.split("=")[1] + ")");
           let k = JSON.parse(res.split("=")[1]);
           return k;
         }),
@@ -532,7 +530,6 @@ export default {
             "Content-Type": "text/javascript;charset=utf-8",
           },
         }).then((res) => {
-          // let k = eval("(" + res.split("=")[1] + ")");
           let k = JSON.parse(res.split("=")[1]);
           return k;
         }),
@@ -833,7 +830,6 @@ export default {
               let arr = t.split("=").map((t) => t.trim());
               // 资产配置
               if (arr[0] == "Data_assetAllocation") {
-                // let k = eval("(" + arr[1] + ")");
                 let k = JSON.parse(arr[1]).series;
                 obj["peizhi"] = k.map((t) => {
                   return {
@@ -1078,15 +1074,31 @@ export default {
       this.showAll = true;
       this.httpEnd--;
       if (this.httpEnd < 0) {
-        this.zhengli["time"] = new Date().getTime();
         // 存储本页面使用的数据
+
+        let obj = {
+          time: new Date().getTime(),
+          canUse: Array.from(
+            new Set([...this.caches.canUse, ...this.zhengli.canUse])
+          ),
+          chongfu: Array.from(
+            new Set([...this.caches.chongfu, ...this.zhengli.chongfu])
+          ),
+          fenxi: Array.from(
+            new Set([...this.caches.fenxi, ...this.zhengli.fenxi])
+          ),
+          kong: Array.from(
+            new Set([...this.caches.kong, ...this.zhengli.kong])
+          ),
+          see: Array.from(new Set([...this.caches.see, ...this.zhengli.see])),
+        };
         this.$axios({
           method: "post",
           url: `savePageData`,
           headers: {
             "Content-Type": "text/plain;charset=utf-8",
           },
-          data: this.zhengli,
+          data: obj,
         }).then((res) => {
           // 只有获取数据的请求全部成功且结束后，存储本次的请求数据
           if (res) {

@@ -600,7 +600,6 @@ export default {
         //   s: { c: 0, r: 0 },
         //   e: { c: 1, r: 900 },
         // });
-
         xlsxs.forEach((t) => {
           if (this.readType) {
             // 选出excel里的基金，包括没有持仓数据的基金

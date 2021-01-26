@@ -383,7 +383,7 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime: 500, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime:20000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -429,8 +429,8 @@ export default {
   },
   components: { jiazai },
   created() {
-    this.range = "A1:B900";
-    // this.range = "A1:F900"; // 读取多列
+    // this.range = "A1:B900";
+    this.range = "A1:F900"; // 读取多列
     // this.range = "C1:D900";
     // this.range = "F1:G900";
 

@@ -1081,9 +1081,7 @@ export default {
           canUse: Array.from(
             new Set([...this.caches.canUse, ...this.zhengli.canUse])
           ),
-          chongfu: Array.from(
-            new Set([...this.caches.chongfu, ...this.zhengli.chongfu])
-          ),
+          chongfu: this.zhengli.chongfu,
           fenxi: Array.from(
             new Set([...this.caches.fenxi, ...this.zhengli.fenxi])
           ),

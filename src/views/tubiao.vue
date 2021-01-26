@@ -383,7 +383,6 @@ export default {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
       chongheNum: 4, // 用来定义重合数量
-      GetTime:20000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -425,15 +424,17 @@ export default {
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
+
+      GetTime: 40000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      readType: false, // true为读取两列，false为读取多列
     };
   },
   components: { jiazai },
   created() {
     // this.range = "A1:B900";
     this.range = "A1:F900"; // 读取多列
-    // this.range = "C1:D900";
-    // this.range = "F1:G900";
 
+    this.readType = false;
     this.testShiChang();
   },
   methods: {
@@ -595,9 +596,16 @@ export default {
           sheetNames = workbook.SheetNames; // 工作表名称集合
         let worksheet = workbook.Sheets[sheetNames[0]], // 这里我们只读取第一张sheet1
           excelCode = [];
+
         let xlsxs = XLSX.utils.sheet_to_json(worksheet, { range: this.range });
+        // let xlsxs = XLSX.utils.sheet_to_json(worksheet, {
+        //   // c:col 表示列，r:row 表示行 s:start 表示起始位置 e:end 表示结束位置
+        //   s: { c: 0, r: 0 },
+        //   e: { c: 1, r: 900 },
+        // });
+
         xlsxs.forEach((t) => {
-          if (this.range != "A1:F900") {
+          if (this.readType) {
             // 选出excel里的基金，包括没有持仓数据的基金
             if (!excelCode.includes(t["代码"])) {
               this.zhengli.canUse.push({
@@ -655,13 +663,14 @@ export default {
     // 获取所有基金的持股
     getData() {
       // 获取所有基金的code
-      let codes = this.zhengli.canUse.map((t) => t.code);
+      let codes = this.zhengli.canUse.map((t) => "" + t.code);
       // 获取缓存的基金数据
       if (this.caches) {
         // 读取之前缓存的基金号
         let sessionCode = this.caches.canUse.map((t) => t.code),
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
           needHttp = codes.filter((t) => !sessionCode.includes(t));
+
         this.zhengli.see = this.caches.see.filter((t) =>
           codes.includes(t.code)
         ); // 可以看到持仓的基金
@@ -750,7 +759,6 @@ export default {
             }).then((res) => {
               return res.data[0];
             }),
-
             this.$axios({
               method: "get",
               url: `paiming/${codes[i]}`,

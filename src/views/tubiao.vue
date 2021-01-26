@@ -668,12 +668,11 @@ export default {
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
           needHttp = codes.filter((t) => !sessionCode.includes(t));
 
+        // 可以看到持仓的基金
         this.zhengli.see = this.caches.see.filter((t) =>
           codes.includes(t.code)
-        ); // 可以看到持仓的基金
-        this.zhengli.kong = this.caches.kong.filter((t) =>
-          codes.includes(t.code)
-        ); // 看不到持仓数据的基金
+        );
+
         this.zhengli.fenxi = this.caches.fenxi.filter((t) =>
           codes.includes(t.code)
         ); // 用到echart分析列表
@@ -1085,9 +1084,7 @@ export default {
           fenxi: Array.from(
             new Set([...this.caches.fenxi, ...this.zhengli.fenxi])
           ),
-          kong: Array.from(
-            new Set([...this.caches.kong, ...this.zhengli.kong])
-          ),
+          kong: this.zhengli.kong,
           see: Array.from(new Set([...this.caches.see, ...this.zhengli.see])),
         };
         this.$axios({

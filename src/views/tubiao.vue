@@ -77,8 +77,8 @@
             </tr>
           </tbody>
         </table>
+        <!-- 基金类型统计 -->
         <div class="gainians2" v-if="showLeiXing">
-          <!-- 基金类型统计 -->
           <table class="typeJiJin" collpase>
             <thead>
               <tr>
@@ -415,20 +415,20 @@ export default {
       showGaiNian: false, // 显示概念分析
       showLeiXing: false, // 显示基金类型分析
       showJingLi: false, // 显示基金经理分析
-      showKong: true, // 没有持仓数据的
+      showKong: false, // 没有持仓数据的
       showChongFu: true, // excel 里重复的
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
-      GetTime: 1000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 20000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
     };
   },
   components: { jiazai },
   created() {
     // this.range = "A1:B900";
-    this.range = "A1:H900";
+    this.range = "A1:H20";
     // this.range = "A1:F900"; // 读取多列
 
     this.readType = false;
@@ -623,16 +623,14 @@ export default {
             Object.keys(t).forEach((str) => {
               if (reg.test(str)) {
                 // 选出excel里的基金，包括没有持仓数据的基金
-                if (!excelCode.includes(t[str])) {
+                if (!excelCode.includes("" + t[str])) {
                   this.zhengli.canUse.push({
                     code: "" + t[str],
                     name: "" + t["名字" + str.slice(2)],
                   });
                   excelCode.push("" + t[str]);
                 } else {
-                  let tar = this.zhengli.chongfu.find(
-                    (r) => r.code == t["代码"]
-                  );
+                  let tar = this.zhengli.chongfu.find((r) => r.code == t[str]);
                   if (tar) {
                     tar["num"]++;
                   } else {
@@ -648,7 +646,6 @@ export default {
             });
           }
         });
-
         this.getData();
         // this.showAll=true
       });
@@ -659,13 +656,15 @@ export default {
       let codes = this.zhengli.canUse.map((t) => "" + t.code);
       // 获取缓存的基金数据
       if (this.caches) {
-        console.log(this.caches);
         // 读取之前缓存的基金号
         let sessionCode = this.caches.canUse.map((t) => t.code),
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
           needHttp = codes.filter((t) => !sessionCode.includes(t));
         // 可以看到持仓的基金
         this.zhengli.see = this.caches.see.filter((t) =>
+          codes.includes(t.code)
+        );
+        this.zhengli.kong = this.caches.kong.filter((t) =>
           codes.includes(t.code)
         );
         this.zhengli.fenxi = this.caches.fenxi.filter((t) =>
@@ -1069,59 +1068,23 @@ export default {
       this.httpEnd--;
 
       if (this.httpEnd < 0) {
-        let quchong = (name) => {
-          let arr = [],
-            objArr = [...this.caches[name], ...this.zhengli[name]];
-          return objArr.reduce((all, now) => {
-            if (name != "see") {
-              let tar = arr.find((s) => s.code == now.code);
-              if (!tar) {
-                arr.push(now);
-              }
-              return all;
+        (this.zhengli["time"] = new Date().getTime()),
+          // 存储本页面使用的数据
+          this.$axios({
+            method: "post",
+            url: `savePageData`,
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8",
+            },
+            data: this.zhengli,
+          }).then((res) => {
+            // 只有获取数据的请求全部成功且结束后，存储本次的请求数据
+            if (res) {
+              console.log("数据已经存储完毕！");
+            } else {
+              console.log("数据无法存储！");
             }
-            if (name == "see") {
-              let tar = arr.find((s) => s.zcCode == now.zcCode);
-              if (!tar) {
-                arr.push(now);
-              }
-              return all;
-            }
-          }, arr);
-        };
-        // 存储本页面使用的数据
-        let obj;
-        if (this.caches) {
-          obj = {
-            time: new Date().getTime(),
-            canUse: quchong("canUse"),
-            chongfu: this.zhengli.chongfu,
-            fenxi: quchong("fenxi"),
-            kong: this.zhengli.kong,
-            see: quchong("see"),
-          };
-        } else {
-          obj = {
-            ...this.zhengli,
-            time: new Date().getTime(),
-          };
-        }
-
-        this.$axios({
-          method: "post",
-          url: `savePageData`,
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8",
-          },
-          data: obj,
-        }).then((res) => {
-          // 只有获取数据的请求全部成功且结束后，存储本次的请求数据
-          if (res) {
-            console.log("数据已经存储完毕！");
-          } else {
-            console.log("数据无法存储！");
-          }
-        });
+          });
         if (this.showFenXi) {
           this.makeXiangQingChart();
           this.changeTime(50, "");

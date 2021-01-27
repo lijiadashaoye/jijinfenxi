@@ -136,17 +136,13 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="(t, ind) in jingliList"
-            :class="{ changeWidth: jingliList.length < 3 }"
-            :key="ind"
-          >
+          <tr v-for="(t, ind) in jingliList" :key="ind">
             <td
               title="点击查看基金经理数据"
               class="showManager"
               @click="showJiJin2(t.name)"
             >
-              <span> {{ t.name }}</span>
+              <span> {{ t.name }}{{ `(${t.jijin.length}个)` }}</span>
             </td>
             <td>{{ t.jijin.join("  ") }}</td>
           </tr>
@@ -382,7 +378,7 @@ export default {
     return {
       jijins: "", // 搜索基金用
       shaixuan: 5, // 用来筛选被持有量
-      chongheNum: 4, // 用来定义重合数量
+      chongheNum: 3, // 用来定义重合数量
       httptype: true, // 如果有服务器请求数量限制，就要用 true，隔段时间请求一次，同花顺那边也有限制
       setWidth: 1300,
       setHeight: 800,
@@ -416,23 +412,23 @@ export default {
       caches: null, // 判断是否有缓存
       showAll: false, // 用来控制显示页面DOM表示加载完
 
-      showGaiNian: false, // 显示概念分析
-      showLeiXing: false, // 显示基金类型分析
-      showJingLi: false, // 显示基金经理分析
+      showGaiNian: true, // 显示概念分析
+      showLeiXing: true, // 显示基金类型分析
+      showJingLi: true, // 显示基金经理分析
       showKong: false, // 没有持仓数据的
       showChongFu: false, // excel 里重复的
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
-      GetTime: 100, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 1000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
     };
   },
   components: { jiazai },
   created() {
-    this.range = "A1:B900";
-    // this.range = "A1:F900";
+    // this.range = "A1:B900";
+    this.range = "A1:F900";
     // this.range = "A1:F900"; // 读取多列
 
     this.readType = false;
@@ -1071,19 +1067,24 @@ export default {
       this.httpEnd--;
       if (this.httpEnd < 0) {
         // 存储本页面使用的数据
+        let obj;
+        if (this.caches) {
+          obj = {
+            time: new Date().getTime(),
+            canUse: Array.from(
+              new Set([...this.caches.canUse, ...this.zhengli.canUse])
+            ),
+            chongfu: this.zhengli.chongfu,
+            fenxi: Array.from(
+              new Set([...this.caches.fenxi, ...this.zhengli.fenxi])
+            ),
+            kong: this.zhengli.kong,
+            see: Array.from(new Set([...this.caches.see, ...this.zhengli.see])),
+          };
+        } else {
+          obj = { ...this.zhengli, time: new Date().getTime() };
+        }
 
-        let obj = {
-          time: new Date().getTime(),
-          canUse: Array.from(
-            new Set([...this.caches.canUse, ...this.zhengli.canUse])
-          ),
-          chongfu: this.zhengli.chongfu,
-          fenxi: Array.from(
-            new Set([...this.caches.fenxi, ...this.zhengli.fenxi])
-          ),
-          kong: this.zhengli.kong,
-          see: Array.from(new Set([...this.caches.see, ...this.zhengli.see])),
-        };
         this.$axios({
           method: "post",
           url: `savePageData`,

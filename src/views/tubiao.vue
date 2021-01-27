@@ -431,8 +431,8 @@ export default {
   },
   components: { jiazai },
   created() {
-    // this.range = "A1:B900";
-    this.range = "A1:F900";
+    this.range = "A1:B900";
+    // this.range = "A1:F900";
     // this.range = "A1:F900"; // 读取多列
 
     this.readType = false;

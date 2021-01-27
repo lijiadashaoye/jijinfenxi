@@ -412,11 +412,11 @@ export default {
       caches: null, // 判断是否有缓存
       showAll: false, // 用来控制显示页面DOM表示加载完
 
-      showGaiNian: true, // 显示概念分析
-      showLeiXing: true, // 显示基金类型分析
-      showJingLi: true, // 显示基金经理分析
-      showKong: false, // 没有持仓数据的
-      showChongFu: false, // excel 里重复的
+      showGaiNian: false, // 显示概念分析
+      showLeiXing: false, // 显示基金类型分析
+      showJingLi: false, // 显示基金经理分析
+      showKong: true, // 没有持仓数据的
+      showChongFu: true, // excel 里重复的
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
@@ -428,7 +428,7 @@ export default {
   components: { jiazai },
   created() {
     // this.range = "A1:B900";
-    this.range = "A1:F900";
+    this.range = "A1:H900";
     // this.range = "A1:F900"; // 读取多列
 
     this.readType = false;
@@ -648,6 +648,7 @@ export default {
             });
           }
         });
+
         this.getData();
         // this.showAll=true
       });
@@ -658,6 +659,7 @@ export default {
       let codes = this.zhengli.canUse.map((t) => "" + t.code);
       // 获取缓存的基金数据
       if (this.caches) {
+        console.log(this.caches);
         // 读取之前缓存的基金号
         let sessionCode = this.caches.canUse.map((t) => t.code),
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
@@ -1065,24 +1067,44 @@ export default {
       this.chongHeFenXi();
       this.showAll = true;
       this.httpEnd--;
+
       if (this.httpEnd < 0) {
+        let quchong = (name) => {
+          let arr = [],
+            objArr = [...this.caches[name], ...this.zhengli[name]];
+          return objArr.reduce((all, now) => {
+            if (name != "see") {
+              let tar = arr.find((s) => s.code == now.code);
+              if (!tar) {
+                arr.push(now);
+              }
+              return all;
+            }
+            if (name == "see") {
+              let tar = arr.find((s) => s.zcCode == now.zcCode);
+              if (!tar) {
+                arr.push(now);
+              }
+              return all;
+            }
+          }, arr);
+        };
         // 存储本页面使用的数据
         let obj;
         if (this.caches) {
           obj = {
             time: new Date().getTime(),
-            canUse: Array.from(
-              new Set([...this.caches.canUse, ...this.zhengli.canUse])
-            ),
+            canUse: quchong("canUse"),
             chongfu: this.zhengli.chongfu,
-            fenxi: Array.from(
-              new Set([...this.caches.fenxi, ...this.zhengli.fenxi])
-            ),
+            fenxi: quchong("fenxi"),
             kong: this.zhengli.kong,
-            see: Array.from(new Set([...this.caches.see, ...this.zhengli.see])),
+            see: quchong("see"),
           };
         } else {
-          obj = { ...this.zhengli, time: new Date().getTime() };
+          obj = {
+            ...this.zhengli,
+            time: new Date().getTime(),
+          };
         }
 
         this.$axios({
@@ -1748,11 +1770,13 @@ export default {
 
 <style lang="scss" scoped>
 table {
+  border: 0;
   border-collapse: collapse;
 }
 ul {
   list-style-type: none;
 }
+
 .gainians {
   thead {
     tr {

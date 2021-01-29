@@ -468,7 +468,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    this.range = "A1:H2";
+    this.range = "A1:H3";
     // this.range = `A1:H500`;
 
     this.readType = false;

@@ -486,13 +486,14 @@ export default {
       showFenXi: false, // 显示走势分析
       showJiJinChiCang: true, // 将基金持仓进行分析
 
-      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 500, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
     };
   },
   components: { jiazai },
   created() {
-    this.range = "A1:H500";
+    let kk=40
+    this.range = `A1:H${kk}`;
     // this.range = `A1:H500`;
 
     this.readType = false;
@@ -2607,7 +2608,7 @@ ul {
   width: calc(100% - 155px);
   tbody tr {
     display: grid;
-    grid-template-columns: 20% 8% 8% 8% 8% 8% 8% 8% 8% 8% 8%;
+    grid-template-columns:18% 8% 8% 8% 8% 8% 8% 8% 8% 8% 8%;
     td {
       box-sizing: border-box;
       border: 1px solid rgb(224, 222, 222);
@@ -2616,6 +2617,7 @@ ul {
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      text-align: center;
     }
     td:nth-of-type(1) {
       p:nth-of-type(1) {

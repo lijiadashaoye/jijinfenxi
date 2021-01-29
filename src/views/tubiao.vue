@@ -46,6 +46,10 @@
             <input type="checkbox" v-model="showChongFu" />
           </label>
           <label>
+            基金持仓类型分析
+            <input type="checkbox" v-model="showJiJinChiCang" />
+          </label>
+          <label>
             重合分析
             <input type="checkbox" v-model="showChongHe" />
           </label>
@@ -64,7 +68,7 @@
       <table class="gainians1" collpase v-if="showGaiNian">
         <thead>
           <tr>
-            <th colspan="2">概念类型统计</th>
+            <th style="padding: 20px 0" colspan="2">概念类型统计</th>
           </tr>
         </thead>
         <tbody>
@@ -86,7 +90,7 @@
         <table class="typeJiJin" collpase>
           <thead>
             <tr>
-              <th colspan="2">基金类型统计</th>
+              <th style="padding: 20px 0" colspan="2">基金类型统计</th>
             </tr>
           </thead>
           <tbody>
@@ -97,12 +101,11 @@
           </tbody>
         </table>
       </div>
-
       <!-- 没有持仓数据的 -->
       <table class="noChiCang" collpase v-if="showKong">
         <thead>
           <tr>
-            <th colspan="4">
+            <th style="padding: 20px 0" colspan="4">
               没有持仓数据的，{{ `${zhengli.kong.length}个` }}
             </th>
           </tr>
@@ -118,7 +121,7 @@
       <table class="excelChongFu" collpase v-if="showChongFu">
         <thead>
           <tr>
-            <th colspan="4">
+            <th style="padding: 20px 0" colspan="4">
               excel 里重复的{{ `${zhengli.chongfu.length}个` }}
             </th>
           </tr>
@@ -130,12 +133,11 @@
           </tr>
         </tbody>
       </table>
-
       <!-- 基金经理汇总 -->
       <table collpase class="typeTongJi" v-if="showJingLi">
         <thead>
           <tr>
-            <th colspan="6">基金经理汇总</th>
+            <th style="padding: 20px 0" colspan="6">基金经理汇总</th>
           </tr>
         </thead>
         <tbody>
@@ -151,12 +153,11 @@
           </tr>
         </tbody>
       </table>
-
       <!-- 根据概念区分 -->
       <table class="gupiaoTable" collpase v-if="showGuPiao">
         <thead>
           <tr>
-            <th colspan="3">股票市场统计</th>
+            <th style="padding: 20px 0" colspan="3">股票市场统计</th>
           </tr>
         </thead>
         <tbody>
@@ -166,7 +167,7 @@
                 {{ t }}
               </p>
               <p>
-                {{ gupiaoShiChang[t].name }}
+                {{ gupiaoShiChang[t].name.join("  ") }}
               </p>
               <p>
                 {{ gupiaoShiChang[t].xiangxi }}
@@ -180,12 +181,32 @@
           </tr>
         </tbody>
       </table>
-
+      <!-- 将基金持仓进行分析 -->
+      <table class="jiJinChiCang" collpase v-if="showJiJinChiCang">
+        <thead>
+          <tr>
+            <th style="padding: 20px 0" colspan="3">将基金持仓进行分析</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="t in chiCangFenXi" :key="t.code">
+            <td>
+              <p>{{ t.name }}</p>
+              <p>{{ t.code }}</p>
+            </td>
+            <td v-for="(s, sIn) in t.gupiao" :key="sIn">
+              <p>{{ s.zcName }}</p>
+              <p>{{ s.hangye }}</p>
+              <p>{{ s.ccRate + "%" }}</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
       <!-- 重合分析 -->
       <table ref="chong" class="chonghe" collpase v-if="showChongHe">
         <thead>
           <tr>
-            <th colspan="4">重合分析</th>
+            <th style="padding: 20px 0" colspan="4">重合分析</th>
           </tr>
         </thead>
         <tbody>
@@ -209,12 +230,11 @@
           </tr>
         </tbody>
       </table>
-
       <!-- 数据统计 -->
       <table class="shuju" collpase v-if="showTongJi">
         <thead>
           <tr>
-            <th colspan="4">股票数据统计</th>
+            <th style="padding: 20px 0" colspan="4">股票数据统计</th>
           </tr>
 
           <tr class="lists">
@@ -257,7 +277,9 @@
     <table class="fenxi" collpase v-if="showFenXi">
       <thead>
         <tr>
-          <th colspan="3">基金详情，{{ `共 ${zhengli.fenxi.length} 个` }}</th>
+          <th style="padding: 20px 0" colspan="3">
+            基金详情，{{ `共 ${zhengli.fenxi.length} 个` }}
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -451,16 +473,18 @@ export default {
       caches: null, // 判断是否有缓存
       showAll: false, // 用来控制显示页面DOM表示加载完
       gupiaoShiChang: {}, // 股票市场类型区分
+      chiCangFenXi: [], // 基金持仓分析
 
-      showGaiNian: true, // 显示概念分析
-      showGuPiao: true, // 将股票按类型分析
-      showLeiXing: true, // 显示基金类型分析
-      showJingLi: true, // 显示基金经理分析
-      showKong: true, // 没有持仓数据的
+      showGaiNian: false, // 显示概念分析
+      showGuPiao: false, // 将股票按类型分析
+      showLeiXing: false, // 显示基金类型分析
+      showJingLi: false, // 显示基金经理分析
+      showKong: false, // 没有持仓数据的
       showChongFu: true, // excel 里重复的
       showChongHe: true, // 显示重合分析
-      showTongJi: true, // 股票数据统计
+      showTongJi: false, // 股票数据统计
       showFenXi: false, // 显示走势分析
+      showJiJinChiCang: true, // 将基金持仓进行分析
 
       GetTime: 500, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
@@ -468,7 +492,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    this.range = "A1:H3";
+    this.range = "A1:H500";
     // this.range = `A1:H500`;
 
     this.readType = false;
@@ -1146,23 +1170,31 @@ export default {
         } else {
           await this.getHangYe(this.gupiao);
         }
-        this.gupiao.forEach((t) => {
-          let keys = Object.keys(this.gupiaoShiChang);
-          if (!keys.includes(t.hangye1)) {
-            this.gupiaoShiChang[t.hangye1] = {
-              jijin: [],
-              shichang: t.shichang,
-              xiangxi: t.hangye2,
-              name: t.name,
-            };
-          }
 
+        for (let i = this.gupiao.length; i--; ) {
+          let keys = Object.keys(this.gupiaoShiChang),
+            t = this.gupiao[i];
+          if (t.hangye1) {
+            if (!keys.includes(t.hangye1)) {
+              this.gupiaoShiChang[t.hangye1] = {
+                jijin: [],
+                shichang: t.shichang,
+                xiangxi: t.hangye2,
+                name: [t.name],
+              };
+            } else {
+              this.gupiaoShiChang[t.hangye1].name.push(t.name);
+            }
+          }
           t.jijin.forEach((f) => {
-            if (!this.gupiaoShiChang[t.hangye1].jijin.includes(f)) {
+            if (
+              this.gupiaoShiChang[t.hangye1] &&
+              !this.gupiaoShiChang[t.hangye1].jijin.includes(f)
+            ) {
               this.gupiaoShiChang[t.hangye1].jijin.push(f);
             }
           });
-        });
+        }
 
         this.chartList = [];
         for (let i = 0; i < this.zhengli.fenxi.length; i += 2) {
@@ -1220,9 +1252,12 @@ export default {
       });
 
       for (let i = arr.length; i--; ) {
+        let reg = /^hk/i,
+          reg1 = /\d+/g;
         if (
           arr[i].code.length == 6 &&
-          !new RegExp("^hk", "i").test(arr[i].code)
+          !reg.test(arr[i].code) &&
+          reg1.test(arr[i].code.slice(2))
         ) {
           // 获取内地的
           await this.$axios({
@@ -1236,7 +1271,10 @@ export default {
             arr[i]["hangye2"] = res.jbzl.sszjhhy;
             arr[i]["shichang"] = res.jbzl.ssjys;
           });
-        } else if (new RegExp("^hk", "i").test(arr[i].code)) {
+        } else if (
+          new RegExp("^hk", "i").test(arr[i].code) &&
+          reg1.test(arr[i].code.slice(2))
+        ) {
           // 获取香港的
           await this.$axios({
             method: "get",
@@ -1281,6 +1319,21 @@ export default {
     },
     // 重合分析
     chongHeFenXi() {
+      for (let i = this.zhengli.see.length; i--; ) {
+        let zz = Object.keys(this.gupiaoShiChang),
+          name = this.zhengli.canUse.find(
+            (g) => g.code == this.zhengli.see[i].code
+          ).name;
+        for (let k = zz.length; k--; ) {
+          let hy = this.gupiaoShiChang[zz[k]];
+          if (
+            hy.jijin.includes(name) &&
+            hy.name.includes(this.zhengli.see[i].zcName)
+          ) {
+            this.zhengli.see[i]["hangye"] = zz[k];
+          }
+        }
+      }
       for (let i = this.zhengli.canUse.length; i--; ) {
         this.zhengli.canUse[i]["gupiao"] = this.zhengli.see.filter(
           (t) => t.code == this.zhengli.canUse[i].code
@@ -1354,6 +1407,19 @@ export default {
         }
       }
       this.chonghe = this.chonghe.sort((a, b) => b.num - a.num);
+
+      this.chiCangFenXi = this.zhengli.canUse.reduce((all, now) => {
+        if (now.gupiao && now.gupiao.length) {
+          all.push(now);
+        }
+        return all;
+      }, []);
+      // 根据持有量排序
+      for (let i = this.chiCangFenXi.length; i--; ) {
+        this.chiCangFenXi[i].gupiao = this.chiCangFenXi[i].gupiao.sort(
+          (a, b) => +b.ccRate - +a.ccRate
+        );
+      }
     },
     // 点击基金经理名字
     showManager(c) {
@@ -2507,6 +2573,7 @@ ul {
       p:nth-of-type(2) {
         color: rgb(240, 52, 253);
         font-size: 12px;
+        text-align: center;
       }
       p:nth-of-type(3) {
         color: rgb(17, 3, 3);
@@ -2533,6 +2600,46 @@ ul {
     }
     td:nth-of-type(3) {
       font-size: 12px;
+    }
+  }
+}
+.jiJinChiCang {
+  width: calc(100% - 155px);
+  tbody tr {
+    display: grid;
+    grid-template-columns: 20% 8% 8% 8% 8% 8% 8% 8% 8% 8% 8%;
+    td {
+      box-sizing: border-box;
+      border: 1px solid rgb(224, 222, 222);
+      padding: 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    td:nth-of-type(1) {
+      p:nth-of-type(1) {
+        color: rgb(249, 0, 0);
+        font-size: 14px;
+      }
+      p:nth-of-type(2) {
+        color: rgb(50, 10, 134);
+        font-size: 12px;
+      }
+    }
+    td:nth-of-type(1) ~ td {
+      p:nth-of-type(1) {
+        color: rgb(167, 7, 34);
+        font-size: 12px;
+      }
+      p:nth-of-type(2) {
+        color: rgb(16, 1, 48);
+        font-size: 12px;
+      }
+      p:nth-of-type(3) {
+        color: rgb(0, 166, 14);
+        font-size: 12px;
+      }
     }
   }
 }

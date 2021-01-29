@@ -486,7 +486,7 @@ export default {
       showFenXi: false, // 显示走势分析
       showJiJinChiCang: true, // 将基金持仓进行分析
 
-      GetTime: 500, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
     };
   },

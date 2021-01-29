@@ -30,6 +30,10 @@
             <input type="checkbox" v-model="showLeiXing" />
           </label>
           <label>
+            股票类型统计
+            <input type="checkbox" v-model="showGuPiao" />
+          </label>
+          <label>
             基金经理统计
             <input type="checkbox" v-model="showJingLi" />
           </label>
@@ -55,44 +59,43 @@
           </label>
         </div>
       </div>
-      <div class="gainians">
-        <!-- 根据概念区分 -->
-        <table class="gainians1" collpase v-if="showGaiNian">
+
+      <!-- 根据概念区分 -->
+      <table class="gainians1" collpase v-if="showGaiNian">
+        <thead>
+          <tr>
+            <th colspan="2">概念类型统计</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(t, ind) in Object.keys(gaiNian)" :key="ind">
+            <td>
+              <p>
+                {{ t }}
+              </p>
+              <p>
+                {{ gaiNian[t].length + "个" }}
+              </p>
+            </td>
+            <td>{{ gaiNian[t].join("  ") }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 基金类型统计 -->
+      <div class="gainians2" v-if="showLeiXing">
+        <table class="typeJiJin" collpase>
           <thead>
             <tr>
-              <th colspan="2">概念类型统计</th>
+              <th colspan="2">基金类型统计</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(t, ind) in Object.keys(gaiNian)" :key="ind">
-              <td>
-                <p>
-                  {{ t }}
-                </p>
-                <p>
-                  {{ gaiNian[t].length + "个" }}
-                </p>
-              </td>
-              <td>{{ gaiNian[t].join("  ") }}</td>
+            <tr v-for="(t, ind) in Object.keys(jijinType)" :key="ind">
+              <td>{{ t }}</td>
+              <td>{{ jijinType[t].join("  ") }}</td>
             </tr>
           </tbody>
         </table>
-        <!-- 基金类型统计 -->
-        <div class="gainians2" v-if="showLeiXing">
-          <table class="typeJiJin" collpase>
-            <thead>
-              <tr>
-                <th colspan="2">基金类型统计</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(t, ind) in Object.keys(jijinType)" :key="ind">
-                <td>{{ t }}</td>
-                <td>{{ jijinType[t].join("  ") }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </div>
 
       <!-- 没有持仓数据的 -->
@@ -145,6 +148,35 @@
               <span> {{ t.name }}{{ `(${t.jijin.length}个)` }}</span>
             </td>
             <td>{{ t.jijin.join("  ") }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 根据概念区分 -->
+      <table class="gupiaoTable" collpase v-if="showGuPiao">
+        <thead>
+          <tr>
+            <th colspan="3">股票市场统计</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="t in Object.keys(gupiaoShiChang)" :key="t">
+            <td>
+              <p>
+                {{ t }}
+              </p>
+              <p>
+                {{ gupiaoShiChang[t].name }}
+              </p>
+              <p>
+                {{ gupiaoShiChang[t].xiangxi }}
+              </p>
+              <p>
+                {{ gupiaoShiChang[t].shichang }}
+              </p>
+            </td>
+            <td>{{ gupiaoShiChang[t].jijin.length + "个" }}</td>
+            <td>{{ gupiaoShiChang[t].jijin.join("  ") }}</td>
           </tr>
         </tbody>
       </table>
@@ -418,23 +450,25 @@ export default {
       colorObj: {}, // 存储不同概念的颜色
       caches: null, // 判断是否有缓存
       showAll: false, // 用来控制显示页面DOM表示加载完
+      gupiaoShiChang: {}, // 股票市场类型区分
 
-      showGaiNian: false, // 显示概念分析
-      showLeiXing: false, // 显示基金类型分析
-      showJingLi: false, // 显示基金经理分析
-      showKong: false, // 没有持仓数据的
+      showGaiNian: true, // 显示概念分析
+      showGuPiao: true, // 将股票按类型分析
+      showLeiXing: true, // 显示基金类型分析
+      showJingLi: true, // 显示基金经理分析
+      showKong: true, // 没有持仓数据的
       showChongFu: true, // excel 里重复的
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
-      GetTime: 500, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
     };
   },
   components: { jiazai },
   created() {
-    this.range = "A1:F3";
+    this.range = "A1:F2";
     // this.range = `A1:H500`;
 
     this.readType = false;
@@ -1112,6 +1146,24 @@ export default {
         } else {
           await this.getHangYe(this.gupiao);
         }
+        this.gupiao.forEach((t) => {
+          let keys = Object.keys(this.gupiaoShiChang);
+          if (!keys.includes(t.hangye1)) {
+            this.gupiaoShiChang[t.hangye1] = {
+              jijin: [],
+              shichang: t.shichang,
+              xiangxi: t.hangye2,
+              name: t.name,
+            };
+          }
+
+          let arr = Array.from(
+            new Set([...t.jijin, this.gupiaoShiChang[t.hangye1].jijin])
+          );
+          this.gupiaoShiChang[t.hangye1].jijin.push(arr);
+        });
+
+        console.log(this.gupiaoShiChang)
 
         this.chartList = [];
         for (let i = 0; i < this.zhengli.fenxi.length; i += 2) {
@@ -1132,6 +1184,7 @@ export default {
           }
           return all;
         }, []);
+
         this.zhengli["time"] = new Date().getTime();
         // 存储本页面使用的数据
         this.$axios({
@@ -1851,7 +1904,9 @@ ul {
   list-style-type: none;
 }
 
-.gainians {
+.gainians1,
+.gainians2 {
+  width: calc(100% - 155px);
   thead {
     tr {
       width: 100%;
@@ -1860,43 +1915,32 @@ ul {
       margin: 10px 0;
     }
   }
-  display: flex;
-  flex-wrap: wrap;
-  .gainians1 {
+}
+.gainians1 {
+  tr {
     width: 100%;
-    box-sizing: border-box;
+    display: flex;
   }
-  .gainians2 {
+  td {
+    font-size: 12px;
+    border: 1px solid rgb(188, 181, 181);
+    border-collapse: collapse;
+    box-sizing: border-box;
+    padding: 2px;
+  }
+  tr > td:nth-of-type(1) {
+    width: 100px;
+    flex-shrink: 0;
+    text-align: center;
+    color: rgb(50, 32, 214);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+  }
+  tr > td:nth-of-type(2) {
     width: 100%;
-    box-sizing: border-box;
-  }
-
-  .gainians1 {
-    tr {
-      width: 100%;
-      display: flex;
-    }
-    td {
-      font-size: 12px;
-      border: 1px solid rgb(188, 181, 181);
-      border-collapse: collapse;
-      box-sizing: border-box;
-      padding: 2px;
-    }
-    tr > td:nth-of-type(1) {
-      width: 100px;
-      flex-shrink: 0;
-      text-align: center;
-      color: rgb(50, 32, 214);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-size: 12px;
-    }
-    tr > td:nth-of-type(2) {
-      width: 100%;
-    }
   }
 }
 
@@ -1942,6 +1986,7 @@ ul {
   width: 100%;
 }
 .typeTongJi {
+  width: calc(100% - 155px);
   thead {
     tr {
       display: flex;
@@ -1951,7 +1996,7 @@ ul {
   }
   tbody {
     display: grid;
-    grid-template-columns: 29% 29% 29%;
+    grid-template-columns: 33.3% 33.3% 33.3%;
 
     tr {
       width: 100%;
@@ -2018,9 +2063,9 @@ ul {
 }
 
 .shuju {
+  width: calc(100% - 155px);
   margin-top: 10px;
   box-sizing: border-box;
-  margin-right: 150px;
   thead {
     .lists {
       display: flex;
@@ -2399,7 +2444,6 @@ ul {
     border-bottom: 1px solid #c3e8ff;
   }
 }
-
 .searchGP {
   opacity: 0.3;
   display: inline-block;
@@ -2441,5 +2485,56 @@ ul {
 }
 .toChartRightClick {
   position: relative;
+}
+.gupiaoTable {
+  width: calc(100% - 155px);
+  tbody tr {
+    display: grid;
+    grid-template-columns: 30% 10% 60%;
+    td {
+      box-sizing: border-box;
+      border: 1px solid rgb(224, 222, 222);
+      padding: 2px;
+    }
+    td:nth-of-type(1) {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      p:nth-of-type(1) {
+        color: red;
+        font-size: 16px;
+      }
+      p:nth-of-type(2) {
+        color: rgb(240, 52, 253);
+        font-size: 12px;
+      }
+      p:nth-of-type(3) {
+        color: rgb(17, 3, 3);
+        font-size: 12px;
+        text-align: center;
+      }
+      p:nth-of-type(4) {
+        color: rgb(89, 125, 191);
+        font-size: 12px;
+        text-align: center;
+      }
+      p:nth-of-type(5) {
+        color: rgb(89, 188, 191);
+        font-size: 12px;
+        text-align: center;
+      }
+    }
+    td:nth-of-type(2) {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    td:nth-of-type(3) {
+      font-size: 12px;
+    }
+  }
 }
 </style>

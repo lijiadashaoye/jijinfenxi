@@ -112,6 +112,57 @@ http.createServer((req, res) => {
             clearJiJin()
         }
 
+        let type = 'SH';
+        // 获取大陆股票数据
+        if (k[0] === 'hangyeDaLu') {
+            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            getHangYe()
+        }
+        // 获取香港股票数据
+        if (k[0] === 'hangyeHK') {
+            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            getHK()
+        }
+        
+        // 获取股票行业数据
+        function getHangYe() {
+            let url = `http://f10.eastmoney.com/CompanySurvey/CompanySurveyAjax?code=${type}${k[1]}`;
+            http.get(url,
+                (req) => {
+                    var datas = '';
+                    req.on('data', (data) => {
+                        datas += data;
+                    });
+                    req.on('end', () => {
+                        let da = JSON.parse(datas);
+                        if (da.status == -1) {
+                            if (type == 'SH') {
+                                type = 'SZ'
+                            } else {
+                                type = 'SH';
+                            }
+                            getHangYe();
+                        } else {
+                            res.end(datas)
+                        }
+                    });
+                })
+        }
+
+        function getHK() {
+            let url = `http://emweb.securities.eastmoney.com/PC_HKF10/CompanyProfile/PageAjax?code=${k[1]}`;
+            http.get(url,
+                (req) => {
+                    var datas = '';
+                    req.on('data', (data) => {
+                        datas += data;
+                    });
+                    req.on('end', () => {
+                        res.end(datas)
+                    });
+                })
+        }
+
         // 读取基金excel文件
         function getFile() {
             fs.readFile('./JiJin.xlsx', (err, data) => {
@@ -132,7 +183,6 @@ http.createServer((req, res) => {
                     });
                 })
         }
-
         // 读取市场文件
         function getShiChang() {
             if (fs.existsSync('./shiChang.json')) {
@@ -166,7 +216,6 @@ http.createServer((req, res) => {
                 res.end(k)
             });
         }
-
         // 读取页面使用的数据到文件
         function getPageData() {
             if (fs.existsSync('./pageData.json')) {
@@ -200,8 +249,6 @@ http.createServer((req, res) => {
                 res.end(k)
             });
         }
-
-
     } else {
         res.end('')
     }

@@ -462,13 +462,13 @@ export default {
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
-      GetTime: 10000, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 500, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
     };
   },
   components: { jiazai },
   created() {
-    this.range = "A1:F2";
+    this.range = "A1:D2";
     // this.range = `A1:H500`;
 
     this.readType = false;
@@ -1157,13 +1157,12 @@ export default {
             };
           }
 
-          let arr = Array.from(
-            new Set([...t.jijin, this.gupiaoShiChang[t.hangye1].jijin])
-          );
-          this.gupiaoShiChang[t.hangye1].jijin.push(arr);
+          t.jijin.forEach((f) => {
+            if (!this.gupiaoShiChang[t.hangye1].jijin.includes(f)) {
+              this.gupiaoShiChang[t.hangye1].jijin.push(f);
+            }
+          });
         });
-
-        console.log(this.gupiaoShiChang)
 
         this.chartList = [];
         for (let i = 0; i < this.zhengli.fenxi.length; i += 2) {

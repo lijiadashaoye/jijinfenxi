@@ -492,7 +492,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let kk = 175
+    let kk = 500;
     this.range = `A1:H${kk}`;
     // this.range = `A1:H500`;
 
@@ -1260,8 +1260,7 @@ export default {
           !reg.test(arr[i].code) &&
           reg1.test(arr[i].code.slice(2))
         ) {
-          if(arr[i].code!=='005930'){
-          
+          // if (arr[i].code !== "005930") {
           // 获取内地的
           await this.$axios({
             method: "get",
@@ -1274,7 +1273,14 @@ export default {
             arr[i]["hangye2"] = res.jbzl.sszjhhy;
             arr[i]["shichang"] = res.jbzl.ssjys;
           });
-          }
+          // } else {
+          // // 有一些股票无法获取到数据，只能暂时删除
+          //  console.log(arr[i])
+          //   let inde = this.caches.gupiao.findIndex((t) => t.code == "005930");
+          //   this.caches.gupiao.splice(inde, 1);
+          //        let inde2 = this.caches.gupiao.findIndex((t) => t.code == "005930");
+          //        console.log(inde2)
+          // }
         } else if (
           new RegExp("^hk", "i").test(arr[i].code) &&
           reg1.test(arr[i].code.slice(2))

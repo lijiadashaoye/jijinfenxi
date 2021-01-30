@@ -161,7 +161,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="t in Object.keys(gupiaoShiChang)" :key="t">
+          <tr v-for="(t, ind) in Object.keys(gupiaoShiChang)" :key="ind">
             <td>
               <p>
                 {{ t }}
@@ -189,7 +189,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="t in chiCangFenXi" :key="t.code">
+          <tr v-for="(t, ind) in chiCangFenXi" :key="ind">
             <td>
               <p>{{ t.name }}</p>
               <p>{{ t.code }}</p>
@@ -492,27 +492,11 @@ export default {
   },
   components: { jiazai },
   created() {
-    // 如果每次请求次数太多，node会崩溃，设置5分钟自动请求一次
-    let max = sessionStorage.getItem("max"),
-      num = sessionStorage.getItem("num") ? sessionStorage.getItem("num") : 1;
+    let num = 2
 
-    if (!max) {
-      max = 230;
-      sessionStorage.setItem("max", max);
-    }
-    let ll;
-    if (+num < +max) {
-      ll = setInterval(() => {
-        num++;
-        sessionStorage.setItem("num", num);
-
-        this.range = `A1:F${num}`;
-        this.readType = false;
-        this.testShiChang();
-      }, 20000);
-    } else {
-      clearInterval(ll);
-    }
+    this.range = `A1:F${num}`;
+    this.readType = false;
+    this.testShiChang();
   },
   methods: {
     // 读取市场数据

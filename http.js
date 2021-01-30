@@ -24,7 +24,7 @@ http.createServer((req, res) => {
         // 获取基金持仓比例
         if (k[0] === 'bili') {
             url = `http://fund.eastmoney.com/pingzhongdata/${k[1]}.js`;
-            res.setHeader('Content-Type', 'application/javascript')
+            res.setHeader('Content-Type', 'application/javascript;charset=utf-8')
             getData();
         }
         // // 获取基金收益走势，用天天基金拉数据
@@ -37,7 +37,7 @@ http.createServer((req, res) => {
         // 获取基金排名，用同花顺
         if (k[0] === 'shouyiqushi') {
             url = `http://fund.10jqka.com.cn/${k[1]}/json/jsonljjz.json`;
-            res.setHeader('Content-Type', 'application/json')
+            res.setHeader('Content-Type', 'application/json;charset=utf-8')
             getData();
         }
         // 获取基金详情
@@ -49,7 +49,7 @@ http.createServer((req, res) => {
         // 获取基金排名
         if (k[0] === 'paiming') {
             url = `http://fund.10jqka.com.cn/ifindRank/quarter_year_${k[1]}.json`
-            res.setHeader('Content-Type', 'application/json')
+            res.setHeader('Content-Type', 'application/json;charset=utf-8')
             getData();
         }
         // 获取同类
@@ -61,25 +61,25 @@ http.createServer((req, res) => {
         // 获取沪深300
         if (k[0] === 'hushen') {
             url = `http://fund.10jqka.com.cn/1B0300.js`
-            res.setHeader('Content-Type', 'text/javascript')
+            res.setHeader('Content-Type', 'text/javascript;charset=utf-8')
             getData();
         }
         // 获取中证500
         if (k[0] === 'zhongzheng') {
             url = `http://fund.10jqka.com.cn/1B0905.js`
-            res.setHeader('Content-Type', 'text/javascript')
+            res.setHeader('Content-Type', 'text/javascript;charset=utf-8')
             getData();
         }
         // 获取上证
         if (k[0] === 'shangzheng') {
             url = `http://fund.10jqka.com.cn/1A0001.js`
-            res.setHeader('Content-Type', 'text/javascript')
+            res.setHeader('Content-Type', 'text/javascript;charset=utf-8')
             getData();
         }
         // 获取创业板
         if (k[0] === 'chuangyeban') {
             url = `http://fund.10jqka.com.cn/399006.js`
-            res.setHeader('Content-Type', 'text/javascript')
+            res.setHeader('Content-Type', 'text/javascript;charset=utf-8')
             getData();
         }
         // 获取市场文件数据

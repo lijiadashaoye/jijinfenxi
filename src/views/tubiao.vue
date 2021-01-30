@@ -479,23 +479,37 @@ export default {
       showGuPiao: false, // 将股票按类型分析
       showLeiXing: false, // 显示基金类型分析
       showJingLi: false, // 显示基金经理分析
-      showKong: true, // 没有持仓数据的
+      showKong: false, // 没有持仓数据的
       showChongFu: true, // excel 里重复的
       showChongHe: true, // 显示重合分析
       showTongJi: false, // 股票数据统计
       showFenXi: false, // 显示走势分析
       showJiJinChiCang: true, // 将基金持仓进行分析
 
-      GetTime: 500, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 300, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
     };
   },
   components: { jiazai },
   created() {
-    let kk = 500;
-    this.range = `A1:H${kk}`;
-    // this.range = `A1:H500`;
+    // 如果每次请求次数太多，node会崩溃，设置5分钟自动请求一次
+    let max = sessionStorage.getItem("max"),
+      num = sessionStorage.getItem("num") ? sessionStorage.getItem("num") : 1;
 
+    if (!max) {
+      max = 230;
+      sessionStorage.setItem("max", max);
+    }
+
+    if (+num < +max) {
+      setTimeout(() => {
+        window.location.reload();
+        num++;
+        sessionStorage.setItem("num", num);
+      }, 20000);
+    }
+
+    this.range = `A1:F${num}`;
     this.readType = false;
     this.testShiChang();
   },
@@ -674,7 +688,6 @@ export default {
               let tar = this.zhengli.chongfu.find((r) => r.code == t["代码"]);
               if (tar) {
                 tar["num"]++;
-                tar.name = "" + t["名字"];
               } else {
                 // 选出excel里重复的
                 this.zhengli.chongfu.push({
@@ -699,7 +712,6 @@ export default {
                   let tar = this.zhengli.chongfu.find((r) => r.code == t[str]);
                   if (tar) {
                     tar["num"]++;
-                    tar.name = t["名字" + str.slice(2)];
                   } else {
                     // 选出excel里重复的
                     this.zhengli.chongfu.push({
@@ -1199,9 +1211,9 @@ export default {
         for (let i = 0; i < this.zhengli.fenxi.length; i += 2) {
           this.chartList.push(this.zhengli.fenxi.slice(i, i + 2));
         }
-        this.makeColor();
-        this.leiXingTongJi();
-        this.chongHeFenXi();
+        await this.makeColor();
+        await this.leiXingTongJi();
+        await this.chongHeFenXi();
         this.showAll = true;
         let aaa = [...this.gupiao];
         if (this.caches && this.caches.gupiao) {
@@ -1218,7 +1230,7 @@ export default {
 
         this.zhengli["time"] = new Date().getTime();
         // 存储本页面使用的数据
-        this.$axios({
+        await this.$axios({
           method: "post",
           url: `savePageData`,
           headers: {

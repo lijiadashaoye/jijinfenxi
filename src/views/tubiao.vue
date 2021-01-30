@@ -218,8 +218,12 @@
           </tr>
           <tr v-for="(t, ind) in chonghe" :key="ind">
             <td>
-              <p @contextmenu="toChart($event, t.one.code)">{{ t.one.name }}</p>
-              <p @contextmenu="toChart($event, t.two.code)">{{ t.two.name }}</p>
+              <p @contextmenu="toChart($event, t.one.code)">
+                {{ t.one.code }} &nbsp;{{ t.one.name }}
+              </p>
+              <p @contextmenu="toChart($event, t.two.code)">
+                {{ t.two.code }} &nbsp;{{ t.two.name }}
+              </p>
             </td>
             <td style="font-size: 14px">{{ t.num }}</td>
             <td>{{ t.chong.join(" ") }}</td>
@@ -482,7 +486,7 @@ export default {
       showKong: false, // 没有持仓数据的
       showChongFu: true, // excel 里重复的
       showChongHe: true, // 显示重合分析
-      showTongJi: false, // 股票数据统计
+      showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
       showJiJinChiCang: true, // 将基金持仓进行分析
 

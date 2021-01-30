@@ -492,7 +492,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let kk = 165
+    let kk = 175
     this.range = `A1:H${kk}`;
     // this.range = `A1:H500`;
 

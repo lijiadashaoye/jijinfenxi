@@ -500,18 +500,19 @@ export default {
       max = 230;
       sessionStorage.setItem("max", max);
     }
-
+    let ll;
     if (+num < +max) {
-      setTimeout(() => {
-        window.location.reload();
+      ll = setInterval(() => {
         num++;
         sessionStorage.setItem("num", num);
-      }, 20000);
-    }
 
-    this.range = `A1:F${num}`;
-    this.readType = false;
-    this.testShiChang();
+        this.range = `A1:F${num}`;
+        this.readType = false;
+        this.testShiChang();
+      }, 20000);
+    } else {
+      clearInterval(ll);
+    }
   },
   methods: {
     // 读取市场数据

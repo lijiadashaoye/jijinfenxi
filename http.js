@@ -120,7 +120,7 @@ http.createServer((req, res) => {
         }
         // 获取香港股票数据
         if (k[0] === 'hangyeHK') {
-            res.setHeader('Content-Type', 'application/json;charset=utf-8')
+            res.setHeader('Content-Type', 'application/json')
             getHK()
         }
         

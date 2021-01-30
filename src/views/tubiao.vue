@@ -507,7 +507,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 70
+    let num = 230
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -1145,11 +1145,13 @@ export default {
 
         // 如果有缓存数据
         if (this.caches && this.caches.gupiao) {
-          // for(let i=this.caches.gupiao.length;i--;){
-          //   if(this.caches.gupiao[i].name=='人福医药'){
-          //     this.caches.gupiao.splice(i,1)
+
+          // for (let i = this.caches.gupiao.length; i--; ) {
+          //   if (this.caches.gupiao[i].name == "康龙化成") {
+          //     this.caches.gupiao.splice(i, 1);
           //   }
           // }
+
           // 当前页面的股票
           let httpArr = [];
           // 从缓存中找到有行业数据的当前页面中出现的股票
@@ -1286,7 +1288,7 @@ export default {
             method: "get",
             url: `hangyeDaLu/${arr[i].code}`,
             headers: {
-              "Content-Type": "application/json;charset=utf-8",
+              "Content-Type": "application/json",
             },
           }).then((res) => {
             arr[i]["hangye1"] = res.jbzl.sshy;

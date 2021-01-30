@@ -492,7 +492,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let kk=40
+    let kk = 100;
     this.range = `A1:H${kk}`;
     // this.range = `A1:H500`;
 
@@ -1133,9 +1133,8 @@ export default {
         // 如果有缓存数据
         if (this.caches && this.caches.gupiao) {
           // 当前页面的股票
-          let gupiaoCodes = this.gupiao.map((t) => t.code),
-            httpArr = [],
-            arr = [...this.caches.gupiao];
+          let httpArr = [],
+            arr = [...this.caches.gupiao]; // 所有看过的股票
           this.gupiao.forEach((t) => {
             let kk = arr.findIndex((k) => k.code == t.code);
             if (kk < 0) {
@@ -1144,22 +1143,20 @@ export default {
               t = Object.assign(arr[kk], t);
             }
           });
+
+          let gupiaoCodes = this.gupiao.map((t) => t.code);
           for (let i = arr.length; i--; ) {
             let pageTar = this.gupiao.find((t) => t.code == arr[i].code);
-            if (gupiaoCodes.includes(arr[i].code)) {
-              if (arr[i].hangye1) {
-                if (!new RegExp("^hk", "i").test(arr[i].code)) {
-                  // 内地
-                  pageTar["hangye1"] = arr[i].hangye1;
-                  pageTar["hangye2"] = arr[i].hangye2;
-                  pageTar["shichang"] = arr[i].shichang;
-                } else {
-                  // 香港
-                  pageTar["hangye1"] = arr[i].hangye1;
-                  pageTar["shichang"] = arr[i].shichang;
-                }
+            if (gupiaoCodes.includes(arr[i].code) && arr[i].hangye1) {
+              if (!new RegExp("^hk", "i").test(arr[i].code)) {
+                // 内地
+                pageTar["hangye1"] = arr[i].hangye1;
+                pageTar["hangye2"] = arr[i].hangye2;
+                pageTar["shichang"] = arr[i].shichang;
               } else {
-                httpArr.push(arr[i]);
+                // 香港
+                pageTar["hangye1"] = arr[i].hangye1;
+                pageTar["shichang"] = arr[i].shichang;
               }
             } else {
               httpArr.push(arr[i]);
@@ -1187,6 +1184,7 @@ export default {
               this.gupiaoShiChang[t.hangye1].name.push(t.name);
             }
           }
+          // 将持有该股票的基金记录下来
           t.jijin.forEach((f) => {
             if (
               this.gupiaoShiChang[t.hangye1] &&
@@ -1209,6 +1207,7 @@ export default {
         if (this.caches && this.caches.gupiao) {
           aaa.push(...this.caches.gupiao);
         }
+        // 将所有股票数据合到一起，数量最多
         let kk = aaa.reduce((all, now) => {
           let k = all.find((s) => s.code == now.code);
           if (!k) {
@@ -1243,6 +1242,7 @@ export default {
     // 用来获取股票行业数据
     async getHangYe(arr) {
       let codeArrs = [[], []];
+      // 区分内地和香港
       arr.forEach((t) => {
         if (t.code.length == 6 && !new RegExp("^hk", "i").test(t.code)) {
           codeArrs[0].push(t);
@@ -2608,7 +2608,7 @@ ul {
   width: calc(100% - 155px);
   tbody tr {
     display: grid;
-    grid-template-columns:18% 8% 8% 8% 8% 8% 8% 8% 8% 8% 8%;
+    grid-template-columns: 18% 8% 8% 8% 8% 8% 8% 8% 8% 8% 8%;
     td {
       box-sizing: border-box;
       border: 1px solid rgb(224, 222, 222);

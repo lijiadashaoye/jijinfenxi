@@ -507,7 +507,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 75
+    let num = 140
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -2586,7 +2586,7 @@ ul {
   tbody {
     tr {
       display: grid;
-      grid-template-columns: 20% 36px 10% 36px 62%;
+      grid-template-columns: 20% 36px 15% 36px 55%;
     }
 
     td {

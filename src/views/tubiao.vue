@@ -1147,7 +1147,7 @@ export default {
         if (this.caches && this.caches.gupiao) {
 
           // for (let i = this.caches.gupiao.length; i--; ) {
-          //   if (this.caches.gupiao[i].name == "康龙化成") {
+          //   if (this.caches.gupiao[i].name == "光线传媒") {
           //     this.caches.gupiao.splice(i, 1);
           //   }
           // }
@@ -2593,7 +2593,7 @@ ul {
   tbody {
     tr {
       display: grid;
-      grid-template-columns: 20% 36px 15% 36px 55%;
+      grid-template-columns: 20% 36px 15% 36px 57%;
     }
 
     td {

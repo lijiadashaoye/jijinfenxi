@@ -507,7 +507,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 230
+    let num = 230;
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -1145,7 +1145,6 @@ export default {
 
         // 如果有缓存数据
         if (this.caches && this.caches.gupiao) {
-
           // for (let i = this.caches.gupiao.length; i--; ) {
           //   if (this.caches.gupiao[i].name == "光线传媒") {
           //     this.caches.gupiao.splice(i, 1);
@@ -2043,12 +2042,13 @@ ul {
 .noChiCang > tbody,
 .excelChongFu > tbody {
   display: grid;
-  grid-template-columns: 29% 29% 29%;
+  grid-template-columns: 33.3% 33.3% 33.4%;
 }
+
 .typeJiJin,
 .noChiCang,
 .excelChongFu {
-  width: 100%;
+  width: calc(100% - 155px);
   tbody {
     tr {
       width: 100%;
@@ -2092,7 +2092,7 @@ ul {
   }
   tbody {
     display: grid;
-    grid-template-columns: 33.3% 33.3% 33.3%;
+    grid-template-columns: 33% 33% 34%;
 
     tr {
       width: 100%;
@@ -2130,7 +2130,7 @@ ul {
   }
   tbody tr {
     display: grid;
-    grid-template-columns: 25% 35px 35% 35%;
+    grid-template-columns: 25% 35px 35% calc(40% - 35px);
   }
   td {
     font-size: 12px;
@@ -2593,7 +2593,7 @@ ul {
   tbody {
     tr {
       display: grid;
-      grid-template-columns: 20% 36px 15% 36px 57%;
+      grid-template-columns: 20% 36px 15% 36px calc(65% - 72px);
     }
 
     td {
@@ -2650,7 +2650,7 @@ ul {
   width: calc(100% - 155px);
   tbody tr {
     display: grid;
-    grid-template-columns: 18% 8% 8% 8% 8% 8% 8% 8% 8% 8% 8%;
+    grid-template-columns: 20% 8% 8% 8% 8% 8% 8% 8% 8% 8% 8%;
     td {
       box-sizing: border-box;
       border: 1px solid rgb(224, 222, 222);

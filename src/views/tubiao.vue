@@ -484,11 +484,11 @@ export default {
       showLeiXing: false, // 显示基金类型分析
       showJingLi: false, // 显示基金经理分析
       showKong: false, // 没有持仓数据的
-      showChongFu: true, // excel 里重复的
+      showChongFu: false, // excel 里重复的
+      showJiJinChiCang: false, // 将基金持仓进行分析
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
-      showJiJinChiCang: true, // 将基金持仓进行分析
 
       GetTime: 300, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
@@ -1127,6 +1127,7 @@ export default {
             this.single++;
           }
         });
+        // 当前页面的股票数据排序
         this.gupiao = this.gupiao.sort((a, b) => {
           return b.jijin.length - a.jijin.length;
         });
@@ -1145,20 +1146,12 @@ export default {
             }
           });
 
-          let gupiaoCodes = this.gupiao.map((t) => t.code);
+          let gupiaoCodes = this.gupiao.map((t) => t.code); // 当前页面基金的股票的代码
+          // 遍历所有的股票
           for (let i = arr.length; i--; ) {
             let pageTar = this.gupiao.find((t) => t.code == arr[i].code);
             if (gupiaoCodes.includes(arr[i].code) && arr[i].hangye1) {
-              if (!new RegExp("^hk", "i").test(arr[i].code)) {
-                // 内地
-                pageTar["hangye1"] = arr[i].hangye1;
-                pageTar["hangye2"] = arr[i].hangye2;
-                pageTar["shichang"] = arr[i].shichang;
-              } else {
-                // 香港
-                pageTar["hangye1"] = arr[i].hangye1;
-                pageTar["shichang"] = arr[i].shichang;
-              }
+              pageTar = Object.assign(arr[i], pageTar);
             } else {
               httpArr.push(arr[i]);
             }
@@ -1174,7 +1167,7 @@ export default {
           let keys = Object.keys(this.gupiaoShiChang),
             t = this.gupiao[i];
           if (t.hangye1) {
-            if (!keys.includes(t.hangye1)) {
+            if (keys.includes(t.hangye1)) {
               this.gupiaoShiChang[t.hangye1] = {
                 jijin: [],
                 shichang: t.shichang,
@@ -1204,10 +1197,12 @@ export default {
         await this.leiXingTongJi();
         await this.chongHeFenXi();
         this.showAll = true;
-        let aaa = [...this.gupiao];
+        let aaa = [];
         if (this.caches && this.caches.gupiao) {
           aaa.push(...this.caches.gupiao);
         }
+        aaa.push(...this.gupiao);
+        console.log(aaa);
         // 将所有股票数据合到一起，数量最多
         let kk = aaa.reduce((all, now) => {
           let k = all.find((s) => s.code == now.code);

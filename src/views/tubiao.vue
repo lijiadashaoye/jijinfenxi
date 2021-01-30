@@ -479,7 +479,7 @@ export default {
       showGuPiao: false, // 将股票按类型分析
       showLeiXing: false, // 显示基金类型分析
       showJingLi: false, // 显示基金经理分析
-      showKong: false, // 没有持仓数据的
+      showKong: true, // 没有持仓数据的
       showChongFu: true, // excel 里重复的
       showChongHe: true, // 显示重合分析
       showTongJi: false, // 股票数据统计
@@ -492,7 +492,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let kk = 100;
+    let kk = 165
     this.range = `A1:H${kk}`;
     // this.range = `A1:H500`;
 
@@ -1260,6 +1260,8 @@ export default {
           !reg.test(arr[i].code) &&
           reg1.test(arr[i].code.slice(2))
         ) {
+          if(arr[i].code!=='005930'){
+          
           // 获取内地的
           await this.$axios({
             method: "get",
@@ -1272,6 +1274,7 @@ export default {
             arr[i]["hangye2"] = res.jbzl.sszjhhy;
             arr[i]["shichang"] = res.jbzl.ssjys;
           });
+          }
         } else if (
           new RegExp("^hk", "i").test(arr[i].code) &&
           reg1.test(arr[i].code.slice(2))

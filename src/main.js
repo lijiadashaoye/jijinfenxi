@@ -6,6 +6,7 @@ Vue.config.productionTip = false;
 
 import as from "axios";
 as.defaults.baseURL = 'http://localhost:6634';
+as.defaults.timeout = 30000;
 // http响应拦截器
 as.interceptors.response.use(res => {
   if (res.status == 200) {

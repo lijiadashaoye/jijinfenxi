@@ -30,14 +30,6 @@
             <input type="checkbox" v-model="showLeiXing" />
           </label>
           <label>
-            股票类型统计
-            <input type="checkbox" v-model="showGuPiao" />
-          </label>
-          <label>
-            基金经理统计
-            <input type="checkbox" v-model="showJingLi" />
-          </label>
-          <label>
             没有持仓数据
             <input type="checkbox" v-model="showKong" />
           </label>
@@ -46,7 +38,15 @@
             <input type="checkbox" v-model="showChongFu" />
           </label>
           <label>
-            基金持仓类型分析
+            基金经理统计
+            <input type="checkbox" v-model="showJingLi" />
+          </label>
+          <label>
+            股票市场统计
+            <input type="checkbox" v-model="showGuPiao" />
+          </label>
+          <label>
+            基金持仓分析
             <input type="checkbox" v-model="showJiJinChiCang" />
           </label>
           <label>
@@ -137,7 +137,7 @@
       <table collpase class="typeTongJi" v-if="showJingLi">
         <thead>
           <tr>
-            <th style="padding: 20px 0" colspan="6">基金经理汇总</th>
+            <th style="padding: 20px 0" colspan="6">基金经理统计</th>
           </tr>
         </thead>
         <tbody>
@@ -195,7 +195,7 @@
       <table class="jiJinChiCang" collpase v-if="showJiJinChiCang">
         <thead>
           <tr>
-            <th style="padding: 20px 0" colspan="3">将基金持仓进行分析</th>
+            <th style="padding: 20px 0" colspan="3">基金持仓分析</th>
           </tr>
         </thead>
         <tbody>
@@ -490,11 +490,11 @@ export default {
       chiCangFenXi: [], // 基金持仓分析
 
       showGaiNian: false, // 显示概念分析
-      showGuPiao: true, // 将股票按类型分析
       showLeiXing: false, // 显示基金类型分析
-      showJingLi: false, // 显示基金经理分析
       showKong: false, // 没有持仓数据的
-      showChongFu: true, // excel 里重复的
+      showChongFu: false, // excel 里重复的
+      showJingLi: false, // 显示基金经理分析
+      showGuPiao: true, // 将股票按类型分析
       showJiJinChiCang: true, // 将基金持仓进行分析
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
@@ -506,7 +506,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 230
+    let num = 75
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -2580,7 +2580,7 @@ ul {
     tr:nth-of-type(1) {
       font-size: 14px;
       text-align: center;
-      td{
+      td {
         display: flex;
         justify-content: center;
         align-items: center;

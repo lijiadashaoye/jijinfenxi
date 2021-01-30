@@ -168,26 +168,26 @@
             <td>基金数量</td>
             <td>基金名称</td>
           </tr>
-          <tr v-for="(t, ind) in Object.keys(gupiaoShiChang)" :key="ind">
+          <tr v-for="(t, ind) in sortGupiaoShiChang" :key="ind">
             <td>
               <p>
-                {{ t }}
+                {{ t.name }}
               </p>
               <p>
-                {{ gupiaoShiChang[t].xiangxi }}
+                {{ t.data.xiangxi }}
               </p>
               <p>
-                {{ gupiaoShiChang[t].shichang }}
+                {{ t.data.shichang }}
               </p>
             </td>
             <td>
-              {{ gupiaoShiChang[t].name.length }}
+              {{ t.data.name.length }}
             </td>
             <td>
-              {{ gupiaoShiChang[t].name.join("  ") }}
+              {{ t.data.name.join("  ") }}
             </td>
-            <td>{{ gupiaoShiChang[t].jijin.length }}</td>
-            <td>{{ gupiaoShiChang[t].jijin.join("  ") }}</td>
+            <td>{{ t.num }}</td>
+            <td>{{ t.data.jijin.join("  ") }}</td>
           </tr>
         </tbody>
       </table>
@@ -487,6 +487,7 @@ export default {
       caches: null, // 判断是否有缓存
       showAll: false, // 用来控制显示页面DOM表示加载完
       gupiaoShiChang: {}, // 股票市场类型区分
+      sortGupiaoShiChang: [], // 股票市场类型区分的排序
       chiCangFenXi: [], // 基金持仓分析
 
       showGaiNian: false, // 显示概念分析
@@ -506,7 +507,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 75
+    let num = 55
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -1177,7 +1178,10 @@ export default {
                 name: [t.name],
               };
             } else {
-              this.gupiaoShiChang[t.hangye1].name.push(t.name);
+              let kk = this.gupiaoShiChang[t.hangye1].name;
+              if (!kk.includes(t.name)) {
+                kk.push(t.name);
+              }
             }
           }
           // 将持有该股票的基金记录下来
@@ -1190,6 +1194,20 @@ export default {
             }
           });
         }
+
+        // sortGupiaoShiChang
+
+        let sortedObjKeys = Object.keys(this.gupiaoShiChang),
+          linshi = [];
+        for (let i = sortedObjKeys.length; i--; ) {
+          linshi.push({
+            name: sortedObjKeys[i],
+            num: this.gupiaoShiChang[sortedObjKeys[i]].jijin.length,
+            data: this.gupiaoShiChang[sortedObjKeys[i]],
+          });
+        }
+
+        this.sortGupiaoShiChang = linshi.sort((a, b) => b.num - a.num);
 
         this.chartList = [];
         for (let i = 0; i < this.zhengli.fenxi.length; i += 2) {
@@ -1346,7 +1364,6 @@ export default {
           (t) => t.code == this.zhengli.canUse[i].code
         );
       }
-
       let arrs = [],
         t = this.zhengli.canUse;
       for (let h = t.length; h--; ) {

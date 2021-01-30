@@ -1202,16 +1202,16 @@ export default {
           aaa.push(...this.caches.gupiao);
         }
         aaa.push(...this.gupiao);
-        console.log(aaa);
         // 将所有股票数据合到一起，数量最多
         let kk = aaa.reduce((all, now) => {
           let k = all.find((s) => s.code == now.code);
           if (!k) {
             all.push(now);
+          } else {
+            k = Object.assign(k, now);
           }
           return all;
         }, []);
-
         this.zhengli["time"] = new Date().getTime();
         // 存储本页面使用的数据
         await this.$axios({

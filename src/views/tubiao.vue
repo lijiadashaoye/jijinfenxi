@@ -161,13 +161,17 @@
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td>行业</td>
+            <td>股票数量</td>
+            <td>股票名称</td>
+            <td>基金数量</td>
+            <td>基金名称</td>
+          </tr>
           <tr v-for="(t, ind) in Object.keys(gupiaoShiChang)" :key="ind">
             <td>
               <p>
                 {{ t }}
-              </p>
-              <p>
-                {{ gupiaoShiChang[t].name.join("  ") }}
               </p>
               <p>
                 {{ gupiaoShiChang[t].xiangxi }}
@@ -176,7 +180,13 @@
                 {{ gupiaoShiChang[t].shichang }}
               </p>
             </td>
-            <td>{{ gupiaoShiChang[t].jijin.length + "个" }}</td>
+            <td>
+              {{ gupiaoShiChang[t].name.length }}
+            </td>
+            <td>
+              {{ gupiaoShiChang[t].name.join("  ") }}
+            </td>
+            <td>{{ gupiaoShiChang[t].jijin.length }}</td>
             <td>{{ gupiaoShiChang[t].jijin.join("  ") }}</td>
           </tr>
         </tbody>
@@ -480,12 +490,12 @@ export default {
       chiCangFenXi: [], // 基金持仓分析
 
       showGaiNian: false, // 显示概念分析
-      showGuPiao: false, // 将股票按类型分析
+      showGuPiao: true, // 将股票按类型分析
       showLeiXing: false, // 显示基金类型分析
       showJingLi: false, // 显示基金经理分析
       showKong: false, // 没有持仓数据的
-      showChongFu: false, // excel 里重复的
-      showJiJinChiCang: false, // 将基金持仓进行分析
+      showChongFu: true, // excel 里重复的
+      showJiJinChiCang: true, // 将基金持仓进行分析
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
@@ -496,7 +506,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 230;
+    let num = 230
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -1135,25 +1145,16 @@ export default {
         // 如果有缓存数据
         if (this.caches && this.caches.gupiao) {
           // 当前页面的股票
-          let httpArr = [],
-            arr = [...this.caches.gupiao]; // 所有看过的股票
-          this.gupiao.forEach((t) => {
-            let kk = arr.findIndex((k) => k.code == t.code);
-            if (kk < 0) {
-              arr.push(t);
+          let httpArr = [];
+          // 从缓存中找到有行业数据的当前页面中出现的股票
+          for (let i = this.gupiao.length; i--; ) {
+            let cachesTar = this.caches.gupiao.find(
+              (t) => t.code == this.gupiao[i].code && t.hangye1
+            ); // 从所有股票中找到当前页面用到的股票
+            if (cachesTar) {
+              this.gupiao[i] = Object.assign(cachesTar, this.gupiao[i]);
             } else {
-              t = Object.assign(arr[kk], t);
-            }
-          });
-
-          let gupiaoCodes = this.gupiao.map((t) => t.code); // 当前页面基金的股票的代码
-          // 遍历所有的股票
-          for (let i = arr.length; i--; ) {
-            let pageTar = this.gupiao.find((t) => t.code == arr[i].code);
-            if (gupiaoCodes.includes(arr[i].code) && arr[i].hangye1) {
-              pageTar = Object.assign(arr[i], pageTar);
-            } else {
-              httpArr.push(arr[i]);
+              httpArr.push(this.gupiao[i]);
             }
           }
           if (httpArr.length) {
@@ -1163,11 +1164,12 @@ export default {
           await this.getHangYe(this.gupiao);
         }
 
+        // 根据股票持仓进行划分
         for (let i = this.gupiao.length; i--; ) {
           let keys = Object.keys(this.gupiaoShiChang),
             t = this.gupiao[i];
           if (t.hangye1) {
-            if (keys.includes(t.hangye1)) {
+            if (!keys.includes(t.hangye1)) {
               this.gupiaoShiChang[t.hangye1] = {
                 jijin: [],
                 shichang: t.shichang,
@@ -1247,7 +1249,6 @@ export default {
           codeArrs[1].push(t);
         }
       });
-
       for (let i = arr.length; i--; ) {
         let reg = /^hk/i,
           reg1 = /\d+/g;
@@ -2103,14 +2104,17 @@ ul {
   th {
     font-size: 20px;
   }
+  tbody tr {
+    display: grid;
+    grid-template-columns: 25% 35px 35% 35%;
+  }
   td {
     font-size: 12px;
     box-sizing: border-box;
     border: 1px solid rgb(188, 181, 181);
-    padding: 2px 4px;
+    padding: 4px;
   }
   td:nth-of-type(1) {
-    width: 250px;
     text-align: right;
   }
   td:nth-of-type(1),
@@ -2121,15 +2125,18 @@ ul {
     }
   }
   td:nth-of-type(2) {
-    min-width: 65px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
-  .chongheTitle {
+  .chongheTitle td {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     text-align: center;
-    td {
-      font-size: 14px;
-      border: 1px solid rgb(188, 181, 181);
-    }
+    font-size: 16px;
+    border: 1px solid rgb(188, 181, 181);
+    padding: 0;
   }
 }
 
@@ -2146,7 +2153,7 @@ ul {
         border: 1px solid rgb(188, 181, 181);
       }
       th:nth-of-type(1) {
-        width: 138px;
+        width: 150px;
         flex-shrink: 0;
         font-size: 14px;
       }
@@ -2197,7 +2204,7 @@ ul {
         vertical-align: middle;
       }
       td:nth-of-type(1) {
-        width: 140px;
+        width: 152px;
         flex-shrink: 0;
         color: rgb(189, 8, 196);
         display: flex;
@@ -2559,53 +2566,59 @@ ul {
 }
 .gupiaoTable {
   width: calc(100% - 155px);
-  tbody tr {
-    display: grid;
-    grid-template-columns: 30% 10% 60%;
+  tbody {
+    tr {
+      display: grid;
+      grid-template-columns: 20% 36px 30% 36px 42%;
+    }
+
     td {
       box-sizing: border-box;
       border: 1px solid rgb(224, 222, 222);
       padding: 2px;
     }
-    td:nth-of-type(1) {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      p:nth-of-type(1) {
-        color: red;
-        font-size: 16px;
-      }
-      p:nth-of-type(2) {
-        color: rgb(240, 52, 253);
-        font-size: 12px;
-        text-align: center;
-      }
-      p:nth-of-type(3) {
-        color: rgb(17, 3, 3);
-        font-size: 12px;
-        text-align: center;
-      }
-      p:nth-of-type(4) {
-        color: rgb(89, 125, 191);
-        font-size: 12px;
-        text-align: center;
-      }
-      p:nth-of-type(5) {
-        color: rgb(89, 188, 191);
-        font-size: 12px;
-        text-align: center;
-      }
-    }
-    td:nth-of-type(2) {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+    tr:nth-of-type(1) {
       font-size: 14px;
+      text-align: center;
+      td{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
     }
-    td:nth-of-type(3) {
-      font-size: 12px;
+    tr:nth-of-type(1) ~ tr {
+      td:nth-of-type(1) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        p:nth-of-type(1) {
+          color: red;
+          font-size: 16px;
+        }
+        p:nth-of-type(2) {
+          color: rgb(240, 52, 253);
+          font-size: 12px;
+          text-align: center;
+        }
+        p:nth-of-type(3) {
+          color: rgb(17, 3, 3);
+          font-size: 12px;
+          text-align: center;
+        }
+      }
+      td:nth-of-type(2),
+      td:nth-of-type(4) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+      td:nth-of-type(3),
+      td:nth-of-type(5) {
+        font-size: 12px;
+      }
     }
   }
 }

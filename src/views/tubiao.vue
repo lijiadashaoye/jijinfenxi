@@ -521,7 +521,7 @@ export default {
   created() {
     let num = 230
 
-    this.range = `A1:F${num}`;
+    this.range = `A1:B${num}`;
     this.readType = false;
     this.testShiChang();
   },

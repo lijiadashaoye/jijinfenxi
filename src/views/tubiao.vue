@@ -507,8 +507,8 @@ export default {
       showKong: false, // 没有持仓数据的
       showChongFu: false, // excel 里重复的
       showJingLi: false, // 显示基金经理分析
-      showGuPiao: false, // 将股票按类型分析
-      showJiJinChiCang: false, // 将基金持仓进行分析
+      showGuPiao: true, // 将股票按类型分析
+      showJiJinChiCang: true, // 将基金持仓进行分析
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
@@ -519,7 +519,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 230
+    let num = 230;
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -700,6 +700,7 @@ export default {
               let tar = this.zhengli.chongfu.find((r) => r.code == t["代码"]);
               if (tar) {
                 tar["num"]++;
+                tar.name = "" + t["名字"];
               } else {
                 // 选出excel里重复的
                 this.zhengli.chongfu.push({
@@ -724,6 +725,7 @@ export default {
                   let tar = this.zhengli.chongfu.find((r) => r.code == t[str]);
                   if (tar) {
                     tar["num"]++;
+                    tar.name = "" + t["名字" + str.slice(2)];
                   } else {
                     // 选出excel里重复的
                     this.zhengli.chongfu.push({

@@ -1861,7 +1861,7 @@ export default {
         });
         setTimeout(() => {
           this.$refs[code][0].removeAttribute("style");
-        }, 5000);
+        }, 3000);
       }
     },
     // 清除已经获取的市场数据，重新拉取
@@ -1996,7 +1996,7 @@ export default {
       setTimeout(() => {
         target.classList.remove("toChartRightClick");
         target.removeChild(spans);
-      }, 5000);
+      }, 3000);
     },
     // 点击基金跳转到它的同花顺
     toChart1(e, code) {
@@ -2030,7 +2030,7 @@ export default {
       setTimeout(() => {
         target.classList.remove("toChartRightClick");
         target.removeChild(spans);
-      }, 5000);
+      }, 3000);
     },
   },
 };

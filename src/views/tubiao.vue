@@ -509,9 +509,9 @@ export default {
       showJingLi: false, // 显示基金经理分析
       showGuPiao: true, // 将股票按类型分析
       showJiJinChiCang: true, // 将基金持仓进行分析
-      showChongHe: true, // 显示重合分析
-      showTongJi: true, // 股票数据统计
-      showFenXi: false, // 显示走势分析
+      showChongHe: false, // 显示重合分析
+      showTongJi: false, // 股票数据统计
+      showFenXi: true, // 显示走势分析
 
       GetTime: 300, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
@@ -1157,12 +1157,6 @@ export default {
 
         // 如果有缓存数据
         if (this.caches && this.caches.gupiao) {
-          // for (let i = this.caches.gupiao.length; i--; ) {
-          //   if (this.caches.gupiao[i].name == "光线传媒") {
-          //     this.caches.gupiao.splice(i, 1);
-          //   }
-          // }
-
           // 当前页面的股票
           let httpArr = [];
           // 从缓存中找到有行业数据的当前页面中出现的股票
@@ -1213,8 +1207,6 @@ export default {
           });
         }
 
-        // sortGupiaoShiChang
-
         let sortedObjKeys = Object.keys(this.gupiaoShiChang),
           linshi = [];
         for (let i = sortedObjKeys.length; i--; ) {
@@ -1251,6 +1243,7 @@ export default {
           return all;
         }, []);
         this.zhengli["time"] = new Date().getTime();
+
         // 存储本页面使用的数据
         await this.$axios({
           method: "post",
@@ -1305,6 +1298,11 @@ export default {
             arr[i]["hangye1"] = res.jbzl.sshy;
             arr[i]["hangye2"] = res.jbzl.sszjhhy;
             arr[i]["shichang"] = res.jbzl.ssjys;
+
+            let reg = /.+�+/gi;
+            if (reg.test("" + arr[i]["name"])) {
+              arr[i]["name"] = res.SecurityShortName;
+            }
           });
           // } else {
           // // 有一些股票无法获取到数据，只能暂时删除
@@ -1329,6 +1327,10 @@ export default {
             if (res.gszl) {
               arr[i]["hangye1"] = res.gszl.sshy;
               arr[i]["shichang"] = res.zqzl.jys;
+              let reg = /.+�+/gi;
+              if (reg.test("" + arr[i]["name"])) {
+                arr[i]["name"] = res.zqzl.zqjc;
+              }
             }
           });
         }
@@ -1644,13 +1646,12 @@ export default {
       function qushi(tar, datas, jiJinName, res) {
         let option = {
           color: [
-            "#7a77be",
-            "#ff025b",
-            "#9500ff",
-            "#0290af",
-            "#070100",
-            "#e78325",
-            "#070100",
+            "#7a77be", // 创业板指数
+            "#9500ff", // 上证指数
+            "#0290af", // 中证500
+            "#070100", // 沪深300
+            "#e78325", // 同类平均
+            "#ff0202", // 当前基金
           ],
           title: {
             itemGap: 0,
@@ -2024,7 +2025,7 @@ export default {
 
       spans.innerHTML = "点击打开同花顺";
       spans.addEventListener("click", () => {
-        this.showJiJin(code)
+        this.showJiJin(code);
       });
       target.appendChild(spans);
       setTimeout(() => {

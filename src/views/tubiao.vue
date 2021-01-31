@@ -745,6 +745,7 @@ export default {
     },
     // 获取所有基金的持股
     getData() {
+      console.log(this.zhengli);
       // 获取所有基金的code
       let codes = this.zhengli.canUse.map((t) => "" + t.code);
       // 获取缓存的基金数据

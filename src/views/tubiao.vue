@@ -507,11 +507,11 @@ export default {
       showKong: false, // 没有持仓数据的
       showChongFu: false, // excel 里重复的
       showJingLi: false, // 显示基金经理分析
-      showGuPiao: true, // 将股票按类型分析
-      showJiJinChiCang: true, // 将基金持仓进行分析
-      showChongHe: false, // 显示重合分析
-      showTongJi: false, // 股票数据统计
-      showFenXi: true, // 显示走势分析
+      showGuPiao: false, // 将股票按类型分析
+      showJiJinChiCang: false, // 将基金持仓进行分析
+      showChongHe: true, // 显示重合分析
+      showTongJi: true, // 股票数据统计
+      showFenXi: false, // 显示走势分析
 
       GetTime: 300, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列

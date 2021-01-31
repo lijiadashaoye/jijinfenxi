@@ -228,11 +228,23 @@
           </tr>
           <tr v-for="(t, ind) in chonghe" :key="ind">
             <td>
-              <p @contextmenu="toChart($event, t.one.code)">
-                {{ t.one.code }} &nbsp;{{ t.one.name }}
+              <p>
+                <span @contextmenu="toChart1($event, t.one.code)">{{
+                  t.one.code
+                }}</span>
+                &nbsp;
+                <span @contextmenu="toChart($event, t.one.code)">{{
+                  t.one.name
+                }}</span>
               </p>
-              <p @contextmenu="toChart($event, t.two.code)">
-                {{ t.two.code }} &nbsp;{{ t.two.name }}
+              <p>
+                <span @contextmenu="toChart1($event, t.two.code)">{{
+                  t.two.code
+                }}</span>
+                &nbsp;
+                <span @contextmenu="toChart($event, t.two.code)">{{
+                  t.two.name
+                }}</span>
               </p>
             </td>
             <td style="font-size: 14px">{{ t.num }}</td>
@@ -1953,7 +1965,7 @@ export default {
         spans = document.createElement("span");
       let str = `position: absolute;background: #96fdb4;
         padding: 2px 6px;
-        width: 40px !important;
+        width: 80px !important;
         cursor: pointer;
         border-radius: 3px;
         text-align:center;
@@ -1979,6 +1991,40 @@ export default {
         } else {
           alert("没有图表，请在右侧勾选！");
         }
+      });
+      target.appendChild(spans);
+      setTimeout(() => {
+        target.classList.remove("toChartRightClick");
+        target.removeChild(spans);
+      }, 5000);
+    },
+    // 点击基金跳转到它的同花顺
+    toChart1(e, code) {
+      e.preventDefault();
+      let target = e.target;
+      target.classList.add("toChartRightClick");
+      let x = e.offsetX,
+        y = e.offsetY, // 找到鼠标右键单击时的相对坐标
+        spans = document.createElement("span");
+      let str = `position: absolute;background: #e90436;
+        padding: 2px 6px;
+        width: 90px !important;
+        cursor: pointer;
+        border-radius: 3px;
+        text-align:center;
+        color: black;`;
+      if (target.offsetWidth - 50 > x) {
+        spans.style = `${str}left:${x}px;top:${y - 15}px;
+       `;
+      } else {
+        spans.style = `${str}left:${target.offsetWidth - 50}px;top:${
+          y - 15
+        }px;`;
+      }
+
+      spans.innerHTML = "点击打开同花顺";
+      spans.addEventListener("click", () => {
+        this.showJiJin(code)
       });
       target.appendChild(spans);
       setTimeout(() => {

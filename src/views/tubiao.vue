@@ -2326,7 +2326,7 @@ ul {
   td {
     box-sizing: border-box;
     margin: 5px;
-    width: 600px;
+    width: 640px;
     border: 1px solid rgb(250, 167, 243);
   }
 }

@@ -519,9 +519,9 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 230;
+    let num = 230
 
-    this.range = `A1:B${num}`;
+    this.range = `A1:F${num}`;
     this.readType = false;
     this.testShiChang();
   },

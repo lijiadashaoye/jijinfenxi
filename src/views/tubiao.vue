@@ -519,7 +519,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 300
+    let num = 300;
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -1251,6 +1251,29 @@ export default {
           return all;
         }, []);
         this.zhengli["time"] = new Date().getTime();
+
+        for (let i = kk.length; i--; ) {
+          let reg = /�/gi;
+          if (
+            (kk[i].hangye1 && reg.test(kk[i].hangye1)) ||
+            (kk[i].hangye2 && reg.test(kk[i].hangye2)) ||
+            (kk[i].name && reg.test(kk[i].name)) ||
+            (kk[i].shichang && reg.test(kk[i].shichang))
+          ) {
+            kk.splice(i, 1);
+          }
+        }
+        for (let i = this.zhengli.see.length; i--; ) {
+          let reg = /�/gi;
+          if (
+            (this.zhengli.see[i].hangye &&
+              reg.test(this.zhengli.see[i].hangye)) ||
+            (this.zhengli.see[i].name && reg.test(this.zhengli.see[i].name)) ||
+            (this.zhengli.see[i].zcName && reg.test(this.zhengli.see[i].zcName))
+          ) {
+            this.zhengli.see.splice(i, 1);
+          }
+        }
 
         // 存储本页面使用的数据
         await this.$axios({

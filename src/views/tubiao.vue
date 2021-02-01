@@ -519,7 +519,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 200
+    let num = 300
 
     this.range = `A1:B${num}`;
     this.readType = false;

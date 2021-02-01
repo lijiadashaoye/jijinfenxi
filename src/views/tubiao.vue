@@ -509,7 +509,7 @@ export default {
       showJingLi: false, // 显示基金经理分析
       showGuPiao: true, // 将股票按类型分析
       showJiJinChiCang: true, // 将基金持仓进行分析
-      showChongHe: false, // 显示重合分析
+      showChongHe: true, // 显示重合分析
       showTongJi: false, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
@@ -519,7 +519,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 230;
+    let num = 200
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -1459,6 +1459,36 @@ export default {
         }
       }
       this.chonghe = this.chonghe.sort((a, b) => b.num - a.num);
+      for (let i = this.chonghe.length; i--; ) {
+        let gupiaos = [
+          ...this.chonghe[i].one.gupiao,
+          ...this.chonghe[i].two.gupiao,
+        ];
+        if (this.chonghe[i].chong.length) {
+          this.chonghe[i].chong.forEach((d, ind) => {
+            let tar = gupiaos.find((t) => t.zcName == d);
+            if (tar && tar.hangye) {
+              this.chonghe[i].chong[ind] = d + `-${tar.hangye}`;
+            }
+          });
+        }
+        if (this.chonghe[i].oneOther.length) {
+          this.chonghe[i].oneOther.forEach((d, ind) => {
+            let tar = gupiaos.find((t) => t.zcName == d);
+            if (tar && tar.hangye) {
+              this.chonghe[i].oneOther[ind] = d + `-${tar.hangye}`;
+            }
+          });
+        }
+        if (this.chonghe[i].twoOther.length) {
+          this.chonghe[i].twoOther.forEach((d, ind) => {
+            let tar = gupiaos.find((t) => t.zcName == d);
+            if (tar && tar.hangye) {
+              this.chonghe[i].twoOther[ind] = d + `-${tar.hangye}`;
+            }
+          });
+        }
+      }
 
       this.chiCangFenXi = this.zhengli.canUse.reduce((all, now) => {
         if (now.gupiao && now.gupiao.length) {

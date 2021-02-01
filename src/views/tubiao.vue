@@ -509,8 +509,8 @@ export default {
       showJingLi: false, // 显示基金经理分析
       showGuPiao: true, // 将股票按类型分析
       showJiJinChiCang: true, // 将基金持仓进行分析
-      showChongHe: true, // 显示重合分析
-      showTongJi: true, // 股票数据统计
+      showChongHe: false, // 显示重合分析
+      showTongJi: false, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
       GetTime: 300, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
@@ -745,7 +745,6 @@ export default {
     },
     // 获取所有基金的持股
     getData() {
-      console.log(this.zhengli);
       // 获取所有基金的code
       let codes = this.zhengli.canUse.map((t) => "" + t.code);
       // 获取缓存的基金数据
@@ -755,15 +754,21 @@ export default {
           // 选出文件里有但缓存里没有的基金,需要去http获取数据
           needHttp = codes.filter((t) => !sessionCode.includes(t));
         // 可以看到持仓的基金
-        this.zhengli.see = this.caches.see.filter((t) =>
-          codes.includes(t.code)
-        );
+        this.zhengli.see = this.caches.see.filter((t) => {
+          if (codes.includes(t.code)) {
+            t.name = this.zhengli.canUse.find((s) => s.code == t.code).name;
+            return t;
+          }
+        });
         this.zhengli.kong = this.caches.kong.filter((t) =>
           codes.includes(t.code)
         );
-        this.zhengli.fenxi = this.caches.fenxi.filter((t) =>
-          codes.includes(t.code)
-        ); // 用到echart分析列表
+        this.zhengli.fenxi = this.caches.fenxi.filter((t) => {
+          if (codes.includes(t.code)) {
+            t.name = this.zhengli.canUse.find((s) => s.code == t.code).name;
+            return t;
+          }
+        }); // 用到echart分析列表
         this.httpType(this.httptype, needHttp);
       } else {
         this.httpType(this.httptype, codes);

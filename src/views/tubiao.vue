@@ -279,7 +279,7 @@
             <td
               :id="t.id"
               :class="{ bg: t.jijin.length >= shaixuan, seegupiao: true }"
-              @click="seeGuPiao(t.code)"
+              @contextmenu="seeGuPiao($event, t.code)"
             >
               <p title="点击查看股票">{{ t.name }}</p>
               <p style="font-size: 12px; color: blue" v-if="t.hangye1">
@@ -510,7 +510,7 @@ export default {
       showGuPiao: true, // 将股票按类型分析
       showJiJinChiCang: true, // 将基金持仓进行分析
       showChongHe: true, // 显示重合分析
-      showTongJi: false, // 股票数据统计
+      showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
       GetTime: 300, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
@@ -1252,28 +1252,28 @@ export default {
         }, []);
         this.zhengli["time"] = new Date().getTime();
 
-        for (let i = kk.length; i--; ) {
-          let reg = /�/gi;
-          if (
-            (kk[i].hangye1 && reg.test(kk[i].hangye1)) ||
-            (kk[i].hangye2 && reg.test(kk[i].hangye2)) ||
-            (kk[i].name && reg.test(kk[i].name)) ||
-            (kk[i].shichang && reg.test(kk[i].shichang))
-          ) {
-            kk.splice(i, 1);
-          }
-        }
-        for (let i = this.zhengli.see.length; i--; ) {
-          let reg = /�/gi;
-          if (
-            (this.zhengli.see[i].hangye &&
-              reg.test(this.zhengli.see[i].hangye)) ||
-            (this.zhengli.see[i].name && reg.test(this.zhengli.see[i].name)) ||
-            (this.zhengli.see[i].zcName && reg.test(this.zhengli.see[i].zcName))
-          ) {
-            this.zhengli.see.splice(i, 1);
-          }
-        }
+        // for (let i = kk.length; i--; ) {
+        //   let reg = /�/gi;
+        //   if (
+        //     (kk[i].hangye1 && reg.test(kk[i].hangye1)) ||
+        //     (kk[i].hangye2 && reg.test(kk[i].hangye2)) ||
+        //     (kk[i].name && reg.test(kk[i].name)) ||
+        //     (kk[i].shichang && reg.test(kk[i].shichang))
+        //   ) {
+        //     kk.splice(i, 1);
+        //   }
+        // }
+        // for (let i = this.zhengli.see.length; i--; ) {
+        //   let reg = /�/gi;
+        //   if (
+        //     (this.zhengli.see[i].hangye &&
+        //       reg.test(this.zhengli.see[i].hangye)) ||
+        //     (this.zhengli.see[i].name && reg.test(this.zhengli.see[i].name)) ||
+        //     (this.zhengli.see[i].zcName && reg.test(this.zhengli.see[i].zcName))
+        //   ) {
+        //     this.zhengli.see.splice(i, 1);
+        //   }
+        // }
 
         // 存储本页面使用的数据
         await this.$axios({
@@ -1540,8 +1540,38 @@ export default {
       window.open(`http://fund.10jqka.com.cn//${kk}/interduce.html#manager`);
     },
     // 点击股票名称
-    seeGuPiao(c) {
-      window.open(`http://stockpage.10jqka.com.cn/${c}`);
+    seeGuPiao(e, c) {
+      e.preventDefault();
+      let target = e.target;
+      target.classList.add("toChartRightClick");
+      let x = e.offsetX,
+        y = e.offsetY, // 找到鼠标右键单击时的相对坐标
+        spans = document.createElement("span");
+      let str = `position: absolute;background: rgb(133, 240, 241);
+        padding: 2px 6px;
+        width: 100px !important;
+        cursor: pointer;
+        border-radius: 3px;
+        text-align:center;
+        color: rgb(0, 166, 14);`;
+      if (target.offsetWidth - 50 > x) {
+        spans.style = `${str}left:${x}px;top:${y - 15}px;
+       `;
+      } else {
+        spans.style = `${str}left:${target.offsetWidth - 50}px;top:${
+          y - 15
+        }px;`;
+      }
+
+      spans.innerHTML = "点击打开同花顺";
+      spans.addEventListener("click", () => {
+        window.open(`http://stockpage.10jqka.com.cn/${c}`);
+      });
+      target.appendChild(spans);
+      setTimeout(() => {
+        target.classList.remove("toChartRightClick");
+        target.removeChild(spans);
+      }, 3000);
     },
     // 绘制每个基金的echrts 饼图
     makeXiangQingChart() {
@@ -2025,7 +2055,7 @@ export default {
       let x = e.offsetX,
         y = e.offsetY, // 找到鼠标右键单击时的相对坐标
         spans = document.createElement("span");
-      let str = `position: absolute;background: #96fdb4;
+      let str = `position: absolute;background:rgb(133, 240, 241);
         padding: 2px 6px;
         width: 80px !important;
         cursor: pointer;
@@ -2068,13 +2098,13 @@ export default {
       let x = e.offsetX,
         y = e.offsetY, // 找到鼠标右键单击时的相对坐标
         spans = document.createElement("span");
-      let str = `position: absolute;background: #e90436;
+      let str = `position: absolute;background: rgb(233, 160, 108);
         padding: 2px 6px;
         width: 90px !important;
         cursor: pointer;
         border-radius: 3px;
         text-align:center;
-        color: black;`;
+        color: rgb(0, 166, 14);`;
       if (target.offsetWidth - 50 > x) {
         spans.style = `${str}left:${x}px;top:${y - 15}px;
        `;
@@ -2105,6 +2135,7 @@ table {
 }
 ul {
   list-style-type: none;
+  color:rgb(133, 240, 241)
 }
 
 .gainians1,
@@ -2558,10 +2589,6 @@ ul {
   padding: 2px 4px;
 
   border-radius: 5px;
-}
-.seegupiao:hover {
-  cursor: pointer;
-  background: rgb(32, 228, 100);
 }
 .clear {
   outline: none;

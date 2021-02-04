@@ -271,6 +271,18 @@
               共{{ zhengli.canUse.length }}个基金，
               {{ zhengli.kong.length }}个看不到持仓，
               <span>{{ single }} 个股票被持有一次</span>
+              <span
+                style="
+                  background: green;
+                  margin-left: 20px;
+                  font-weight: normal;
+                  color: #fff;
+                  padding: 2px 5px;
+                  cursor: pointer;
+                "
+                @click="makeExcel"
+                >保存为excel</span
+              >
             </th>
           </tr>
         </thead>
@@ -507,9 +519,9 @@ export default {
       showKong: false, // 没有持仓数据的
       showChongFu: false, // excel 里重复的
       showJingLi: false, // 显示基金经理分析
-      showGuPiao: true, // 将股票按类型分析
-      showJiJinChiCang: true, // 将基金持仓进行分析
-      showChongHe: true, // 显示重合分析
+      showGuPiao: false, // 将股票按类型分析
+      showJiJinChiCang: false, // 将基金持仓进行分析
+      showChongHe: false, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
@@ -742,6 +754,129 @@ export default {
         this.getData();
         // this.showAll=true
       });
+    },
+    // 将股票存为excel
+    makeExcel() {
+      let obj = {};
+      this.gupiao.forEach((t) => {
+        if (t.hangye1) {
+          if (!(t.hangye1 in obj)) {
+            obj[t.hangye1] = {
+              gupiao: [t.name],
+              jijin: t.jijin,
+              zhang:t.zhangfu
+            };
+          } else {
+            obj[t.hangye1].xiangxi = obj[t.hangye1].xiangxi
+              ? obj[t.hangye1].xiangxi
+              : t.hangye2;
+            obj[t.hangye1].gupiao.push(t.name);
+            obj[t.hangye1].jijin = Array.from(
+              new Set([...obj[t.hangye1].jijin, ...t.jijin])
+            );
+          }
+        }
+      });
+      let mergeNum = 1, // 越过第一行
+        ws = XLSX.utils.json_to_sheet(
+          [{ A: "行业", B: "行业详细", C: "股票", D: "基金",E:'涨跌' }],
+          { skipHeader: true } // 输出时不自动添加header
+        ),
+        wb = XLSX.utils.book_new();
+      ws["!merges"] = [];
+
+      Object.keys(obj).forEach((t) => {
+        let jijin = obj[t].jijin,
+          gupiao = obj[t].gupiao;
+        if (jijin.length >= gupiao.length) {
+          let merge1 = {
+            s: {
+              //s为开始
+              c: 0, //开始列  从0开始
+              r: mergeNum, //开始取值范围 从0开始
+            },
+            e: {
+              //e结束
+              c: 0, //结束列
+              //结束范围，行号的索引值。但实际上，行对应的索引值=表格里的行号-1
+              // jijin.length只能得出一共有几行数据，length-1才是索引值
+              r: jijin.length - 1 + mergeNum,
+            },
+          };
+          let merge2 = {
+            s: {
+              //s为开始
+              c: 1, //开始列  从0开始
+              r: mergeNum, //开始取值范围 从0开始
+            },
+            e: {
+              //e结束
+              c: 1, //结束列
+              r: jijin.length - 1 + mergeNum, //结束范围
+            },
+          };
+          XLSX.utils.sheet_add_json(
+            ws,
+            jijin.map((s, index) => ({
+              A: t,
+              B: obj[t].xiangxi ? obj[t].xiangxi : "",
+              C: gupiao[index] ? gupiao[index] : "",
+              D: s,
+              E:obj[t].zhang
+            })),
+            {
+              skipHeader: true,
+              origin: `A${mergeNum + 1}`, // origin：数据填充的起始单元格
+            }
+          );
+          ws["!merges"].push(merge1, merge2);
+          mergeNum += jijin.length;
+        } else {
+          let merge1 = {
+            s: {
+              //s为开始
+              c: 0, //开始列
+              r: mergeNum, //开始取值范围
+            },
+            e: {
+              //e结束
+              c: 0, //结束列
+              r: mergeNum + gupiao.length - 1, //结束范围
+            },
+          };
+          let merge2 = {
+            s: {
+              //s为开始
+              c: 1, //开始列
+              r: mergeNum, //开始取值范围
+            },
+            e: {
+              //e结束
+              c: 1, //结束列
+              r: mergeNum + gupiao.length - 1, //结束范围
+            },
+          };
+          XLSX.utils.sheet_add_json(
+            ws,
+            gupiao.map((s, index) => ({
+              A: t,
+              B: obj[t].xiangxi ? obj[t].xiangxi : "",
+              C: s,
+              D: jijin[index] ? jijin[index] : "",
+              E:obj[t].zhang
+            })),
+            {
+              skipHeader: true,
+              origin: `A${mergeNum + 1}`,
+            }
+          );
+          ws["!merges"].push(merge1, merge2);
+          mergeNum += obj[t].gupiao.length;
+        }
+      });
+
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+      XLSX.writeFile(wb, `${Math.floor(Math.random()*100)}.xlsx`);
     },
     // 获取所有基金的持股
     getData() {
@@ -2135,7 +2270,7 @@ table {
 }
 ul {
   list-style-type: none;
-  color:rgb(133, 240, 241)
+  color: rgb(133, 240, 241);
 }
 
 .gainians1,

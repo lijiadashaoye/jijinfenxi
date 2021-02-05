@@ -531,7 +531,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 300;
+    let num = 85
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -764,7 +764,6 @@ export default {
             obj[t.hangye1] = {
               gupiao: [t.name],
               jijin: t.jijin,
-              zhang:t.zhangfu
             };
           } else {
             obj[t.hangye1].xiangxi = obj[t.hangye1].xiangxi
@@ -779,7 +778,7 @@ export default {
       });
       let mergeNum = 1, // 越过第一行
         ws = XLSX.utils.json_to_sheet(
-          [{ A: "行业", B: "行业详细", C: "股票", D: "基金",E:'涨跌' }],
+          [{ A: "行业", B: "行业详细", C: "股票", D: "基金" }],
           { skipHeader: true } // 输出时不自动添加header
         ),
         wb = XLSX.utils.book_new();
@@ -822,7 +821,6 @@ export default {
               B: obj[t].xiangxi ? obj[t].xiangxi : "",
               C: gupiao[index] ? gupiao[index] : "",
               D: s,
-              E:obj[t].zhang
             })),
             {
               skipHeader: true,
@@ -863,7 +861,6 @@ export default {
               B: obj[t].xiangxi ? obj[t].xiangxi : "",
               C: s,
               D: jijin[index] ? jijin[index] : "",
-              E:obj[t].zhang
             })),
             {
               skipHeader: true,
@@ -876,7 +873,7 @@ export default {
       });
 
       XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-      XLSX.writeFile(wb, `${Math.floor(Math.random()*100)}.xlsx`);
+      XLSX.writeFile(wb, `${Math.floor(Math.random() * 100)}.xlsx`);
     },
     // 获取所有基金的持股
     getData() {
@@ -1387,6 +1384,7 @@ export default {
         }, []);
         this.zhengli["time"] = new Date().getTime();
 
+        // 去除未能编译的文字
         // for (let i = kk.length; i--; ) {
         //   let reg = /�/gi;
         //   if (

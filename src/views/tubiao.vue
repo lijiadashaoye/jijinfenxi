@@ -523,7 +523,7 @@ export default {
       showJiJinChiCang: false, // 将基金持仓进行分析
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
-      showFenXi: false, // 显示走势分析
+      showFenXi: true, // 显示走势分析
 
       GetTime: 300, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
@@ -531,7 +531,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 300
+    let num = 300;
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -752,7 +752,6 @@ export default {
           }
         });
         this.getData();
-        // this.showAll=true
       });
     },
     // 将股票存为excel
@@ -1423,11 +1422,11 @@ export default {
           } else {
             console.log("数据无法存储！");
           }
+          if (this.showFenXi) {
+            this.makeXiangQingChart();
+            this.changeTime(50, "");
+          }
         });
-        if (this.showFenXi) {
-          this.makeXiangQingChart();
-          this.changeTime(50, "");
-        }
       }
     },
     // 用来获取股票行业数据
@@ -1624,7 +1623,7 @@ export default {
           this.chonghe[i].chong.forEach((d, ind) => {
             let tar = gupiaos.find((t) => t.zcName == d);
             if (tar && tar.hangye) {
-              this.chonghe[i].chong[ind] = d + `-(${tar.hangye})`;
+              this.chonghe[i].chong[ind] = d;
             }
           });
         }
@@ -1632,7 +1631,7 @@ export default {
           this.chonghe[i].oneOther.forEach((d, ind) => {
             let tar = gupiaos.find((t) => t.zcName == d);
             if (tar && tar.hangye) {
-              this.chonghe[i].oneOther[ind] = d + `-(${tar.hangye})`;
+              this.chonghe[i].oneOther[ind] = d;
             }
           });
         }
@@ -1640,7 +1639,7 @@ export default {
           this.chonghe[i].twoOther.forEach((d, ind) => {
             let tar = gupiaos.find((t) => t.zcName == d);
             if (tar && tar.hangye) {
-              this.chonghe[i].twoOther[ind] = d + `-(${tar.hangye})`;
+              this.chonghe[i].twoOther[ind] = d;
             }
           });
         }

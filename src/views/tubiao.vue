@@ -3,8 +3,9 @@
     <jiazai v-if="!showAll" />
     <button class="toChong" @click="tochong" v-show="showAll">
       <!--js 特殊字符表 http://www.360doc.com/content/19/0316/09/281812_821845466.shtml -->
-      &#8607;
+      &#9650;
     </button>
+    <button class="tochart" @click="tochart" v-show="showAll">&#9660;</button>
     <button class="clear" @click="clearJiJin">清除缓存，重新拉取数据</button>
 
     <div v-show="showAll">
@@ -312,7 +313,7 @@
       </table>
     </div>
     <!-- 每个基金的分析 -->
-    <table class="fenxi" collpase v-if="showFenXi">
+    <table class="fenxi" collpase v-if="showFenXi" ref="chart">
       <thead>
         <tr>
           <th style="padding: 20px 0" colspan="3">
@@ -531,7 +532,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 300
+    let num = 300;
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -574,7 +575,7 @@ export default {
             this.getShiChang();
           } else {
             // 获取当天时间
-            let day = new Date().getTime()-1000*60*60*24;
+            let day = new Date().getTime() - 1000 * 60 * 60 * 24;
             if (res[1].time < day) {
               this.getShiChang();
             } else {
@@ -2174,6 +2175,17 @@ export default {
         inline: "nearest",
       });
     },
+    // 跳转到查看chart
+    tochart() {
+      if (this.$refs.chart) {
+        this.$refs.chart.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+          inline: "nearest",
+        });
+      }
+    },
+
     // 阻止鼠标右键事件
     oncontextmenu(e, t) {
       e.preventDefault();
@@ -2597,7 +2609,7 @@ ul {
   width: 170px;
   font-size: 12px;
   text-align: left;
-  color:black
+  color: black;
 }
 .xiangqing {
   font-size: 12px;
@@ -2695,15 +2707,15 @@ ul {
 
 .toChong {
   position: fixed;
-  right: 10px;
-  bottom: 60px;
+  right: 5px;
+  bottom: 65px;
   width: 40px;
-  height: 50px;
+  height: 40px;
   color: red;
   font-weight: bold;
   border: none;
-  font-size: 40px;
-  border-radius: 0 0 20% 20%;
+  font-size: 30px;
+  border-radius: 20%;
   opacity: 0.5;
   background: none;
   outline: none;
@@ -2712,20 +2724,53 @@ ul {
 .toChong:hover {
   cursor: pointer;
   opacity: 1;
-  background: rgb(25, 233, 236);
+  background: rgb(3, 99, 100);
 }
 .toChong:hover::before {
   content: "去重合分析头部";
   position: fixed;
-  right: 10px;
-  bottom: 95px;
+  right: 35px;
+  bottom: 75px;
+  color: rgb(239, 240, 241);
+  font-size: 12px;
+  background: rgb(3, 99, 100);
+  padding: 2px 4px;
+  border-radius: 5px 0 0 5px;
+}
+
+.tochart {
+  position: fixed;
+  right: 5px;
+  bottom: 20px;
+  width: 40px;
+  height: 40px;
+  color: rgb(76, 0, 255);
+  font-weight: bold;
+  border: none;
+  font-size: 30px;
+  border-radius: 20%;
+  opacity: 0.5;
+  background: none;
+  outline: none;
+  z-index: 8330;
+}
+.tochart:hover {
+  cursor: pointer;
+  opacity: 1;
+  background: rgb(25, 233, 236);
+}
+.tochart:hover::before {
+  content: "去完整分析";
+  position: fixed;
+  right: 35px;
+  bottom: 30px;
   color: black;
   font-size: 12px;
   background: rgb(25, 233, 236);
   padding: 2px 4px;
-
-  border-radius: 5px;
+  border-radius: 5px 0 0 5px;
 }
+
 .clear {
   outline: none;
   font-size: 14px;

@@ -523,15 +523,15 @@ export default {
       showJiJinChiCang: false, // 将基金持仓进行分析
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
-      showFenXi: true, // 显示走势分析
+      showFenXi: false, // 显示走势分析
 
-      GetTime: 300, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
+      GetTime: 200, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
       readType: false, // true为读取两列，false为读取多列
     };
   },
   components: { jiazai },
   created() {
-    let num = 300;
+    let num = 300
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -574,7 +574,7 @@ export default {
             this.getShiChang();
           } else {
             // 获取当天时间
-            let day = new Date().getDate();
+            let day = new Date().getTime();
             if (res[1].time < day) {
               this.getShiChang();
             } else {
@@ -668,7 +668,7 @@ export default {
     },
     // 把市场数据存储为文件
     upShiChangData() {
-      this.shichang.time = new Date().getDate();
+      this.shichang.time = new Date().getTime();
       this.$axios({
         method: "post",
         url: `upShiChang`,
@@ -725,6 +725,9 @@ export default {
           } else {
             let reg = /代码(.*)/gi;
             Object.keys(t).forEach((str) => {
+              // if (t[str] == "007350") {
+              //   console.log(t);
+              // }
               if (reg.test(str)) {
                 // 选出excel里的基金，包括没有持仓数据的基金
                 if (!excelCode.includes("" + t[str])) {
@@ -2401,7 +2404,7 @@ ul {
   }
   tbody tr {
     display: grid;
-    grid-template-columns: 25% 35px 35% calc(40% - 35px);
+    grid-template-columns: 25% 35px 45% calc(30% - 35px);
   }
   td {
     font-size: 12px;
@@ -2594,6 +2597,7 @@ ul {
   width: 170px;
   font-size: 12px;
   text-align: left;
+  color:black
 }
 .xiangqing {
   font-size: 12px;

@@ -196,7 +196,9 @@
       <table class="jiJinChiCang" collpase v-if="showJiJinChiCang">
         <thead>
           <tr>
-            <th style="padding: 20px 0" colspan="3">基金持仓分析</th>
+            <th style="padding: 20px 0" colspan="3">
+              基金持仓分析，共{{ this.zhengli.canUse.length }}个基金
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -521,9 +523,9 @@ export default {
       showChongFu: false, // excel 里重复的
       showJingLi: false, // 显示基金经理分析
       showGuPiao: false, // 将股票按类型分析
-      showJiJinChiCang: false, // 将基金持仓进行分析
-      showChongHe: true, // 显示重合分析
-      showTongJi: true, // 股票数据统计
+      showJiJinChiCang: true, // 将基金持仓进行分析
+      showChongHe: false, // 显示重合分析
+      showTongJi: false, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
       GetTime: 200, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
@@ -532,7 +534,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 300;
+    let num = 222
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -1465,7 +1467,6 @@ export default {
             arr[i]["hangye1"] = res.jbzl.sshy;
             arr[i]["hangye2"] = res.jbzl.sszjhhy;
             arr[i]["shichang"] = res.jbzl.ssjys;
-
             let reg = /.+�+/gi;
             if (reg.test("" + arr[i]["name"])) {
               arr[i]["name"] = res.SecurityShortName;

@@ -2177,7 +2177,7 @@ export default {
     },
     // 跳转到查看chart
     tochart() {
-      if (this.$refs.chart) {
+      if (this.showFenXi) {
         this.$refs.chart.scrollIntoView({
           behavior: "smooth",
           block: "start",

@@ -574,7 +574,7 @@ export default {
             this.getShiChang();
           } else {
             // 获取当天时间
-            let day = new Date().getTime();
+            let day = new Date().getTime()-1000*60*60*24;
             if (res[1].time < day) {
               this.getShiChang();
             } else {

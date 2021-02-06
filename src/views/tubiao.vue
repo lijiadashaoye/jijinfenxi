@@ -2416,7 +2416,7 @@ ul {
   }
   tbody tr {
     display: grid;
-    grid-template-columns: 25% 35px 45% calc(30% - 35px);
+    grid-template-columns: 25% 35px 40% calc(35% - 35px);
   }
   td {
     font-size: 12px;

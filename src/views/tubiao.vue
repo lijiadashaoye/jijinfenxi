@@ -206,6 +206,9 @@
             <td>
               <p>{{ t.name }}</p>
               <p>{{ t.code }}</p>
+              <p style="font-size: 12px" v-if="t.zong">
+                {{ t.zong.join("，") }}
+              </p>
             </td>
             <td v-for="(s, sIn) in t.gupiao" :key="sIn">
               <p>{{ s.zcName }}</p>
@@ -524,9 +527,9 @@ export default {
       showChongFu: false, // excel 里重复的
       showJingLi: false, // 显示基金经理分析
       showGuPiao: false, // 将股票按类型分析
-      showJiJinChiCang: false, // 将基金持仓进行分析
-      showChongHe: true, // 显示重合分析
-      showTongJi: true, // 股票数据统计
+      showJiJinChiCang: true, // 将基金持仓进行分析
+      showChongHe: false, // 显示重合分析
+      showTongJi: false, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
       GetTime: 200, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
@@ -538,7 +541,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 180
+    let num = 200;
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -1428,7 +1431,6 @@ export default {
           // 只有获取数据的请求全部成功且结束后，存储本次的请求数据
           if (res) {
             console.log("数据已经存储完毕！");
-            // this.lllllll();
           } else {
             console.log("数据无法存储！");
           }
@@ -1439,7 +1441,221 @@ export default {
         });
       }
     },
-    lllllll() {
+    // 用来获取股票行业数据
+    async getHangYe(arr) {
+      let codeArrs = [[], []];
+      // 区分内地和香港
+      arr.forEach((t) => {
+        if (t.code.length == 6 && !new RegExp("^hk", "i").test(t.code)) {
+          codeArrs[0].push(t);
+        }
+        if (new RegExp("^hk", "i").test(t.code)) {
+          codeArrs[1].push(t);
+        }
+      });
+      for (let i = arr.length; i--; ) {
+        let reg = /^hk/i,
+          reg1 = /\d+/g;
+        if (
+          arr[i].code.length == 6 &&
+          !reg.test(arr[i].code) &&
+          reg1.test(arr[i].code.slice(2))
+        ) {
+          // if (arr[i].code !== "005930") {
+          // 获取内地的
+          await this.$axios({
+            method: "get",
+            url: `hangyeDaLu/${arr[i].code}`,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }).then((res) => {
+            arr[i]["hangye1"] = res.jbzl.sshy;
+            arr[i]["hangye2"] = res.jbzl.sszjhhy;
+            arr[i]["shichang"] = res.jbzl.ssjys;
+            let reg = /.+�+/gi;
+            if (reg.test("" + arr[i]["name"])) {
+              arr[i]["name"] = res.SecurityShortName;
+            }
+          });
+          // } else {
+          // // 有一些股票无法获取到数据，只能暂时删除
+          //  console.log(arr[i])
+          //   let inde = this.caches.gupiao.findIndex((t) => t.code == "005930");
+          //   this.caches.gupiao.splice(inde, 1);
+          //        let inde2 = this.caches.gupiao.findIndex((t) => t.code == "005930");
+          //        console.log(inde2)
+          // }
+        } else if (
+          new RegExp("^hk", "i").test(arr[i].code) &&
+          reg1.test(arr[i].code.slice(2))
+        ) {
+          // 获取香港的
+          await this.$axios({
+            method: "get",
+            url: `hangyeHK/${"0" + arr[i].code.slice(2)}`,
+            headers: {
+              "Content-Type": "application/json;charset=utf-8",
+            },
+          }).then((res) => {
+            if (res.gszl) {
+              arr[i]["hangye1"] = res.gszl.sshy;
+              arr[i]["shichang"] = res.zqzl.jys;
+              let reg = /.+�+/gi;
+              if (reg.test("" + arr[i]["name"])) {
+                arr[i]["name"] = res.zqzl.zqjc;
+              }
+            }
+          });
+        }
+      }
+    },
+    makeChart() {
+      if (this.showFenXi) {
+        this.makeXiangQingChart();
+        this.changeTime(50, "");
+      }
+    },
+    // 基金类型统计
+    leiXingTongJi() {
+      let j = require("../../leixing.json"),
+        k = this.zhengli.fenxi;
+      j.forEach((t) => {
+        let leixing = Object.keys(this.jijinType);
+        if (!leixing.includes(t[1])) {
+          this.jijinType[t[1]] = [];
+        }
+        let z = k.find((d) => d.code == t[0]);
+        if (z && !this.jijinType[t[1]].includes(z.name)) {
+          this.jijinType[t[1]].push(z.name);
+        }
+      });
+      Object.keys(this.jijinType).forEach((t) => {
+        if (!this.jijinType[t].length) {
+          delete this.jijinType[t];
+        }
+      });
+    },
+    // 重合分析
+    chongHeFenXi() {
+      for (let i = this.zhengli.see.length; i--; ) {
+        let zz = Object.keys(this.gupiaoShiChang),
+          name = this.zhengli.canUse.find(
+            (g) => g.code == this.zhengli.see[i].code
+          ).name;
+        for (let k = zz.length; k--; ) {
+          let hy = this.gupiaoShiChang[zz[k]];
+          if (
+            hy.jijin.includes(name) &&
+            hy.name.includes(this.zhengli.see[i].zcName)
+          ) {
+            this.zhengli.see[i]["hangye"] = zz[k];
+          }
+        }
+      }
+      for (let i = this.zhengli.canUse.length; i--; ) {
+        this.zhengli.canUse[i]["gupiao"] = this.zhengli.see.filter(
+          (t) => t.code == this.zhengli.canUse[i].code
+        );
+      }
+      let arrs = [],
+        t = this.zhengli.canUse;
+      for (let h = t.length; h--; ) {
+        if (t[h].gupiao.length) {
+          let gupiao = t[h].gupiao.map((k) => k.zcCode); // 选出当前基金所持股票的代码
+          for (let i = t.length; i--; ) {
+            if (
+              // 排除自己且其他基金有股票数据
+              t[i].code != t[h].code &&
+              t[i].gupiao.length
+            ) {
+              let d = t[i].gupiao.map((k) => k.zcCode),
+                num = 0;
+              gupiao.forEach((j) => {
+                if (d.includes(j)) {
+                  num++;
+                }
+              });
+              if (num > this.chongheNum) {
+                let a = new Set(t[h].gupiao.map((d) => d.zcCode)),
+                  b = new Set(t[i].gupiao.map((d) => d.zcCode)),
+                  kk = [...new Set([...a].filter((x) => b.has(x)))], // 取交集
+                  linshi = t[h].gupiao
+                    .filter((t) => kk.includes(t.zcCode))
+                    .map((t) => t.zcName),
+                  obj = {
+                    one: t[h],
+                    oneOther: t[h].gupiao
+                      .map((d) => d.zcName)
+                      .filter((f) => !linshi.includes(f)),
+                    two: t[i],
+                    twoOther: t[i].gupiao
+                      .map((d) => d.zcName)
+                      .filter((f) => !linshi.includes(f)),
+                    num: num,
+                    chong: linshi,
+                  };
+                arrs.push(obj);
+              }
+            }
+          }
+        }
+      }
+
+      for (let j = arrs.length; j--; ) {
+        let one = arrs[j].one.code,
+          two = arrs[j].two.code,
+          sortArr = [one, two].sort();
+        if (!this.chonghe.length) {
+          this.chonghe.push(arrs[j]);
+        } else {
+          // 基金位置排序后如果相同，则视为同一组重合对比
+          let isIn = false;
+          for (let i = this.chonghe.length; i--; ) {
+            let one = this.chonghe[i].one.code,
+              two = this.chonghe[i].two.code,
+              sortArr1 = [one, two].sort();
+            if (sortArr[0] == sortArr1[0] && sortArr[1] == sortArr1[1]) {
+              isIn = true;
+            }
+          }
+          if (!isIn) {
+            this.chonghe.push(arrs[j]);
+          }
+        }
+      }
+      this.chonghe = this.chonghe.sort((a, b) => b.num - a.num);
+      for (let i = this.chonghe.length; i--; ) {
+        let gupiaos = [
+          ...this.chonghe[i].one.gupiao,
+          ...this.chonghe[i].two.gupiao,
+        ];
+        if (this.chonghe[i].chong.length) {
+          this.chonghe[i].chong.forEach((d, ind) => {
+            let tar = gupiaos.find((t) => t.zcName == d);
+            if (tar && tar.hangye) {
+              this.chonghe[i].chong[ind] = d;
+            }
+          });
+        }
+        if (this.chonghe[i].oneOther.length) {
+          this.chonghe[i].oneOther.forEach((d, ind) => {
+            let tar = gupiaos.find((t) => t.zcName == d);
+            if (tar && tar.hangye) {
+              this.chonghe[i].oneOther[ind] = d;
+            }
+          });
+        }
+        if (this.chonghe[i].twoOther.length) {
+          this.chonghe[i].twoOther.forEach((d, ind) => {
+            let tar = gupiaos.find((t) => t.zcName == d);
+            if (tar && tar.hangye) {
+              this.chonghe[i].twoOther[ind] = d;
+            }
+          });
+        }
+      }
+
       let shipin = [
           "贵州茅台",
           "五粮液",
@@ -1814,250 +2030,66 @@ export default {
           "耐世特",
           "美东汽车",
         ];
-      let arr = [[], [], [], [], [], [], [], []];
+      let obj = {
+        食品饮料: [],
+        新能源: [],
+        科技: [],
+        大消费: [],
+        医疗: [],
+        制造: [],
+        金融: [],
+        汽车: [],
+      };
       for (let i = this.zhengli.see.length; i--; ) {
         let tar = this.zhengli.see[i];
-        if (shipin.includes(tar.zcName) && !arr[0].includes(tar.name)) {
-          arr[0].unshift(tar.name);
-        }
-        if (xinengyuan.includes(tar.zcName) && !arr[1].includes(tar.name)) {
-          arr[1].unshift(tar.name);
-        }
-        if (keji.includes(tar.zcName) && !arr[2].includes(tar.name)) {
-          arr[2].unshift(tar.name);
-        }
-        if (xiaofei.includes(tar.zcName) && !arr[3].includes(tar.name)) {
-          arr[3].unshift(tar.name);
-        }
-        if (yiliao.includes(tar.zcName) && !arr[4].includes(tar.name)) {
-          arr[4].unshift(tar.name);
-        }
-        if (zhizao.includes(tar.zcName) && !arr[5].includes(tar.name)) {
-          arr[5].unshift(tar.name);
-        }
-        if (jinrong.includes(tar.zcName) && !arr[6].includes(tar.name)) {
-          arr[6].unshift(tar.name);
-        }
-        if (qiche.includes(tar.zcName) && !arr[7].includes(tar.name)) {
-          arr[7].unshift(tar.name);
-        }
-      }
-      console.log(arr);
-    },
-    // 用来获取股票行业数据
-    async getHangYe(arr) {
-      let codeArrs = [[], []];
-      // 区分内地和香港
-      arr.forEach((t) => {
-        if (t.code.length == 6 && !new RegExp("^hk", "i").test(t.code)) {
-          codeArrs[0].push(t);
-        }
-        if (new RegExp("^hk", "i").test(t.code)) {
-          codeArrs[1].push(t);
-        }
-      });
-      for (let i = arr.length; i--; ) {
-        let reg = /^hk/i,
-          reg1 = /\d+/g;
         if (
-          arr[i].code.length == 6 &&
-          !reg.test(arr[i].code) &&
-          reg1.test(arr[i].code.slice(2))
+          shipin.includes(tar.zcName) &&
+          !obj["食品饮料"].includes(tar.name)
         ) {
-          // if (arr[i].code !== "005930") {
-          // 获取内地的
-          await this.$axios({
-            method: "get",
-            url: `hangyeDaLu/${arr[i].code}`,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }).then((res) => {
-            arr[i]["hangye1"] = res.jbzl.sshy;
-            arr[i]["hangye2"] = res.jbzl.sszjhhy;
-            arr[i]["shichang"] = res.jbzl.ssjys;
-            let reg = /.+�+/gi;
-            if (reg.test("" + arr[i]["name"])) {
-              arr[i]["name"] = res.SecurityShortName;
-            }
-          });
-          // } else {
-          // // 有一些股票无法获取到数据，只能暂时删除
-          //  console.log(arr[i])
-          //   let inde = this.caches.gupiao.findIndex((t) => t.code == "005930");
-          //   this.caches.gupiao.splice(inde, 1);
-          //        let inde2 = this.caches.gupiao.findIndex((t) => t.code == "005930");
-          //        console.log(inde2)
-          // }
-        } else if (
-          new RegExp("^hk", "i").test(arr[i].code) &&
-          reg1.test(arr[i].code.slice(2))
+          obj["食品饮料"].unshift(tar.name);
+        }
+        if (
+          xinengyuan.includes(tar.zcName) &&
+          !obj["新能源"].includes(tar.name)
         ) {
-          // 获取香港的
-          await this.$axios({
-            method: "get",
-            url: `hangyeHK/${"0" + arr[i].code.slice(2)}`,
-            headers: {
-              "Content-Type": "application/json;charset=utf-8",
-            },
-          }).then((res) => {
-            if (res.gszl) {
-              arr[i]["hangye1"] = res.gszl.sshy;
-              arr[i]["shichang"] = res.zqzl.jys;
-              let reg = /.+�+/gi;
-              if (reg.test("" + arr[i]["name"])) {
-                arr[i]["name"] = res.zqzl.zqjc;
-              }
-            }
-          });
+          obj["新能源"].unshift(tar.name);
         }
-      }
-    },
-    makeChart() {
-      if (this.showFenXi) {
-        this.makeXiangQingChart();
-        this.changeTime(50, "");
-      }
-    },
-    // 基金类型统计
-    leiXingTongJi() {
-      let j = require("../../leixing.json"),
-        k = this.zhengli.fenxi;
-      j.forEach((t) => {
-        let leixing = Object.keys(this.jijinType);
-        if (!leixing.includes(t[1])) {
-          this.jijinType[t[1]] = [];
+        if (keji.includes(tar.zcName) && !obj["科技"].includes(tar.name)) {
+          obj["科技"].unshift(tar.name);
         }
-        let z = k.find((d) => d.code == t[0]);
-        if (z && !this.jijinType[t[1]].includes(z.name)) {
-          this.jijinType[t[1]].push(z.name);
+        if (xiaofei.includes(tar.zcName) && !obj["大消费"].includes(tar.name)) {
+          obj["大消费"].unshift(tar.name);
         }
-      });
-      Object.keys(this.jijinType).forEach((t) => {
-        if (!this.jijinType[t].length) {
-          delete this.jijinType[t];
+        if (yiliao.includes(tar.zcName) && !obj["医疗"].includes(tar.name)) {
+          obj["医疗"].unshift(tar.name);
         }
-      });
-    },
-    // 重合分析
-    chongHeFenXi() {
-      for (let i = this.zhengli.see.length; i--; ) {
-        let zz = Object.keys(this.gupiaoShiChang),
-          name = this.zhengli.canUse.find(
-            (g) => g.code == this.zhengli.see[i].code
-          ).name;
-        for (let k = zz.length; k--; ) {
-          let hy = this.gupiaoShiChang[zz[k]];
-          if (
-            hy.jijin.includes(name) &&
-            hy.name.includes(this.zhengli.see[i].zcName)
-          ) {
-            this.zhengli.see[i]["hangye"] = zz[k];
-          }
+        if (zhizao.includes(tar.zcName) && !obj["制造"].includes(tar.name)) {
+          obj["制造"].unshift(tar.name);
         }
-      }
-      for (let i = this.zhengli.canUse.length; i--; ) {
-        this.zhengli.canUse[i]["gupiao"] = this.zhengli.see.filter(
-          (t) => t.code == this.zhengli.canUse[i].code
-        );
-      }
-      let arrs = [],
-        t = this.zhengli.canUse;
-      for (let h = t.length; h--; ) {
-        if (t[h].gupiao.length) {
-          let gupiao = t[h].gupiao.map((k) => k.zcCode); // 选出当前基金所持股票的代码
-          for (let i = t.length; i--; ) {
-            if (
-              // 排除自己且其他基金有股票数据
-              t[i].code != t[h].code &&
-              t[i].gupiao.length
-            ) {
-              let d = t[i].gupiao.map((k) => k.zcCode),
-                num = 0;
-              gupiao.forEach((j) => {
-                if (d.includes(j)) {
-                  num++;
-                }
-              });
-              if (num > this.chongheNum) {
-                let a = new Set(t[h].gupiao.map((d) => d.zcCode)),
-                  b = new Set(t[i].gupiao.map((d) => d.zcCode)),
-                  kk = [...new Set([...a].filter((x) => b.has(x)))], // 取交集
-                  linshi = t[h].gupiao
-                    .filter((t) => kk.includes(t.zcCode))
-                    .map((t) => t.zcName),
-                  obj = {
-                    one: t[h],
-                    oneOther: t[h].gupiao
-                      .map((d) => d.zcName)
-                      .filter((f) => !linshi.includes(f)),
-                    two: t[i],
-                    twoOther: t[i].gupiao
-                      .map((d) => d.zcName)
-                      .filter((f) => !linshi.includes(f)),
-                    num: num,
-                    chong: linshi,
-                  };
-                arrs.push(obj);
-              }
-            }
-          }
+        if (jinrong.includes(tar.zcName) && !obj["金融"].includes(tar.name)) {
+          obj["金融"].unshift(tar.name);
+        }
+        if (qiche.includes(tar.zcName) && !obj["汽车"].includes(tar.name)) {
+          obj["汽车"].unshift(tar.name);
         }
       }
 
-      for (let j = arrs.length; j--; ) {
-        let one = arrs[j].one.code,
-          two = arrs[j].two.code,
-          sortArr = [one, two].sort();
-        if (!this.chonghe.length) {
-          this.chonghe.push(arrs[j]);
-        } else {
-          // 基金位置排序后如果相同，则视为同一组重合对比
-          let isIn = false;
-          for (let i = this.chonghe.length; i--; ) {
-            let one = this.chonghe[i].one.code,
-              two = this.chonghe[i].two.code,
-              sortArr1 = [one, two].sort();
-            if (sortArr[0] == sortArr1[0] && sortArr[1] == sortArr1[1]) {
-              isIn = true;
-            }
-          }
-          if (!isIn) {
-            this.chonghe.push(arrs[j]);
+      let obj1 = {};
+      let names = Array.from(new Set(this.zhengli.canUse.map((t) => t.name)));
+      names.forEach((t) => {
+        if (!(t in obj1)) {
+          obj1[t] = [];
+        }
+      });
+      Object.keys(obj).forEach((t) => {
+        for (let i = obj[t].length; i--; ) {
+          if (names.includes(obj[t][i])) {
+            obj1[obj[t][i]] = Array.from(
+              new Set([...obj1[obj[t][i]], t])
+            ).sort();
           }
         }
-      }
-      this.chonghe = this.chonghe.sort((a, b) => b.num - a.num);
-      for (let i = this.chonghe.length; i--; ) {
-        let gupiaos = [
-          ...this.chonghe[i].one.gupiao,
-          ...this.chonghe[i].two.gupiao,
-        ];
-        if (this.chonghe[i].chong.length) {
-          this.chonghe[i].chong.forEach((d, ind) => {
-            let tar = gupiaos.find((t) => t.zcName == d);
-            if (tar && tar.hangye) {
-              this.chonghe[i].chong[ind] = d;
-            }
-          });
-        }
-        if (this.chonghe[i].oneOther.length) {
-          this.chonghe[i].oneOther.forEach((d, ind) => {
-            let tar = gupiaos.find((t) => t.zcName == d);
-            if (tar && tar.hangye) {
-              this.chonghe[i].oneOther[ind] = d;
-            }
-          });
-        }
-        if (this.chonghe[i].twoOther.length) {
-          this.chonghe[i].twoOther.forEach((d, ind) => {
-            let tar = gupiaos.find((t) => t.zcName == d);
-            if (tar && tar.hangye) {
-              this.chonghe[i].twoOther[ind] = d;
-            }
-          });
-        }
-      }
+      });
 
       this.chiCangFenXi = this.zhengli.canUse.reduce((all, now) => {
         if (now.gupiao && now.gupiao.length) {
@@ -2067,6 +2099,7 @@ export default {
       }, []);
       // 根据持有量排序
       for (let i = this.chiCangFenXi.length; i--; ) {
+        this.chiCangFenXi[i]["zong"] = obj1[this.chiCangFenXi[i].name];
         this.chiCangFenXi[i].gupiao = this.chiCangFenXi[i].gupiao.sort(
           (a, b) => +b.ccRate - +a.ccRate
         );

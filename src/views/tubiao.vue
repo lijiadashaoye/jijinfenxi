@@ -205,7 +205,9 @@
           <tr v-for="(t, ind) in chiCangFenXi" :key="ind">
             <td>
               <p>{{ t.name }}</p>
-              <p @contextmenu="toChart1($event, t.code)">{{ t.code }}</p>
+              <p class="seel" @contextmenu="toChart1($event, t.code)">
+                {{ t.code }}
+              </p>
               <p style="font-size: 12px" v-if="t.zong">
                 {{ t.zong.join("，") }}
               </p>
@@ -528,8 +530,8 @@ export default {
       showJingLi: false, // 显示基金经理分析
       showGuPiao: false, // 将股票按类型分析
       showJiJinChiCang: true, // 将基金持仓进行分析
-      showChongHe: false, // 显示重合分析
-      showTongJi: false, // 股票数据统计
+      showChongHe: true, // 显示重合分析
+      showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析
 
       GetTime: 200, // 如果请求的数量太多，容易让node http请求报错，用来控制请求发送的间隔时间
@@ -541,7 +543,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 200;
+    let num = 222
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -2907,7 +2909,11 @@ ul {
     padding: 0;
   }
 }
-
+.seel:hover {
+  cursor: pointer;
+  background: rgb(192, 255, 220);
+  padding:0 4px;
+}
 .shuju {
   width: calc(100% - 155px);
   margin-top: 10px;

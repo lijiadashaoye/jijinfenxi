@@ -205,7 +205,7 @@
           <tr v-for="(t, ind) in chiCangFenXi" :key="ind">
             <td>
               <p>{{ t.name }}</p>
-              <p>{{ t.code }}</p>
+              <p @contextmenu="toChart1($event, t.code)">{{ t.code }}</p>
               <p style="font-size: 12px" v-if="t.zong">
                 {{ t.zong.join("，") }}
               </p>

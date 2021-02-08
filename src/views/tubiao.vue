@@ -543,7 +543,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num =222
+    let num = 222
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -2912,7 +2912,7 @@ ul {
 .seel:hover {
   cursor: pointer;
   background: rgb(192, 255, 220);
-  padding:0 4px;
+  padding: 0 4px;
 }
 .shuju {
   width: calc(100% - 155px);

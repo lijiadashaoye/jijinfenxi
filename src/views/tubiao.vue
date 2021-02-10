@@ -543,7 +543,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 222
+    let num = 220;
 
     this.range = `A1:B${num}`;
     this.readType = false;
@@ -766,6 +766,7 @@ export default {
             });
           }
         });
+
         this.getData();
       });
     },
@@ -893,6 +894,7 @@ export default {
     getData() {
       // 获取所有基金的code
       let codes = this.zhengli.canUse.map((t) => "" + t.code);
+
       // 获取缓存的基金数据
       if (this.caches) {
         // 读取之前缓存的基金号

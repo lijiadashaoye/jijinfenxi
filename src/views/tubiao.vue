@@ -529,7 +529,7 @@ export default {
       showChongFu: false, // excel 里重复的
       showJingLi: false, // 显示基金经理分析
       showGuPiao: false, // 将股票按类型分析
-      showJiJinChiCang: true, // 将基金持仓进行分析
+      showJiJinChiCang: false, // 将基金持仓进行分析
       showChongHe: true, // 显示重合分析
       showTongJi: true, // 股票数据统计
       showFenXi: false, // 显示走势分析

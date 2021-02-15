@@ -543,7 +543,7 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 222
+    let num = 223
 
     this.range = `A1:B${num}`;
     this.readType = false;

@@ -543,11 +543,12 @@ export default {
   },
   components: { jiazai },
   created() {
-    let num = 1000
+    let num =  250
 
     this.range = `A1:B${num}`;
     this.readType = false;
     this.testShiChang();
+
   },
   methods: {
     // 读取市场数据
